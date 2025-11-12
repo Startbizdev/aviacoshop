@@ -1,0 +1,143 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import ProductCard from '../components/molecules/ProductCard.astro';
+import Button from '../components/atoms/Button.astro';
+import Reassurance from '../components/molecules/Reassurance.astro';
+import { getProducts } from '../lib/wc-api';
+
+// Récupérer les 10 derniers produits
+let featuredProducts = [];
+try {
+  const products = await getProducts({ 
+    per_page: '10',
+    orderby: 'date',
+    order: 'desc'
+  });
+  featuredProducts = Array.isArray(products) ? products : [];
+} catch (error) {
+  console.error('Error fetching products:', error);
+  featuredProducts = [];
+}
+---
+
+<MainLayout title="Home" description="Welcome to Aviaco Shop - Your online store for all your aeronautical needs">
+  <!-- Hero Section -->
+  <section class="relative w-full h-[calc(100vh-120px)] md:h-[calc(100vh-140px)] overflow-hidden flex items-center justify-center">
+    <!-- Video Background -->
+    <video 
+      autoplay 
+      muted 
+      loop 
+      playsinline
+      class="absolute inset-0 w-full h-full object-cover z-0"
+    >
+      <source src="/videoaccueil.mp4" type="video/mp4" />
+    </video>
+    
+    <!-- Overlay gradient -->
+    <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/60 z-10"></div>
+    
+    <!-- Content -->
+    <div class="relative z-20 container mx-auto px-4">
+      <div class="max-w-4xl mx-auto text-center">
+        <h1 class="font-outfit font-bold text-4xl md:text-5xl lg:text-6xl mb-5 md:mb-6 text-white leading-tight tracking-tight hero-title">
+          Premium helicopter spare parts
+        </h1>
+        <p class="font-outfit text-lg md:text-xl lg:text-2xl mb-10 text-gray-100 max-w-3xl mx-auto leading-relaxed hero-description">
+          Certified components, expert maintenance solutions, and unparalleled quality for the aviation industry. Trusted by professionals worldwide.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center hero-cta">
+          <Button href="/catalogue" variant="secondary" size="lg" class="shadow-2xl">
+            Explore catalog
+          </Button>
+          <Button href="/contact" variant="outline" size="lg" class="!bg-transparent !border-2 !border-white !text-white hover:!bg-white hover:!text-gray-900 !transition-all">
+            Contact us
+          </Button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Scroll indicator -->
+    <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 animate-bounce">
+      <svg class="w-6 h-6 text-white opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+      </svg>
+    </div>
+  </section>
+
+  <style>
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .hero-title {
+      animation: fadeInUp 1s ease-out forwards;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .hero-description {
+      animation: fadeInUp 1s ease-out 0.3s forwards;
+      opacity: 0;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    .hero-cta {
+      animation: fadeIn 1s ease-out 0.6s forwards;
+      opacity: 0;
+    }
+  </style>
+
+  <!-- Featured Products Section -->
+  <section class="py-16 md:py-24">
+    <div class="container mx-auto px-4">
+      <div class="text-center mb-12">
+        <h2 class="font-outfit font-bold text-3xl md:text-4xl mb-4 text-gray-900 dark:text-white">
+          Featured products
+        </h2>
+        <p class="font-outfit text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          Discover our selection of featured products
+        </p>
+      </div>
+      
+      {featuredProducts.length > 0 ? (
+        <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 md:gap-6">
+          {featuredProducts.map((product) => (
+            <ProductCard product={product} />
+          ))}
+        </div>
+      ) : (
+        <div class="text-center py-12">
+          <p class="font-outfit text-gray-500 dark:text-gray-400">
+            No featured products at the moment
+          </p>
+        </div>
+      )}
+      
+      <div class="text-center mt-12">
+        <Button href="/catalogue" variant="outline" size="lg">
+          View all catalog
+        </Button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Reassurance Section -->
+  <Reassurance />
+</MainLayout>
+

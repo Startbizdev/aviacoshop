@@ -1,0 +1,181 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Input from '../components/atoms/Input.astro';
+import Button from '../components/atoms/Button.astro';
+import Spinner from '../components/atoms/Spinner.astro';
+import Card from '../components/atoms/Card.astro';
+import Icon from '../components/atoms/Icon.astro';
+
+---
+
+<MainLayout title="Login" description="Login to your account">
+  <div class="container mx-auto px-4 py-16">
+    <div class="max-w-md mx-auto">
+      <Card variant="elevated" class="p-8">
+        <div class="text-center mb-8">
+          <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Icon name="user" size="lg" class="text-primary" />
+          </div>
+          <h1 class="font-outfit font-bold text-3xl mb-2 text-gray-900 dark:text-white">
+            Welcome Back
+          </h1>
+          <p class="font-outfit text-gray-600 dark:text-gray-400">
+            Sign in to your account
+          </p>
+        </div>
+        
+        <form id="login-form" class="space-y-6">
+          <div>
+            <Input
+              type="text"
+              name="username"
+              id="username"
+              label="Username or Email"
+              placeholder="Enter your username or email"
+              required
+              autocomplete="username"
+            />
+          </div>
+          
+          <div>
+            <Input
+              type="password"
+              name="password"
+              id="password"
+              label="Password"
+              placeholder="Enter your password"
+              required
+              autocomplete="current-password"
+            />
+          </div>
+          
+          <div id="error-message" class="hidden">
+            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+              <p class="font-outfit text-sm text-red-600 dark:text-red-400" id="error-text"></p>
+            </div>
+          </div>
+          
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            class="w-full"
+            id="submit-button"
+          >
+            <span id="button-text">Sign In</span>
+            <span id="button-spinner" class="hidden">
+              <Spinner size="sm" />
+            </span>
+          </Button>
+          
+          <div class="text-center">
+            <p class="font-outfit text-sm text-gray-600 dark:text-gray-400">
+              Don't have an account? 
+              <a href="/register" class="text-primary hover:text-primary-dark font-medium">
+                Sign up
+              </a>
+            </p>
+          </div>
+        </form>
+      </Card>
+    </div>
+  </div>
+</MainLayout>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('login-form') as HTMLFormElement;
+    const submitButton = document.getElementById('submit-button') as HTMLButtonElement;
+    const buttonText = document.getElementById('button-text');
+    const buttonSpinner = document.getElementById('button-spinner');
+    const errorMessage = document.getElementById('error-message');
+    const errorText = document.getElementById('error-text');
+    
+    if (!form) return;
+    
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(form);
+      const username = formData.get('username') as string;
+      const password = formData.get('password') as string;
+      
+      // Reset error message
+      if (errorMessage) {
+        errorMessage.classList.add('hidden');
+      }
+      
+      // Disable button and show spinner
+      if (submitButton) {
+        submitButton.disabled = true;
+      }
+      if (buttonText) {
+        buttonText.textContent = 'Signing in...';
+      }
+      if (buttonSpinner) {
+        buttonSpinner.classList.remove('hidden');
+      }
+      
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, password }),
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.token) {
+          // Store token in localStorage
+          localStorage.setItem('auth_token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          
+          // Redirect to home or previous page
+          const returnUrl = new URLSearchParams(window.location.search).get('return') || '/';
+          window.location.href = returnUrl;
+        } else {
+          // Show error message
+          if (errorMessage) {
+            errorMessage.classList.remove('hidden');
+          }
+          if (errorText) {
+            errorText.textContent = data.error || 'Invalid credentials. Please try again.';
+          }
+          
+          // Re-enable button
+          if (submitButton) {
+            submitButton.disabled = false;
+          }
+          if (buttonText) {
+            buttonText.textContent = 'Sign In';
+          }
+          if (buttonSpinner) {
+            buttonSpinner.classList.add('hidden');
+          }
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        if (errorMessage) {
+          errorMessage.classList.remove('hidden');
+        }
+        if (errorText) {
+          errorText.textContent = 'An error occurred. Please try again.';
+        }
+        
+        // Re-enable button
+        if (submitButton) {
+          submitButton.disabled = false;
+        }
+        if (buttonText) {
+          buttonText.textContent = 'Sign In';
+        }
+        if (buttonSpinner) {
+          buttonSpinner.classList.add('hidden');
+        }
+      }
+    });
+  });
+</script>
+

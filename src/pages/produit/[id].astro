@@ -1,0 +1,686 @@
+---
+export const prerender = false;
+
+import MainLayout from '../../layouts/MainLayout.astro';
+import Button from '../../components/atoms/Button.astro';
+import Badge from '../../components/atoms/Badge.astro';
+import Image from '../../components/atoms/Image.astro';
+import ProductAttributes from '../../components/molecules/ProductAttributes.astro';
+import VariationSwatch from '../../components/molecules/VariationSwatch.astro';
+import ProductReassurance from '../../components/molecules/ProductReassurance.astro';
+import { getProduct } from '../../lib/wc-api';
+import { findEasaLink } from '../../lib/utils';
+
+const { id } = Astro.params;
+
+let product: any = null;
+let error = false;
+
+try {
+  product = await getProduct(id!);
+} catch (err) {
+  console.error('Error fetching product:', err);
+  error = true;
+}
+
+if (!product || error) {
+  return Astro.redirect('/catalogue');
+}
+
+// Chercher le lien EASA
+const easaLink = findEasaLink(product);
+
+// Déterminer le statut du stock (même logique que ProductCard)
+const isOutOfStock = product.stock_status === 'out_of_stock' || product.stock_status === 'outofstock';
+const isInStock = !isOutOfStock; // Par défaut en stock si non défini
+---
+
+<MainLayout title={product.name} description={product.description || product.name}>
+  <!-- Skeleton Loader -->
+  <div id="product-skeleton" class="container mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+      <!-- Image Skeleton -->
+      <div>
+        <!-- Main Image Skeleton -->
+        <div class="relative aspect-square bg-gray-200 dark:bg-gray-800 rounded-xl overflow-hidden mb-4 shadow-lg animate-pulse">
+          <div class="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800 skeleton-shimmer"></div>
+        </div>
+        
+        <!-- Thumbnails Skeleton -->
+        <div class="grid grid-cols-4 gap-2 sm:gap-3 md:gap-4">
+          {[...Array(4)].map(() => (
+            <div class="aspect-square bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden animate-pulse">
+              <div class="w-full h-full bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800 skeleton-shimmer"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+      
+      <!-- Info Skeleton -->
+      <div>
+        <!-- Title Skeleton -->
+        <div class="mb-4 space-y-3">
+          <div class="h-8 bg-gray-200 dark:bg-gray-800 rounded-lg w-3/4 animate-pulse skeleton-shimmer"></div>
+          <div class="h-8 bg-gray-200 dark:bg-gray-800 rounded-lg w-1/2 animate-pulse skeleton-shimmer"></div>
+        </div>
+        
+        <!-- Price Skeleton -->
+        <div class="mb-6">
+          <div class="h-10 bg-gray-200 dark:bg-gray-800 rounded-lg w-1/3 animate-pulse skeleton-shimmer"></div>
+        </div>
+        
+        <!-- Variations Skeleton -->
+        <div class="mb-6">
+          <div class="h-4 bg-gray-200 dark:bg-gray-800 rounded w-1/3 mb-3 animate-pulse skeleton-shimmer"></div>
+          <div class="flex flex-wrap gap-2">
+            {[...Array(3)].map(() => (
+              <div class="w-20 h-20 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse skeleton-shimmer"></div>
+            ))}
+          </div>
+        </div>
+        
+        <!-- Attributes Skeleton -->
+        <div class="mb-8 space-y-3">
+          <div class="h-6 bg-gray-200 dark:bg-gray-800 rounded-lg w-1/4 animate-pulse skeleton-shimmer"></div>
+          {[...Array(4)].map(() => (
+            <div class="h-12 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse skeleton-shimmer"></div>
+          ))}
+        </div>
+        
+        <!-- Button Skeleton -->
+        <div class="mb-4">
+          <div class="h-12 bg-gray-200 dark:bg-gray-800 rounded-lg w-full animate-pulse skeleton-shimmer"></div>
+        </div>
+        
+        <!-- Reassurance Skeleton -->
+        <div class="grid grid-cols-3 gap-4">
+          {[...Array(3)].map(() => (
+            <div class="h-16 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse skeleton-shimmer"></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="product-content" class="container mx-auto px-4 py-8" style="display: none;">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+      <!-- Images Gallery Slider -->
+      <div>
+        {product.images && product.images.length > 0 ? (
+          <>
+            <!-- Main Image Slider -->
+            <div class="relative aspect-square bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden mb-4 group shadow-lg shadow-gray-200/50 dark:shadow-gray-900/50 border border-gray-200/30 dark:border-gray-700/30">
+              <div id="main-image-container" class="relative w-full h-full">
+                {product.images.map((image: any, index: number) => (
+                  <div
+                    class={`main-image absolute inset-0 transition-opacity duration-300 ${index === 0 ? 'opacity-100' : 'opacity-0'}`}
+                    data-index={index}
+                  >
+                    <Image
+                      src={image.src || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5Qcm9kdWl0PC90ZXh0Pjwvc3ZnPg=='}
+                      alt={image.alt || product.name}
+                      class="w-full h-full object-cover cursor-zoom-in rounded-xl"
+                    />
+                  </div>
+                ))}
+              </div>
+              
+              <!-- Badges -->
+              <div class="absolute top-3 left-3 z-20 flex flex-col gap-2">
+                <!-- Badge SV -->
+                <Badge variant="purple" size="sm">SV</Badge>
+                
+                <!-- Badge Stock Status -->
+                {isInStock && (
+                  <Badge variant="success" size="sm">In stock</Badge>
+                )}
+                {isOutOfStock && (
+                  <Badge variant="error" size="sm">Out of stock</Badge>
+                )}
+              </div>
+              
+              <!-- Navigation Arrows -->
+              {product.images.length > 1 && (
+                <>
+                  <button
+                    id="prev-image"
+                    class="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-700 text-gray-900 dark:text-white p-2 rounded-full shadow-lg opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 z-10"
+                    aria-label="Previous image"
+                  >
+                    <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                  </button>
+                  <button
+                    id="next-image"
+                    class="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-700 text-gray-900 dark:text-white p-2 rounded-full shadow-lg opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 z-10"
+                    aria-label="Next image"
+                  >
+                    <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                  </button>
+                </>
+              )}
+              
+              <!-- Image Counter -->
+              {product.images.length > 1 && (
+                <div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white px-3 py-1 rounded-full text-sm font-outfit opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 z-10">
+                  <span id="image-counter">1</span> / {product.images.length}
+                </div>
+              )}
+            </div>
+            
+            <!-- Thumbnail Gallery -->
+            {product.images.length > 1 && (
+              <div class="grid grid-cols-4 gap-2 sm:gap-3 md:gap-4">
+                {product.images.map((image: any, index: number) => (
+                  <button
+                    class={`thumbnail aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden border transition-all duration-200 shadow-sm hover:shadow-md ${
+                      index === 0 
+                        ? 'border-primary/40 dark:border-primary/40 ring-2 ring-primary/20 shadow-md' 
+                        : 'border-gray-200/40 dark:border-gray-700/40 hover:border-gray-300/60 dark:hover:border-gray-600/60'
+                    }`}
+                    data-index={index}
+                    aria-label={`View image ${index + 1}`}
+                  >
+                    <Image
+                      src={image.src}
+                      alt={image.alt || product.name}
+                      class="w-full h-full object-cover rounded-lg"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <div class="aspect-square bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden mb-4 shadow-lg shadow-gray-200/50 dark:shadow-gray-900/50 border border-gray-200/30 dark:border-gray-700/30">
+            <Image
+              src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5Qcm9kdWl0PC90ZXh0Pjwvc3ZnPg=="
+              alt={product.name}
+              class="w-full h-full object-cover rounded-xl"
+            />
+          </div>
+        )}
+      </div>
+      
+      <!-- Product Info -->
+      <div>
+        <h1 class="font-outfit font-bold text-2xl sm:text-3xl md:text-4xl mb-3 sm:mb-4 text-gray-900 dark:text-white leading-tight">
+          {product.name}
+        </h1>
+        
+        {product.on_sale && (
+          <div class="mb-4">
+            <Badge variant="error">On Sale</Badge>
+          </div>
+        )}
+        
+        <div class="mb-4 sm:mb-6">
+          {product.prices?.sale_price && product.prices.sale_price !== product.prices.price ? (
+            <div class="flex items-center gap-3 sm:gap-4">
+              <span class="font-outfit font-bold text-2xl sm:text-3xl text-primary">
+                {product.prices.sale_price} €
+              </span>
+              <span class="font-outfit text-lg sm:text-xl text-gray-500 dark:text-gray-400 line-through">
+                {product.prices.regular_price} €
+              </span>
+            </div>
+          ) : (
+            <span class="font-outfit font-bold text-2xl sm:text-3xl text-primary">
+              {product.prices?.price || '0'} €
+            </span>
+          )}
+        </div>
+        
+        <!-- Variation Swatch -->
+        <VariationSwatch currentProduct={{ 
+          id: product.id, 
+          name: product.name,
+          images: product.images,
+          attributes: product.attributes,
+          slug: product.slug
+        }} />
+        
+        <!-- EASA Document Download -->
+        {easaLink && (
+          <div class="mb-6">
+            <a
+              href={easaLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="group inline-flex items-center gap-3 px-6 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-outfit font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
+            >
+              <svg class="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              <span>Download EASA Document</span>
+              <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+              </svg>
+            </a>
+          </div>
+        )}
+        
+        <!-- Attributes -->
+        {product.attributes && product.attributes.length > 0 && (
+          <div class="mb-8">
+            <ProductAttributes 
+              attributes={product.attributes} 
+              title="Description"
+              variant="default"
+            />
+          </div>
+        )}
+        
+        <!-- Meta Data (pour les attributs personnalisés) -->
+        {product.meta_data && product.meta_data.length > 0 && (
+          <div class="mb-8">
+            <ProductAttributes 
+              attributes={product.meta_data
+                .filter((meta: any) => meta.key && meta.value && !meta.key.startsWith('_'))
+                .map((meta: any) => ({
+                  name: meta.key.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
+                  value: typeof meta.value === 'object' ? JSON.stringify(meta.value) : meta.value || 'N/A',
+                }))} 
+              title="Informations complémentaires"
+              variant="default"
+            />
+          </div>
+        )}
+        
+        <!-- Variations -->
+        {product.variations && product.variations.length > 0 && (
+          <div class="mb-6">
+            <h3 class="font-outfit font-semibold text-lg mb-4 text-gray-900 dark:text-white">
+              Variantes disponibles
+            </h3>
+            <div class="space-y-2">
+              {product.variations.map((variation: any) => (
+                <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      {variation.attributes?.map((attr: any) => (
+                        <span class="font-outfit text-sm text-gray-600 dark:text-gray-400">
+                          {attr.name}: {attr.value}
+                        </span>
+                      ))}
+                    </div>
+                    <span class="font-outfit font-bold text-primary">
+                      {variation.prices?.price || product.prices?.price} €
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        <!-- Add to Cart -->
+        <div class="mb-4">
+          <Button
+            variant="primary"
+            size="lg"
+            class="w-full"
+            data-product-id={product.id}
+            data-product-name={product.name}
+            data-product-price={product.prices?.price || '0'}
+            disabled={isOutOfStock}
+          >
+            {isOutOfStock ? 'Out of stock' : 'Add to cart'}
+          </Button>
+        </div>
+        
+        <!-- Product Reassurance -->
+        <ProductReassurance class="mb-6" />
+        
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<style>
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+  
+  .skeleton-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .skeleton-shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent
+    );
+    animation: shimmer 1.5s infinite;
+  }
+  
+  :global(.dark) .skeleton-shimmer::after {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Hide skeleton and show content
+    const skeleton = document.getElementById('product-skeleton');
+    const content = document.getElementById('product-content');
+    
+    if (skeleton && content) {
+      // Simulate minimum loading time for smooth transition
+      setTimeout(() => {
+        skeleton.style.opacity = '0';
+        skeleton.style.transition = 'opacity 0.3s ease-out';
+        
+        setTimeout(() => {
+          skeleton.style.display = 'none';
+          content.style.display = 'block';
+          content.style.opacity = '0';
+          
+          // Fade in content
+          requestAnimationFrame(() => {
+            content.style.transition = 'opacity 0.3s ease-in';
+            content.style.opacity = '1';
+          });
+        }, 300);
+      }, 100); // Minimum 100ms to see skeleton
+    }
+    
+    // Image Gallery Slider
+    const mainImages = document.querySelectorAll('.main-image');
+    const thumbnails = document.querySelectorAll('.thumbnail');
+    const prevButton = document.getElementById('prev-image');
+    const nextButton = document.getElementById('next-image');
+    const imageCounter = document.getElementById('image-counter');
+    
+    let currentImageIndex = 0;
+    const totalImages = mainImages.length;
+    
+    function showImage(index: number) {
+      // Hide all images
+      mainImages.forEach((img, i) => {
+        const imgElement = img as HTMLElement;
+        imgElement.style.opacity = i === index ? '1' : '0';
+        imgElement.style.pointerEvents = i === index ? 'auto' : 'none';
+      });
+      
+      // Update thumbnails
+      thumbnails.forEach((thumb, i) => {
+        const thumbElement = thumb as HTMLElement;
+        if (i === index) {
+          thumbElement.classList.add('border-primary', 'dark:border-primary', 'ring-2', 'ring-primary/20');
+          thumbElement.classList.remove('border-transparent');
+        } else {
+          thumbElement.classList.remove('border-primary', 'dark:border-primary', 'ring-2', 'ring-primary/20');
+          thumbElement.classList.add('border-transparent');
+        }
+      });
+      
+      // Update counter
+      if (imageCounter) {
+        imageCounter.textContent = String(index + 1);
+      }
+      
+      currentImageIndex = index;
+    }
+    
+    function nextImage() {
+      const nextIndex = (currentImageIndex + 1) % totalImages;
+      showImage(nextIndex);
+    }
+    
+    function prevImage() {
+      const prevIndex = (currentImageIndex - 1 + totalImages) % totalImages;
+      showImage(prevIndex);
+    }
+    
+    // Thumbnail click handlers
+    thumbnails.forEach((thumb, index) => {
+      thumb.addEventListener('click', () => {
+        showImage(index);
+      });
+    });
+    
+    // Navigation buttons
+    if (prevButton) {
+      prevButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        prevImage();
+      });
+    }
+    
+    if (nextButton) {
+      nextButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        nextImage();
+      });
+    }
+    
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      const imageContainer = document.getElementById('main-image-container');
+      if (imageContainer && document.activeElement?.closest('.container')) {
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          prevImage();
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          nextImage();
+        }
+      }
+    });
+    
+    // Touch/swipe support for mobile
+    let touchStartX = 0;
+    let touchEndX = 0;
+    const mainImageContainer = document.getElementById('main-image-container');
+    
+    if (mainImageContainer) {
+      mainImageContainer.addEventListener('touchstart', (e: TouchEvent) => {
+        touchStartX = e.changedTouches[0].screenX;
+      });
+      
+      mainImageContainer.addEventListener('touchend', (e: TouchEvent) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+      });
+    }
+    
+    function handleSwipe() {
+      const swipeThreshold = 50;
+      const diff = touchStartX - touchEndX;
+      
+      if (Math.abs(diff) > swipeThreshold) {
+        if (diff > 0) {
+          // Swipe left - next image
+          nextImage();
+        } else {
+          // Swipe right - previous image
+          prevImage();
+        }
+      }
+    }
+    
+    // Add to Cart functionality
+    const addToCartButton = document.querySelector('[data-product-id]') as HTMLButtonElement;
+    
+    if (addToCartButton) {
+      addToCartButton.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (addToCartButton.disabled) {
+          console.log('Button is disabled');
+          return;
+        }
+        
+        const productId = addToCartButton.getAttribute('data-product-id');
+        
+        if (!productId) {
+          console.error('Product ID not found');
+          return;
+        }
+        
+        console.log('Adding product to cart:', productId);
+        
+        // Sauvegarder le texte original avant le try pour qu'il soit accessible dans le catch
+        const originalText = addToCartButton.textContent || 'Add to cart';
+        
+        try {
+          addToCartButton.disabled = true;
+          addToCartButton.textContent = 'Adding...';
+          
+          const requestBody = {
+            id: parseInt(productId),
+            quantity: 1,
+          };
+          
+          console.log('Request body:', requestBody);
+          
+          // Ne pas envoyer tous les cookies pour éviter l'erreur "Cookie Too Large"
+          // Les cookies seront gérés côté serveur via les headers de la requête
+          const response = await fetch('/api/cart/add-item', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            credentials: 'include', // Use include to ensure cookies are sent and received
+            body: JSON.stringify(requestBody),
+          });
+          
+          console.log('Response status:', response.status);
+          console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+          
+          // Vérifier le Content-Type de la réponse
+          const contentType = response.headers.get('content-type');
+          console.log('Response Content-Type:', contentType);
+          
+          if (response.ok) {
+            let result;
+            try {
+              result = await response.json();
+              console.log('Product added to cart:', result);
+            } catch (jsonError) {
+              const text = await response.text();
+              console.error('Failed to parse JSON response:', text);
+              throw new Error('Invalid response from server');
+            }
+            
+            addToCartButton.textContent = '✓ Added';
+            setTimeout(() => {
+              addToCartButton.textContent = originalText;
+              addToCartButton.disabled = false;
+            }, 2000);
+            
+            // Mettre à jour le panier avec les données de la réponse
+            // Cela évite les problèmes de synchronisation des cookies
+            if (result && (window as any).updateCartPopupWithData) {
+              (window as any).updateCartPopupWithData(result);
+            }
+            
+            // Mettre à jour le panier
+            window.dispatchEvent(new Event('cartUpdated'));
+            
+            // Ouvrir le popup immédiatement avec les données déjà chargées
+            setTimeout(() => {
+              if ((window as any).openCartPopup) {
+                (window as any).openCartPopup();
+                // Si les données n'ont pas été passées directement, charger depuis l'API
+                if (!result || !(window as any).updateCartPopupWithData) {
+                  setTimeout(() => {
+                    window.dispatchEvent(new Event('cartPopupOpen'));
+                  }, 100);
+                }
+              }
+            }, 100);
+          } else {
+            let errorData;
+            try {
+              const text = await response.text();
+              console.error('Error response text:', text);
+              try {
+                errorData = JSON.parse(text);
+              } catch {
+                errorData = { error: text.substring(0, 200) };
+              }
+            } catch {
+              errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+            }
+            console.error('Error response:', errorData);
+            
+            // Afficher un message d'erreur plus clair
+            let errorMessage = errorData.error || `Error adding to cart: ${response.status} ${response.statusText}`;
+            
+            // Nettoyer le message d'erreur (enlever les entités HTML)
+            errorMessage = errorMessage.replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+            
+            // Vérifier si c'est une erreur de produit non disponible ou de stock
+            if (errorMessage.includes('not available for purchase') || 
+                errorMessage.includes('not purchasable') ||
+                errorMessage.includes('not enough stock') ||
+                errorMessage.includes('remaining')) {
+              addToCartButton.textContent = 'Not available';
+              setTimeout(() => {
+                addToCartButton.textContent = originalText;
+                addToCartButton.disabled = false;
+              }, 3000);
+              
+              // Message d'erreur plus spécifique selon le type d'erreur
+              if (errorMessage.includes('not enough stock') || errorMessage.includes('remaining')) {
+                alert('Not enough stock available. Please reduce the quantity or check your cart.');
+              } else {
+                alert('This product is not available for purchase. It may be out of stock or require a variation selection.');
+              }
+              
+              // Recharger le panier pour s'assurer qu'il n'a pas été vidé
+              window.dispatchEvent(new Event('cartUpdated'));
+            } else {
+              throw new Error(errorMessage);
+            }
+          }
+        } catch (error: any) {
+          console.error('Error adding to cart:', error);
+          const errorMessage = error?.message || 'Unknown error';
+          addToCartButton.textContent = 'Error';
+          setTimeout(() => {
+            addToCartButton.textContent = originalText;
+            addToCartButton.disabled = false;
+          }, 2000);
+          
+          // Afficher l'erreur à l'utilisateur
+          if (!errorMessage.includes('not available')) {
+            alert(`Error: ${errorMessage}`);
+          }
+          
+          // Recharger le panier pour s'assurer qu'il n'a pas été vidé
+          window.dispatchEvent(new Event('cartUpdated'));
+        }
+      });
+    } else {
+      console.error('Add to cart button not found');
+    }
+  });
+</script>
+

@@ -1,0 +1,503 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Button from '../components/atoms/Button.astro';
+import Card from '../components/atoms/Card.astro';
+import Input from '../components/atoms/Input.astro';
+import { User, Package, Settings, LogOut, Calendar, MapPin, Phone, Mail, Edit2, Save, X } from 'lucide-astro';
+
+---
+
+<MainLayout title="My Account" description="Manage your account and view your orders">
+  <div class="container mx-auto px-4 py-8">
+    <div id="login-required" class="hidden text-center py-12">
+      <Card variant="elevated" class="max-w-md mx-auto p-8">
+        <User class="w-16 h-16 mx-auto mb-4 text-gray-400" />
+        <h2 class="font-outfit font-bold text-2xl mb-4 text-gray-900 dark:text-white">
+          Please sign in
+        </h2>
+        <p class="font-outfit text-gray-600 dark:text-gray-400 mb-6">
+          You need to be signed in to access your account.
+        </p>
+        <Button href="/login" variant="primary" size="lg" class="w-full">
+          Sign in
+        </Button>
+      </Card>
+    </div>
+
+    <div id="account-content" class="hidden">
+      <!-- Header -->
+      <div class="mb-8">
+        <h1 class="font-outfit font-bold text-3xl md:text-4xl mb-2 text-gray-900 dark:text-white">
+          My Account
+        </h1>
+        <p class="font-outfit text-gray-600 dark:text-gray-400">
+          Manage your account information and view your orders
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Sidebar -->
+        <div class="lg:col-span-1">
+          <Card variant="elevated" class="p-6">
+            <div class="flex items-center gap-4 mb-6">
+              <div class="w-16 h-16 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center">
+                <User class="w-8 h-8 text-primary" />
+              </div>
+              <div>
+                <h2 id="user-name" class="font-outfit font-semibold text-lg text-gray-900 dark:text-white">
+                  Loading...
+                </h2>
+                <p id="user-email" class="font-outfit text-sm text-gray-600 dark:text-gray-400">
+                  Loading...
+                </p>
+              </div>
+            </div>
+            
+            <nav class="space-y-2">
+              <button
+                id="nav-orders"
+                class="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-primary/10 dark:bg-primary/20 text-primary font-outfit font-medium transition-colors"
+              >
+                <Package class="w-5 h-5" />
+                <span>Orders</span>
+              </button>
+              <button
+                id="nav-profile"
+                class="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-outfit font-medium transition-colors"
+              >
+                <Settings class="w-5 h-5" />
+                <span>Profile</span>
+              </button>
+            </nav>
+            
+            <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <button
+                id="logout-btn"
+                class="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 font-outfit font-medium transition-colors"
+              >
+                <LogOut class="w-5 h-5" />
+                <span>Log out</span>
+              </button>
+            </div>
+          </Card>
+        </div>
+
+        <!-- Main Content -->
+        <div class="lg:col-span-2">
+          <!-- Orders Section -->
+          <div id="orders-section">
+            <Card variant="elevated" class="p-6">
+              <h2 class="font-outfit font-bold text-2xl mb-6 text-gray-900 dark:text-white">
+                Orders
+              </h2>
+              
+              <div id="orders-list" class="space-y-4">
+                <div class="text-center py-8">
+                  <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              </div>
+              
+              <div id="orders-pagination" class="mt-6 flex justify-center gap-2 hidden"></div>
+            </Card>
+          </div>
+
+          <!-- Profile Section -->
+          <div id="profile-section" class="hidden">
+            <Card variant="elevated" class="p-6">
+              <div class="flex items-center justify-between mb-6">
+                <h2 class="font-outfit font-bold text-2xl text-gray-900 dark:text-white">
+                  Profile Information
+                </h2>
+                <button
+                  id="edit-profile-btn"
+                  class="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-outfit font-medium transition-colors"
+                >
+                  <Edit2 class="w-4 h-4" />
+                  <span>Edit</span>
+                </button>
+              </div>
+              
+              <form id="profile-form" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block font-outfit font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
+                      First Name
+                    </label>
+                    <Input
+                      type="text"
+                      id="first-name"
+                      name="first_name"
+                      class="w-full"
+                      disabled
+                    />
+                  </div>
+                  <div>
+                    <label class="block font-outfit font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
+                      Last Name
+                    </label>
+                    <Input
+                      type="text"
+                      id="last-name"
+                      name="last_name"
+                      class="w-full"
+                      disabled
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label class="block font-outfit font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
+                    Email
+                  </label>
+                  <Input
+                    type="email"
+                    id="email"
+                    name="email"
+                    class="w-full"
+                    disabled
+                  />
+                </div>
+                
+                <div>
+                  <label class="block font-outfit font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
+                    Phone
+                  </label>
+                  <Input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    class="w-full"
+                    disabled
+                  />
+                </div>
+                
+                <div class="flex gap-3 pt-4 hidden" id="profile-form-actions">
+                  <Button type="submit" variant="primary" size="md">
+                    <Save class="w-4 h-4 mr-2" />
+                    Save Changes
+                  </Button>
+                  <Button
+                    type="button"
+                    id="cancel-edit-btn"
+                    variant="outline"
+                    size="md"
+                  >
+                    <X class="w-4 h-4 mr-2" />
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<script>
+  const token = localStorage.getItem('auth_token');
+  const loginRequired = document.getElementById('login-required');
+  const accountContent = document.getElementById('account-content');
+  let currentUser: any = null;
+  let currentPage = 1;
+
+  // Check authentication
+  if (!token) {
+    if (loginRequired) loginRequired.classList.remove('hidden');
+    if (accountContent) accountContent.classList.add('hidden');
+  } else {
+    if (loginRequired) loginRequired.classList.add('hidden');
+    if (accountContent) accountContent.classList.remove('hidden');
+    loadUserData();
+    loadOrders();
+  }
+
+  // Navigation
+  document.getElementById('nav-orders')?.addEventListener('click', () => {
+    showSection('orders');
+  });
+
+  document.getElementById('nav-profile')?.addEventListener('click', () => {
+    showSection('profile');
+  });
+
+  function showSection(section: string) {
+    const ordersSection = document.getElementById('orders-section');
+    const profileSection = document.getElementById('profile-section');
+    const navOrders = document.getElementById('nav-orders');
+    const navProfile = document.getElementById('nav-profile');
+
+    if (section === 'orders') {
+      if (ordersSection) ordersSection.classList.remove('hidden');
+      if (profileSection) profileSection.classList.add('hidden');
+      if (navOrders) {
+        navOrders.className = 'w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-primary/10 dark:bg-primary/20 text-primary font-outfit font-medium transition-colors';
+      }
+      if (navProfile) {
+        navProfile.className = 'w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-outfit font-medium transition-colors';
+      }
+    } else {
+      if (ordersSection) ordersSection.classList.add('hidden');
+      if (profileSection) profileSection.classList.remove('hidden');
+      if (navOrders) {
+        navOrders.className = 'w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-outfit font-medium transition-colors';
+      }
+      if (navProfile) {
+        navProfile.className = 'w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-primary/10 dark:bg-primary/20 text-primary font-outfit font-medium transition-colors';
+      }
+    }
+  }
+
+  // Load user data
+  async function loadUserData() {
+    try {
+      const response = await fetch('/api/my-account/user', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        currentUser = data.user;
+        displayUserData(data.user);
+      } else {
+        if (response.status === 401) {
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+        }
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    }
+  }
+
+  function displayUserData(user: any) {
+    const userName = document.getElementById('user-name');
+    const userEmail = document.getElementById('user-email');
+    const firstName = document.getElementById('first-name') as HTMLInputElement;
+    const lastName = document.getElementById('last-name') as HTMLInputElement;
+    const email = document.getElementById('email') as HTMLInputElement;
+    const phone = document.getElementById('phone') as HTMLInputElement;
+
+    const displayName = user.name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email;
+    
+    if (userName) userName.textContent = displayName;
+    if (userEmail) userEmail.textContent = user.email || '';
+    if (firstName) firstName.value = user.first_name || '';
+    if (lastName) lastName.value = user.last_name || '';
+    if (email) email.value = user.email || '';
+    if (phone) phone.value = user.phone || '';
+  }
+
+  // Load orders
+  async function loadOrders(page = 1) {
+    const ordersList = document.getElementById('orders-list');
+    if (!ordersList) return;
+
+    ordersList.innerHTML = '<div class="text-center py-8"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>';
+
+    try {
+      const response = await fetch(`/api/my-account/orders?page=${page}&per_page=10`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        displayOrders(data.orders, data.pagination);
+      } else {
+        ordersList.innerHTML = '<p class="text-center py-8 text-gray-500 dark:text-gray-400">Failed to load orders</p>';
+      }
+    } catch (error) {
+      console.error('Error loading orders:', error);
+      ordersList.innerHTML = '<p class="text-center py-8 text-gray-500 dark:text-gray-400">An error occurred</p>';
+    }
+  }
+
+  function displayOrders(orders: any[], pagination: any) {
+    const ordersList = document.getElementById('orders-list');
+    const paginationEl = document.getElementById('orders-pagination');
+    
+    if (!ordersList) return;
+
+    if (orders.length === 0) {
+      ordersList.innerHTML = `
+        <div class="text-center py-12">
+          <Package class="w-16 h-16 mx-auto mb-4 text-gray-400" />
+          <p class="font-outfit text-gray-500 dark:text-gray-400 text-lg mb-4">
+            No orders yet
+          </p>
+          <a href="/catalogue" class="inline-block">
+            <button class="px-6 py-2 bg-primary text-white rounded-lg font-outfit font-medium hover:bg-primary/90 transition-colors">
+              Start Shopping
+            </button>
+          </a>
+        </div>
+      `;
+      if (paginationEl) paginationEl.classList.add('hidden');
+      return;
+    }
+
+    ordersList.innerHTML = orders.map((order: any) => {
+      const date = new Date(order.date_created).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+      
+      const statusColors: Record<string, string> = {
+        'pending': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+        'processing': 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+        'on-hold': 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
+        'completed': 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+        'cancelled': 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
+        'refunded': 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
+        'failed': 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
+      };
+
+      const statusClass = statusColors[order.status] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+      
+      return `
+        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <a href="/commande/${order.id}" class="font-outfit font-semibold text-lg text-gray-900 dark:text-white hover:text-primary transition-colors">
+                Order #${order.id}
+              </a>
+              <p class="font-outfit text-sm text-gray-600 dark:text-gray-400 mt-1">
+                ${date}
+              </p>
+            </div>
+            <span class="px-3 py-1 rounded-full text-xs font-outfit font-medium ${statusClass}">
+              ${order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('-', ' ')}
+            </span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+              <span class="font-outfit">${order.line_items.length} item${order.line_items.length > 1 ? 's' : ''}</span>
+              <span class="font-outfit font-semibold text-gray-900 dark:text-white">
+                ${order.total} ${order.currency}
+              </span>
+            </div>
+            <a href="/commande/${order.id}" class="text-primary hover:text-primary/80 font-outfit font-medium text-sm">
+              View Details →
+            </a>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Pagination
+    if (paginationEl && pagination.totalPages > 1) {
+      paginationEl.classList.remove('hidden');
+      let paginationHTML = '';
+      
+      if (pagination.page > 1) {
+        paginationHTML += `<button onclick="loadOrdersPage(${pagination.page - 1})" class="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-outfit font-medium transition-colors">Previous</button>`;
+      }
+      
+      paginationHTML += `<span class="px-4 py-2 text-gray-700 dark:text-gray-300 font-outfit">Page ${pagination.page} of ${pagination.totalPages}</span>`;
+      
+      if (pagination.page < pagination.totalPages) {
+        paginationHTML += `<button onclick="loadOrdersPage(${pagination.page + 1})" class="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-outfit font-medium transition-colors">Next</button>`;
+      }
+      
+      paginationEl.innerHTML = paginationHTML;
+    } else if (paginationEl) {
+      paginationEl.classList.add('hidden');
+    }
+  }
+
+  // Make loadOrdersPage available globally
+  (window as any).loadOrdersPage = (page: number) => {
+    currentPage = page;
+    loadOrders(page);
+  };
+
+  // Profile editing
+  let isEditing = false;
+  const editBtn = document.getElementById('edit-profile-btn');
+  const cancelBtn = document.getElementById('cancel-edit-btn');
+  const profileForm = document.getElementById('profile-form') as HTMLFormElement;
+  const formActions = document.getElementById('profile-form-actions');
+  const inputs = ['first-name', 'last-name', 'email', 'phone'];
+
+  editBtn?.addEventListener('click', () => {
+    isEditing = true;
+    inputs.forEach(id => {
+      const input = document.getElementById(id) as HTMLInputElement;
+      if (input) input.disabled = false;
+    });
+    if (formActions) formActions.classList.remove('hidden');
+    if (editBtn) editBtn.classList.add('hidden');
+  });
+
+  cancelBtn?.addEventListener('click', () => {
+    isEditing = false;
+    if (currentUser) displayUserData(currentUser);
+    inputs.forEach(id => {
+      const input = document.getElementById(id) as HTMLInputElement;
+      if (input) input.disabled = true;
+    });
+    if (formActions) formActions.classList.add('hidden');
+    if (editBtn) editBtn.classList.remove('hidden');
+  });
+
+  profileForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = {
+      first_name: (document.getElementById('first-name') as HTMLInputElement).value,
+      last_name: (document.getElementById('last-name') as HTMLInputElement).value,
+      email: (document.getElementById('email') as HTMLInputElement).value,
+      phone: (document.getElementById('phone') as HTMLInputElement).value,
+    };
+
+    try {
+      const response = await fetch('/api/my-account/update', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        currentUser = data.user;
+        displayUserData(data.user);
+        isEditing = false;
+        inputs.forEach(id => {
+          const input = document.getElementById(id) as HTMLInputElement;
+          if (input) input.disabled = true;
+        });
+        if (formActions) formActions.classList.add('hidden');
+        if (editBtn) editBtn.classList.remove('hidden');
+        
+        // Show success message
+        alert('Profile updated successfully!');
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('An error occurred while updating your profile');
+    }
+  });
+
+  // Logout
+  document.getElementById('logout-btn')?.addEventListener('click', () => {
+    if (confirm('Are you sure you want to log out?')) {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user');
+      window.location.href = '/';
+    }
+  });
+</script>
+

@@ -1,0 +1,115 @@
+---
+import Header from '../components/organisms/Header.astro';
+import Footer from '../components/organisms/Footer.astro';
+import Announcement from '../components/molecules/Announcement.astro';
+import CartPopup from '../components/molecules/CartPopup.astro';
+import '../styles/global.css';
+
+export interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+const canonicalURL = Astro.site ? new URL(Astro.url.pathname, Astro.site) : Astro.url;
+---
+
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script is:inline>
+      (function() {
+        try {
+          const html = document.documentElement;
+          const stored = localStorage.getItem('theme');
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const theme = stored || (prefersDark ? 'dark' : 'light');
+          
+          if (theme === 'dark') {
+            html.classList.add('dark');
+          } else {
+            html.classList.remove('dark');
+          }
+        } catch (e) {
+          // Fallback silencieux
+        }
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={canonicalURL} />
+    
+    <!-- SEO Meta Tags -->
+    <title>{title} | Aviaco Shop</title>
+    <meta name="description" content={description} />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={`${title} | Aviaco Shop`} />
+    <meta property="og:description" content={description} />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={canonicalURL} />
+    <meta property="twitter:title" content={`${title} | Aviaco Shop`} />
+    <meta property="twitter:description" content={description} />
+    
+    <meta name="generator" content={Astro.generator} />
+  </head>
+  <body class="font-outfit bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
+    <Header />
+    <Announcement />
+    <main class="flex-1">
+      <slot />
+    </main>
+    <Footer />
+    <CartPopup />
+    
+    <script is:inline>
+      (function() {
+        const root = document.documentElement;
+        let currentTheme = root.classList.contains('dark') ? 'dark' : 'light';
+        
+        function setTheme(theme) {
+          if (currentTheme === theme) return;
+          currentTheme = theme;
+          try {
+            localStorage.setItem('theme', theme);
+            root.classList.toggle('dark', theme === 'dark');
+          } catch (e) {}
+        }
+        
+        function toggleTheme() {
+          setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        }
+        
+        // Exposer globalement
+        window.toggleTheme = toggleTheme;
+        window.setTheme = setTheme;
+        window.getTheme = () => currentTheme;
+        
+        // Attacher l'événement immédiatement si possible
+        function attachToggle() {
+          const toggle = document.getElementById('theme-toggle');
+          if (toggle) {
+            toggle.addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              toggleTheme();
+            }, { passive: false });
+          } else if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', attachToggle, { once: true });
+          }
+        }
+        
+        attachToggle();
+      })();
+    </script>
+  </body>
+</html>
+

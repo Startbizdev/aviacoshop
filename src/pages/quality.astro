@@ -1,0 +1,112 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Hero from '../components/molecules/Hero.astro';
+import Button from '../components/atoms/Button.astro';
+---
+
+<MainLayout title="Quality" description="Quality department committed to maintaining high quality standards through internal audit plans and compliance monitoring">
+  <!-- Hero Section -->
+  <Hero 
+    title="Quality" 
+    image="/copter/1.jpg"
+    imageAlt="Quality standards"
+  />
+
+  <!-- Introduction Section -->
+  <section class="py-12 md:py-16 lg:py-20 bg-white dark:bg-gray-900">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto">
+        <p class="font-outfit text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 leading-relaxed mb-5 md:mb-6">
+          The Quality department is committed to maintain high quality standards by monitoring the performance through an internal audit plan. Compliance Monitoring Manager is responsible for maintaining the agreements PART 145 and PART CAMO in accordance with the regulation.
+        </p>
+        <p class="font-outfit text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 leading-relaxed">
+          Quality is our main concern. The quality system includes a feedback system of findings to ensure the effective implementation of corrective actions as necessary. Compliance Monitoring Manager make sure that all certifying staff and employees are well trained and competent to perform their tasks, all management system key processes are well documented. Thanks to their dedication to their profession, all our employees meet the highest standards and deliver a service of high quality.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Image Section -->
+  <section class="py-8 md:py-10 lg:py-12 bg-white dark:bg-gray-900">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto">
+        <div class="aspect-square w-full overflow-hidden rounded-xl shadow-2xl">
+          <img 
+            src="/copter/2.jpg" 
+            alt="Quality standards" 
+            class="w-full h-full object-cover"
+            loading="lazy"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Development Section -->
+  <section class="py-12 md:py-16 lg:py-20 bg-gray-50 dark:bg-gray-800/50">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="font-outfit font-bold text-2xl md:text-3xl lg:text-4xl mb-5 md:mb-6 lg:mb-8 text-gray-900 dark:text-white">
+          Continuous development
+        </h2>
+        <p class="font-outfit text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 leading-relaxed mb-5 md:mb-6">
+          For the past years, we have been developing new services such as the maintenance, the engine workshop, the painting department, the PART CAMO. We have extended our PART 145 by developing the TCCA and FAA agreements to meet our customer needs.
+        </p>
+        <p class="font-outfit text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 leading-relaxed">
+          To get the best quality in our work and to optimize the costs and deadlines, we keep developing our internal capability to repair spare parts.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Safety Section -->
+  <section class="py-12 md:py-16 lg:py-20 bg-white dark:bg-gray-900">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-6xl mx-auto">
+        <div class="grid md:grid-cols-2 gap-6 md:gap-8 lg:gap-12 items-center">
+          <div>
+            <h2 class="font-outfit font-bold text-2xl md:text-3xl lg:text-4xl mb-5 md:mb-6 lg:mb-8 text-gray-900 dark:text-white">
+              Commitment to safety at Aviaco
+            </h2>
+            <p class="font-outfit text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 leading-relaxed">
+              Safety is our highest priority at Aviaco. We have implemented a robust safety culture based on risk and change management. Our Safety Management System (SMS) includes the identification, evaluation, and management of aviation safety hazards associated with our activities, such as airworthiness management, maintenance, and painting. Safety reporting procedures, aligned with just culture principles, are integral to our SMS. Our Compliance Monitoring Manager is dedicated to maintaining high safety standards by continuously monitoring safety performance in accordance with regulations.
+            </p>
+          </div>
+          <div class="mt-8 md:mt-0">
+            <div class="aspect-square w-full overflow-hidden rounded-xl shadow-xl">
+              <img 
+                src="/copter/3.jpg" 
+                alt="Safety commitment" 
+                class="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="py-12 md:py-16 lg:py-20 bg-gray-900 dark:bg-black text-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto text-center">
+        <h2 class="font-outfit font-bold text-2xl md:text-3xl lg:text-4xl mb-5 md:mb-6 lg:mb-8">
+          Quality and safety first
+        </h2>
+        <p class="font-outfit text-base md:text-lg lg:text-xl text-gray-300 leading-relaxed mb-8 md:mb-10">
+          At Aviaco, quality and safety are at the heart of everything we do. Contact us to learn more about our quality standards and safety management system.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button href="/contact" variant="secondary" size="lg" class="shadow-2xl">
+            Contact us
+          </Button>
+          <Button href="/about" variant="outline" size="lg" class="!bg-transparent !border-2 !border-white !text-white hover:!bg-white hover:!text-gray-900 !transition-all">
+            Learn more about us
+          </Button>
+        </div>
+      </div>
+    </div>
+  </section>
+</MainLayout>
+

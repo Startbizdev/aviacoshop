@@ -1,0 +1,43 @@
+---
+interface Props {
+  title: string;
+  subtitle?: string;
+  image?: string;
+  imageAlt?: string;
+}
+
+const { 
+  title, 
+  subtitle, 
+  image = '/copter/3.jpg',
+  imageAlt = 'Helicopter'
+} = Astro.props;
+---
+
+<section class="relative text-white py-20 md:py-28 lg:py-32 overflow-hidden">
+  <!-- Background Image -->
+  <div class="absolute inset-0 -z-10">
+    <img 
+      src={image} 
+      alt={imageAlt} 
+      class="w-full h-full object-cover"
+      loading="eager"
+    />
+    <!-- Overlay -->
+    <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/60"></div>
+  </div>
+  
+  <div class="container mx-auto px-4 relative z-10">
+    <div class="max-w-3xl mx-auto text-center">
+      <h1 class="font-outfit font-bold text-4xl md:text-5xl lg:text-6xl mb-4">
+        {title}
+      </h1>
+      {subtitle && (
+        <p class="font-outfit text-xl md:text-2xl text-gray-100">
+          {subtitle}
+        </p>
+      )}
+    </div>
+  </div>
+</section>
+

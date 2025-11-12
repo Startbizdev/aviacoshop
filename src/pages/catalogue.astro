@@ -1,0 +1,364 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import ProductCard from '../components/molecules/ProductCard.astro';
+import Button from '../components/atoms/Button.astro';
+import Spinner from '../components/atoms/Spinner.astro';
+import { getProducts } from '../lib/wc-api';
+
+const url = Astro.url;
+const searchParams = url.searchParams;
+const search = searchParams.get('search') || '';
+const perPage = 20; // 6 produits par ligne × 3.33 lignes initiales
+
+let products = [];
+
+try {
+  const params: Record<string, string> = {
+    per_page: perPage.toString(),
+    page: '1',
+  };
+  
+  if (search) {
+    params.search = search;
+  }
+  
+  const response = await getProducts(params);
+  const allProducts = Array.isArray(response) ? response : [];
+  
+  // Grouper les produits par titre (insensible à la casse) et ne garder qu'un seul produit par groupe
+  const productsByTitle = new Map<string, any>();
+  
+  allProducts.forEach((product: any) => {
+    const productName = (product.name || '').trim().toLowerCase();
+    
+    // Si on n'a pas encore de produit pour ce titre, ou si le produit actuel est en stock et l'autre non
+    if (!productsByTitle.has(productName)) {
+      productsByTitle.set(productName, product);
+    } else {
+      const existingProduct = productsByTitle.get(productName);
+      const existingIsOutOfStock = existingProduct.stock_status === 'out_of_stock' || existingProduct.stock_status === 'outofstock';
+      const currentIsOutOfStock = product.stock_status === 'out_of_stock' || product.stock_status === 'outofstock';
+      
+      // Préférer le produit en stock, sinon garder celui avec le plus petit ID (premier créé)
+      if (existingIsOutOfStock && !currentIsOutOfStock) {
+        productsByTitle.set(productName, product);
+      } else if (!existingIsOutOfStock && currentIsOutOfStock) {
+        // Garder l'existant
+      } else if (product.id < existingProduct.id) {
+        // Si même statut de stock, garder celui avec le plus petit ID
+        productsByTitle.set(productName, product);
+      }
+    }
+  });
+  
+  // Convertir la Map en tableau et trier par ID
+  products = Array.from(productsByTitle.values()).sort((a: any, b: any) => a.id - b.id);
+} catch (error) {
+  console.error('Error fetching products:', error);
+  products = [];
+}
+---
+
+<MainLayout title="Catalog" description="Discover our complete catalog of aeronautical products">
+  <div class="container mx-auto px-4 py-8">
+    <!-- Products Grid -->
+    <div id="products-container">
+      {products.length > 0 ? (
+        <div id="products-grid" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 md:gap-6 mb-8">
+          {products.map((product) => (
+            <ProductCard product={product} />
+          ))}
+        </div>
+      ) : (
+        <div class="text-center py-12">
+          <p class="font-outfit text-gray-500 dark:text-gray-400 text-lg mb-4">
+            {search ? 'No products found for your search' : 'No products available'}
+          </p>
+          {search && (
+            <Button href="/catalogue" variant="primary">
+              View all catalog
+            </Button>
+          )}
+        </div>
+      )}
+      
+      <!-- Loading indicator -->
+      <div id="loading-indicator" class="hidden text-center py-8">
+        <div class="flex flex-col items-center justify-center gap-4">
+          <Spinner size="md" />
+          <p class="font-outfit text-gray-600 dark:text-gray-400">Loading products...</p>
+        </div>
+      </div>
+      
+      <!-- End of products message -->
+      <div id="end-message" class="hidden text-center py-8">
+        <p class="font-outfit text-gray-500 dark:text-gray-400">All products have been loaded</p>
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<script>
+  (function() {
+    const productsGrid = document.getElementById('products-grid');
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const endMessage = document.getElementById('end-message');
+    
+    if (!productsGrid) return;
+    
+    let currentPage = 1;
+    let isLoading = false;
+    let hasMore = true;
+    const searchQuery = new URLSearchParams(window.location.search).get('search') || '';
+    const perPage = 20;
+    
+    // Observer pour détecter quand l'utilisateur arrive en bas de page
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && hasMore && !isLoading) {
+          loadMoreProducts();
+        }
+      });
+    }, {
+      rootMargin: '200px', // Commencer à charger 200px avant d'arriver en bas
+    });
+    
+    // Créer un élément sentinelle pour observer
+    const sentinel = document.createElement('div');
+    sentinel.id = 'scroll-sentinel';
+    sentinel.className = 'h-1';
+    productsGrid.parentNode?.appendChild(sentinel);
+    observer.observe(sentinel);
+    
+    async function loadMoreProducts() {
+      if (isLoading || !hasMore) return;
+      
+      isLoading = true;
+      currentPage++;
+      
+      // Afficher l'indicateur de chargement
+      if (loadingIndicator) {
+        loadingIndicator.classList.remove('hidden');
+      }
+      
+      try {
+        const params = new URLSearchParams({
+          page: currentPage.toString(),
+          per_page: perPage.toString(),
+        });
+        
+        if (searchQuery) {
+          params.append('search', searchQuery);
+        }
+        
+        const response = await fetch(`/api/products?${params.toString()}`);
+        const data = await response.json();
+        
+        if (data.products && data.products.length > 0) {
+          // Grouper les produits par titre (insensible à la casse) et ne garder qu'un seul produit par groupe
+          const productsByTitle = new Map<string, any>();
+          
+          data.products.forEach((product: any) => {
+            const productName = (product.name || '').trim().toLowerCase();
+            
+            // Si on n'a pas encore de produit pour ce titre, ou si le produit actuel est en stock et l'autre non
+            if (!productsByTitle.has(productName)) {
+              productsByTitle.set(productName, product);
+            } else {
+              const existingProduct = productsByTitle.get(productName);
+              const existingIsOutOfStock = existingProduct.stock_status === 'out_of_stock' || existingProduct.stock_status === 'outofstock';
+              const currentIsOutOfStock = product.stock_status === 'out_of_stock' || product.stock_status === 'outofstock';
+              
+              // Préférer le produit en stock, sinon garder celui avec le plus petit ID (premier créé)
+              if (existingIsOutOfStock && !currentIsOutOfStock) {
+                productsByTitle.set(productName, product);
+              } else if (!existingIsOutOfStock && currentIsOutOfStock) {
+                // Garder l'existant
+              } else if (product.id < existingProduct.id) {
+                // Si même statut de stock, garder celui avec le plus petit ID
+                productsByTitle.set(productName, product);
+              }
+            }
+          });
+          
+          // Convertir la Map en tableau et trier par ID
+          const uniqueProducts = Array.from(productsByTitle.values()).sort((a: any, b: any) => a.id - b.id);
+          
+          // Utiliser le même format que les ProductCard existants
+          // On va créer des éléments temporaires pour parser le HTML
+          const tempDiv = document.createElement('div');
+          
+          // Pour chaque produit, créer un wrapper div qui sera remplacé par le ProductCard
+          uniqueProducts.forEach((product: any) => {
+            const wrapper = document.createElement('div');
+            wrapper.setAttribute('data-product-id', product.id);
+            wrapper.setAttribute('data-product-name', product.name || '');
+            wrapper.setAttribute('data-product-price', product.prices?.price || '0');
+            wrapper.setAttribute('data-product-image', product.images?.[0]?.src || '');
+            wrapper.setAttribute('data-product-on-sale', (product.on_sale || (product.prices?.sale_price && product.prices.sale_price !== product.prices.price)).toString());
+            wrapper.setAttribute('data-product-stock', product.stock_status || 'instock');
+            wrapper.setAttribute('data-product-regular-price', product.prices?.regular_price || '');
+            wrapper.setAttribute('data-product-sale-price', product.prices?.sale_price || '');
+            wrapper.innerHTML = `
+              <a href="/produit/${product.id}" class="block bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+                <div class="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800">
+                  <img 
+                    src="${product.images?.[0]?.src || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5Qcm9kdWl0PC90ZXh0Pjwvc3ZnPg=='}" 
+                    alt="${product.images?.[0]?.alt || product.name || 'Product'}"
+                    class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                  ${(product.on_sale || (product.prices?.sale_price && product.prices.sale_price !== product.prices.price)) ? `
+                    <div class="absolute top-4 left-4">
+                      <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-bold text-white bg-red-500 rounded-full">Promo</span>
+                    </div>
+                  ` : ''}
+                  ${product.stock_status === 'out_of_stock' ? `
+                    <div class="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <span class="inline-flex items-center justify-center px-4 py-2 text-sm font-bold text-white bg-red-500 rounded-full">Out of stock</span>
+                    </div>
+                  ` : ''}
+                </div>
+                <div class="p-4">
+                  <h3 class="font-semibold text-lg mb-2 text-gray-900 dark:text-white group-hover:text-primary transition-colors line-clamp-2">
+                    ${product.name || 'Unnamed product'}
+                  </h3>
+                  <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                      ${(product.on_sale || (product.prices?.sale_price && product.prices.sale_price !== product.prices.price)) && product.prices?.regular_price ? `
+                        <span class="font-bold text-lg text-primary">
+                          ${product.prices.sale_price || product.prices.price} €
+                        </span>
+                        <span class="text-sm text-gray-500 dark:text-gray-400 line-through">
+                          ${product.prices.regular_price} €
+                        </span>
+                      ` : `
+                        <span class="font-bold text-lg text-primary">
+                          ${product.prices?.price || '0'} €
+                        </span>
+                      `}
+                    </div>
+                  </div>
+                  <button
+                    class="w-full px-4 py-2 font-medium rounded-lg transition-all duration-300 bg-primary text-white hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary add-to-cart-btn"
+                    ${product.stock_status === 'out_of_stock' ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}
+                    data-product-id="${product.id}"
+                    data-product-name="${product.name || ''}"
+                    data-product-price="${product.prices?.price || '0'}"
+                  >
+                    ${product.stock_status === 'out_of_stock' ? 'Out of stock' : 'Add to cart'}
+                  </button>
+                </div>
+              </a>
+            `;
+            productsGrid.appendChild(wrapper);
+          });
+          
+          // Ajouter les event listeners pour les boutons "Ajouter au panier"
+          const addToCartButtons = productsGrid.querySelectorAll('.add-to-cart-btn:not([data-listener-added])');
+          addToCartButtons.forEach((button: any) => {
+            button.setAttribute('data-listener-added', 'true');
+            button.addEventListener('click', async (e: Event) => {
+              e.preventDefault();
+              e.stopPropagation();
+              
+              if (button.disabled) return;
+              
+              const productId = button.getAttribute('data-product-id');
+              
+              try {
+                button.disabled = true;
+                const originalText = button.textContent;
+                button.textContent = 'Adding...';
+                
+                const response = await fetch('/api/cart/add-item', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  credentials: 'include',
+                  body: JSON.stringify({
+                    id: parseInt(productId || '0'),
+                    quantity: 1,
+                  }),
+                });
+                
+                if (response.ok) {
+                  button.textContent = '✓ Added';
+                  setTimeout(() => {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                  }, 2000);
+                  
+                  window.dispatchEvent(new Event('cartUpdated'));
+                } else {
+                  // Lire le message d'erreur de la réponse
+                  let errorMessage = 'Error adding to cart';
+                  try {
+                    const text = await response.text();
+                    try {
+                      const errorData = JSON.parse(text);
+                      errorMessage = errorData.error || errorMessage;
+                    } catch {
+                      // Si ce n'est pas du JSON, utiliser le texte directement
+                      errorMessage = text.substring(0, 200) || errorMessage;
+                    }
+                  } catch {
+                    // Ignorer si on ne peut pas lire la réponse
+                  }
+                  
+                  // Vérifier si c'est une erreur de stock
+                  if (errorMessage.includes('not enough stock') || errorMessage.includes('remaining')) {
+                    button.textContent = 'Out of stock';
+                    setTimeout(() => {
+                      button.textContent = originalText;
+                      button.disabled = false;
+                    }, 3000);
+                    
+                    // Recharger le panier pour s'assurer qu'il n'a pas été vidé
+                    window.dispatchEvent(new Event('cartUpdated'));
+                  } else {
+                    throw new Error(errorMessage);
+                  }
+                }
+              } catch (error: any) {
+                console.error('Error adding to cart:', error);
+                const errorMessage = error?.message || 'Unknown error';
+                button.textContent = 'Error';
+                setTimeout(() => {
+                  button.textContent = button.getAttribute('data-product-stock') === 'out_of_stock' ? 'Out of stock' : originalText;
+                  button.disabled = false;
+                }, 2000);
+                
+                // Recharger le panier pour s'assurer qu'il n'a pas été vidé
+                window.dispatchEvent(new Event('cartUpdated'));
+              }
+            });
+          });
+          
+          // Vérifier s'il y a encore des produits
+          hasMore = data.hasMore && uniqueProducts.length > 0;
+        } else {
+          hasMore = false;
+        }
+        
+        // Si plus de produits, afficher le message de fin
+        if (!hasMore && endMessage) {
+          endMessage.classList.remove('hidden');
+          if (sentinel) {
+            observer.unobserve(sentinel);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading more products:', error);
+        hasMore = false;
+      } finally {
+        isLoading = false;
+        if (loadingIndicator) {
+          loadingIndicator.classList.add('hidden');
+        }
+      }
+    }
+  })();
+</script>
+

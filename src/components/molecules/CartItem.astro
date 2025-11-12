@@ -1,0 +1,321 @@
+---
+import Image from '../atoms/Image.astro';
+import { Plus, Minus, Trash2 } from 'lucide-astro';
+
+interface Props {
+  item: {
+    key: string;
+    id: number;
+    name: string;
+    images?: Array<{ src: string; alt: string }>;
+    prices: {
+      price: string;
+      total: string;
+    };
+    quantity: number;
+  };
+}
+
+const { item } = Astro.props;
+const imageUrl = item.images?.[0]?.src || '/placeholder-product.jpg';
+
+// Format prices properly - remove any existing € symbols and add our own
+const unitPriceRaw = item.prices?.price || item.price || '0';
+const unitPrice = unitPriceRaw.toString().replace(/[€\s]/g, '').trim() || '0';
+
+// Calculate total price if not provided
+let totalPriceRaw = item.prices?.total || item.total || '';
+if (!totalPriceRaw || totalPriceRaw === '0' || totalPriceRaw === '' || totalPriceRaw === '0,00' || totalPriceRaw === '0.00') {
+  // Calculate from unit price × quantity
+  // Handle both comma and dot as decimal separator
+  const unitPriceClean = unitPrice.replace(/[^\d,.-]/g, '').replace(',', '.');
+  const unitPriceNum = parseFloat(unitPriceClean) || 0;
+  const totalPriceNum = unitPriceNum * (item.quantity || 1);
+  // Format with 2 decimals, using comma as decimal separator
+  totalPriceRaw = totalPriceNum.toFixed(2).replace('.', ',');
+} else {
+  // Clean existing total price
+  totalPriceRaw = totalPriceRaw.toString().replace(/[€\s]/g, '').trim();
+}
+const totalPrice = totalPriceRaw || '0';
+---
+
+<div 
+  class="flex items-center gap-4 p-4 md:p-6 border-b border-gray-200 dark:border-gray-700 last:border-b-0 transition-opacity duration-300 cart-item"
+  data-item-key={item.key}
+>
+  <a href={`/produit/${item.id}`} class="flex-shrink-0 group">
+    <Image
+      src={imageUrl}
+      alt={item.images?.[0]?.alt || item.name}
+      width={100}
+      height={100}
+      class="rounded-lg object-cover w-20 h-20 md:w-24 md:h-24 group-hover:opacity-80 transition-opacity"
+    />
+  </a>
+  
+  <div class="flex-1 min-w-0">
+    <a 
+      href={`/produit/${item.id}`} 
+      class="font-outfit font-semibold text-base md:text-lg text-gray-900 dark:text-white hover:text-primary transition-colors block mb-2 line-clamp-2"
+    >
+      {item.name}
+    </a>
+    <p class="font-outfit text-sm text-gray-500 dark:text-gray-400">
+      {unitPrice} € × {item.quantity}
+    </p>
+  </div>
+  
+  <div class="flex items-center gap-4 flex-shrink-0">
+    <!-- Quantity Controls -->
+    <div class="flex items-center gap-2 border border-gray-300 dark:border-gray-600 rounded-lg p-1">
+      <button
+        class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed quantity-btn"
+        data-action="decrease"
+        data-key={item.key}
+        aria-label="Decrease quantity"
+        disabled={item.quantity <= 1}
+      >
+        <Minus class="w-4 h-4 text-gray-600 dark:text-gray-300" />
+      </button>
+      
+      <span class="font-outfit font-medium w-8 text-center text-sm md:text-base quantity-display">{item.quantity}</span>
+      
+      <button
+        class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors quantity-btn"
+        data-action="increase"
+        data-key={item.key}
+        aria-label="Increase quantity"
+      >
+        <Plus class="w-4 h-4 text-gray-600 dark:text-gray-300" />
+      </button>
+    </div>
+    
+    <!-- Price -->
+    <div class="text-right min-w-[100px]">
+      <p class="font-outfit font-bold text-lg md:text-xl text-gray-900 dark:text-white price-display">
+        {totalPrice} €
+      </p>
+    </div>
+    
+    <!-- Remove Button -->
+    <button
+      class="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors remove-btn flex-shrink-0"
+      data-action="remove"
+      data-key={item.key}
+      aria-label="Remove item"
+      title="Remove"
+    >
+      <Trash2 class="w-5 h-5" />
+    </button>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Find all cart items and attach event listeners to each
+    const cartItems = document.querySelectorAll('[data-item-key]');
+    
+    cartItems.forEach((cartItemElement) => {
+      const cartItem = cartItemElement as HTMLElement;
+      const itemKey = cartItem.getAttribute('data-item-key');
+      if (!itemKey) return;
+      
+      const buttons = cartItem.querySelectorAll('[data-action]');
+      const quantityDisplay = cartItem.querySelector('.quantity-display') as HTMLElement;
+      const priceDisplay = cartItem.querySelector('.price-display') as HTMLElement;
+      const decreaseBtn = cartItem.querySelector('[data-action="decrease"]') as HTMLButtonElement;
+    const increaseBtn = cartItem.querySelector('[data-action="increase"]') as HTMLButtonElement;
+    
+    buttons.forEach(button => {
+      button.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const action = button.getAttribute('data-action');
+        const itemKey = button.getAttribute('data-key');
+        
+        if (!itemKey) return;
+        
+        // Disable all buttons during request
+        buttons.forEach(btn => {
+          (btn as HTMLButtonElement).disabled = true;
+        });
+        
+        // Show loading indicator
+        const originalContent = button.innerHTML;
+        if (action === 'remove') {
+          button.innerHTML = '<svg class="w-5 h-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+          button.classList.add('opacity-50');
+        } else {
+          // Show loading state on quantity buttons
+          button.classList.add('opacity-50');
+          button.style.pointerEvents = 'none';
+        }
+        
+        try {
+          let response;
+          
+          if (action === 'remove') {
+            console.log('Removing item with key:', itemKey);
+            response = await fetch('/api/cart/remove-item', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              credentials: 'include',
+              body: JSON.stringify({ key: itemKey }),
+            });
+            console.log('Remove response status:', response?.status);
+          } else if (action === 'increase' || action === 'decrease') {
+            const currentQuantity = parseInt(quantityDisplay?.textContent || '1');
+            const newQuantity = action === 'increase' ? currentQuantity + 1 : Math.max(1, currentQuantity - 1);
+            
+            response = await fetch('/api/cart/update-item', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              credentials: 'include',
+              body: JSON.stringify({ key: itemKey, quantity: newQuantity }),
+            });
+          }
+          
+          if (response?.ok) {
+            if (action === 'remove') {
+              const result = await response.json().catch(() => ({}));
+              console.log('Item removed successfully, response:', result);
+              // Removal animation
+              cartItem.classList.add('removing');
+              // Reload page immediately after successful removal
+              setTimeout(() => {
+                window.location.reload();
+              }, 300);
+              return; // Exit early to prevent further execution
+            } else {
+              // Update displayed quantity and price
+              const result = await response.json();
+              const updatedItem = result.items?.find((i: any) => i.key === itemKey);
+              if (updatedItem) {
+                if (quantityDisplay) {
+                  quantityDisplay.textContent = String(updatedItem.quantity);
+                }
+                
+                // Update price
+                if (priceDisplay) {
+                  let newTotal = updatedItem.prices?.total || updatedItem.total || '';
+                  if (!newTotal || newTotal === '0' || newTotal === '') {
+                    // Calculate from unit price × quantity
+                    const unitPrice = updatedItem.prices?.price || updatedItem.price || '0';
+                    const unitPriceNum = parseFloat(unitPrice.toString().replace(/[€\s,]/g, '').replace(',', '.')) || 0;
+                    const totalPriceNum = unitPriceNum * (updatedItem.quantity || 1);
+                    newTotal = totalPriceNum.toFixed(2).replace('.', ',');
+                  } else {
+                    newTotal = newTotal.toString().replace(/[€\s]/g, '').trim();
+                  }
+                  priceDisplay.textContent = `${newTotal} €`;
+                }
+                
+                // Update decrease button state
+                if (decreaseBtn) {
+                  decreaseBtn.disabled = updatedItem.quantity <= 1;
+                }
+                
+                // Reload page to update totals
+                setTimeout(() => {
+                  window.location.reload();
+                }, 200);
+              }
+            }
+          } else {
+            // Restore original content on error
+            if (action === 'remove') {
+              button.innerHTML = originalContent;
+              button.classList.remove('opacity-50');
+            } else {
+              button.classList.remove('opacity-50');
+              button.style.pointerEvents = '';
+            }
+            
+            const errorData = await response?.json().catch(() => ({}));
+            console.error('Error updating cart:', errorData);
+            console.error('Response status:', response?.status);
+            console.error('Response statusText:', response?.statusText);
+            
+            if (action === 'remove') {
+              alert(errorData.error || `Failed to remove item. Status: ${response?.status}`);
+            } else {
+              alert(errorData.error || 'An error occurred');
+            }
+            
+            // Re-enable buttons
+            buttons.forEach(btn => {
+              (btn as HTMLButtonElement).disabled = false;
+            });
+          }
+        } catch (error) {
+          console.error('Error updating cart:', error);
+          // Restore original content on error
+          if (action === 'remove') {
+            button.innerHTML = originalContent;
+            button.classList.remove('opacity-50');
+          } else {
+            button.classList.remove('opacity-50');
+            button.style.pointerEvents = '';
+          }
+          alert('An error occurred while updating the cart');
+          
+          // Re-enable buttons
+          buttons.forEach(btn => {
+            (btn as HTMLButtonElement).disabled = false;
+          });
+        } finally {
+          // Re-enable buttons
+          if (action !== 'remove') {
+            buttons.forEach(btn => {
+              (btn as HTMLButtonElement).disabled = false;
+              btn.classList.remove('opacity-50');
+              (btn as HTMLElement).style.pointerEvents = '';
+            });
+          }
+        }
+      });
+    });
+    }); // Close cartItems.forEach
+  });
+</script>
+
+<style>
+  .cart-item {
+    opacity: 1;
+    transform: translateX(0);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  
+  .cart-item.removing {
+    opacity: 0;
+    transform: translateX(-20px);
+    pointer-events: none;
+  }
+  
+  .quantity-btn {
+    transition: all 0.2s ease;
+  }
+  
+  .quantity-btn:hover:not(:disabled) {
+    background-color: rgb(249 250 251);
+  }
+  
+  .dark .quantity-btn:hover:not(:disabled) {
+    background-color: rgb(55 65 81);
+  }
+  
+  .quantity-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .quantity-display {
+    user-select: none;
+  }
+</style>

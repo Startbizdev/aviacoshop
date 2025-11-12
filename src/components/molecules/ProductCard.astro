@@ -1,0 +1,259 @@
+---
+import Card from '../atoms/Card.astro';
+import Button from '../atoms/Button.astro';
+import Badge from '../atoms/Badge.astro';
+import Image from '../atoms/Image.astro';
+
+interface Props {
+  product: {
+    id: number;
+    name: string;
+    permalink: string;
+    images?: Array<{ src: string; alt: string }>;
+    prices: {
+      price: string;
+      regular_price?: string;
+      sale_price?: string;
+    };
+    on_sale?: boolean;
+    stock_status?: string;
+    attributes?: Array<{ name: string; options?: string[]; value?: string }>;
+    meta_data?: Array<{ key: string; value: any }>;
+  };
+}
+
+const { product } = Astro.props;
+const imageUrl = product.images?.[0]?.src || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5Qcm9kdWl0PC90ZXh0Pjwvc3ZnPg==';
+const isOnSale = product.on_sale || (product.prices.sale_price && product.prices.sale_price !== product.prices.price);
+const isOutOfStock = product.stock_status === 'out_of_stock' || product.stock_status === 'outofstock';
+// In stock si pas out_of_stock (par défaut considéré comme en stock)
+const isInStock = !isOutOfStock;
+
+// Récupérer itemname depuis les attributs ou meta_data
+let itemName = '';
+
+// Chercher dans les attributs
+if (product.attributes && Array.isArray(product.attributes)) {
+  const itemNameAttr = product.attributes.find((attr: any) => {
+    const attrName = (attr.name || attr.label || '').toLowerCase();
+    const attrId = String(attr.id || '').toLowerCase();
+    const attrSlug = (attr.slug || '').toLowerCase();
+    // Chercher "ITEM NAME" ou "itemname" ou "item_name"
+    return attrName === 'item name' || 
+           attrName.includes('itemname') || 
+           attrName.includes('item_name') || 
+           attrId.includes('itemname') ||
+           attrSlug.includes('itemname');
+  });
+  
+  if (itemNameAttr) {
+    // La valeur est dans terms[0].name selon la structure WooCommerce
+    let rawItemName = '';
+    if (Array.isArray(itemNameAttr.terms) && itemNameAttr.terms.length > 0) {
+      rawItemName = String(itemNameAttr.terms[0]?.name || itemNameAttr.terms[0]?.slug || '').trim();
+    } else if (Array.isArray(itemNameAttr.options) && itemNameAttr.options.length > 0) {
+      rawItemName = String(itemNameAttr.options[0] || '').trim();
+    } else if (itemNameAttr.value) {
+      rawItemName = String(itemNameAttr.value).trim();
+    } else if (Array.isArray(itemNameAttr.values) && itemNameAttr.values.length > 0) {
+      const firstValue = itemNameAttr.values[0];
+      rawItemName = String(firstValue?.name || firstValue?.value || firstValue || '').trim();
+    } else if (typeof itemNameAttr.options === 'string') {
+      rawItemName = String(itemNameAttr.options).trim();
+    } else if (itemNameAttr.option) {
+      rawItemName = String(itemNameAttr.option).trim();
+    }
+    
+    // Convertir en Title Case (première lettre de chaque mot en majuscule)
+    if (rawItemName) {
+      itemName = rawItemName
+        .toLowerCase()
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    }
+  }
+}
+
+// Chercher dans meta_data
+if (!itemName && product.meta_data && Array.isArray(product.meta_data)) {
+  const itemNameMeta = product.meta_data.find((meta: any) => {
+    const key = (meta.key || '').toLowerCase();
+    return key === 'itemname' || 
+           key === 'item_name' || 
+           key.includes('itemname');
+  });
+  if (itemNameMeta && itemNameMeta.value) {
+    itemName = typeof itemNameMeta.value === 'string' ? itemNameMeta.value : String(itemNameMeta.value);
+  }
+}
+
+// Debug: afficher toutes les clés du produit pour voir ce qui est disponible
+// console.log('Product keys:', Object.keys(product));
+// console.log('Product full:', JSON.stringify(product, null, 2));
+---
+
+<Card variant="elevated" href={`/produit/${product.id}`} class="group overflow-hidden">
+  <div class="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800">
+    <Image
+      src={imageUrl}
+      alt={product.images?.[0]?.alt || product.name}
+      class="w-full h-full group-hover:scale-110 transition-transform duration-500"
+      loading="lazy"
+    />
+    
+    <!-- Badge SV en haut à gauche -->
+    <div class="absolute top-2 left-2 sm:top-3 sm:left-3 z-10">
+      <Badge variant="purple" size="sm" class="text-[10px] px-1.5 py-0.5 sm:text-xs sm:px-2 sm:py-1">SV</Badge>
+    </div>
+    
+    <!-- Badges en haut à droite -->
+    <div class="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 flex flex-col gap-1 sm:gap-2 items-end">
+      <!-- Badge In Stock -->
+      {isInStock && (
+        <Badge variant="success" size="sm" class="text-[10px] px-1.5 py-0.5 sm:text-xs sm:px-2 sm:py-1">In stock</Badge>
+      )}
+      <!-- Badge Promo (si en promo) -->
+      {isOnSale && (
+        <Badge variant="error" size="sm" class="text-[10px] px-1.5 py-0.5 sm:text-xs sm:px-2 sm:py-1">Sale</Badge>
+      )}
+    </div>
+    
+    <!-- Overlay Out of Stock -->
+    {isOutOfStock && (
+      <div class="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
+        <Badge variant="error" size="lg">Out of stock</Badge>
+      </div>
+    )}
+  </div>
+  
+  <div class="p-2 sm:p-4">
+    <h3 class="font-outfit font-semibold text-sm sm:text-base md:text-lg text-gray-900 dark:text-white group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors line-clamp-2 mb-1">
+      {product.name}
+    </h3>
+    
+    {itemName && (
+      <p class="font-outfit text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate mb-1 sm:mb-2">
+        {itemName}
+      </p>
+    )}
+    
+    <div class="flex items-center justify-between mb-2 sm:mb-4">
+      <div class="flex items-center gap-2">
+        {isOnSale && product.prices.regular_price ? (
+          <>
+            <span class="font-outfit font-medium text-sm sm:text-base text-gray-900 dark:text-gray-100">
+              {product.prices.sale_price || product.prices.price}€
+            </span>
+            <span class="font-outfit text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-through">
+              {product.prices.regular_price}€
+            </span>
+          </>
+        ) : (
+          <span class="font-outfit font-medium text-sm sm:text-base text-gray-900 dark:text-gray-100">
+            {product.prices.price}€
+          </span>
+        )}
+      </div>
+    </div>
+    
+    <Button
+      variant="primary"
+      size="md"
+      class="w-full text-xs sm:text-sm py-1.5 sm:py-2"
+      disabled={isOutOfStock}
+      data-product-id={product.id}
+      data-product-name={product.name}
+      data-product-price={product.prices.price}
+    >
+      {isOutOfStock ? 'Out of stock' : 'Add to cart'}
+    </Button>
+  </div>
+</Card>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const buttons = document.querySelectorAll('[data-product-id]');
+    
+    buttons.forEach(button => {
+      button.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (button.disabled) return;
+        
+        const productId = button.getAttribute('data-product-id');
+        const productName = button.getAttribute('data-product-name');
+        const productPrice = button.getAttribute('data-product-price');
+        
+        try {
+          button.disabled = true;
+          button.textContent = 'Adding...';
+          
+          const response = await fetch('/api/cart/add-item', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              id: parseInt(productId),
+              quantity: 1,
+            }),
+          });
+          
+          if (response.ok) {
+            button.textContent = '✓ Added';
+            setTimeout(() => {
+              button.textContent = 'Add to cart';
+              button.disabled = false;
+            }, 2000);
+            
+            // Mettre à jour le compteur du panier
+            window.dispatchEvent(new Event('cartUpdated'));
+          } else {
+            // Lire le message d'erreur de la réponse
+            let errorMessage = 'Error adding to cart';
+            try {
+              const text = await response.text();
+              try {
+                const errorData = JSON.parse(text);
+                errorMessage = errorData.error || errorMessage;
+              } catch {
+                // Si ce n'est pas du JSON, utiliser le texte directement
+                errorMessage = text.substring(0, 200) || errorMessage;
+              }
+            } catch {
+              // Ignorer si on ne peut pas lire la réponse
+            }
+            
+            // Vérifier si c'est une erreur de stock
+            if (errorMessage.includes('not enough stock') || errorMessage.includes('remaining')) {
+              button.textContent = 'Out of stock';
+              setTimeout(() => {
+                button.textContent = 'Add to cart';
+                button.disabled = false;
+              }, 3000);
+              
+              // Recharger le panier pour s'assurer qu'il n'a pas été vidé
+              window.dispatchEvent(new Event('cartUpdated'));
+            } else {
+              throw new Error(errorMessage);
+            }
+          }
+        } catch (error: any) {
+          console.error('Error adding to cart:', error);
+          const errorMessage = error?.message || 'Unknown error';
+          button.textContent = 'Error';
+          setTimeout(() => {
+            button.textContent = 'Add to cart';
+            button.disabled = false;
+          }, 2000);
+          
+          // Recharger le panier pour s'assurer qu'il n'a pas été vidé
+          window.dispatchEvent(new Event('cartUpdated'));
+        }
+      });
+    });
+  });
+</script>

@@ -1,0 +1,18 @@
+{
+  "name": "aviacoshop",
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "astro dev --port 3000",
+    "build": "astro build",
+    "preview": "astro preview --port 3000",
+    "start": "astro dev --port 3000",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.1.14",
+    "astro": "^5.14.1",
+    "lucide-astro": "^0.553.0",
+    "tailwindcss": "^4.1.14"
+  }
+}

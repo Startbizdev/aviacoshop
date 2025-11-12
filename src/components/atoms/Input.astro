@@ -1,0 +1,45 @@
+---
+interface Props {
+  type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'search';
+  name?: string;
+  id?: string;
+  placeholder?: string;
+  value?: string;
+  required?: boolean;
+  disabled?: boolean;
+  class?: string;
+  label?: string;
+}
+
+const {
+  type = 'text',
+  name,
+  id,
+  placeholder,
+  value,
+  required = false,
+  disabled = false,
+  class: className = '',
+  label,
+} = Astro.props;
+
+const inputClasses = `w-full px-4 py-2 font-outfit text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`;
+---
+
+{label && (
+  <label for={id || name} class="block mb-2 font-outfit font-medium text-gray-700 dark:text-gray-300">
+    {label}
+    {required && <span class="text-red-500 ml-1">*</span>}
+  </label>
+)}
+<input
+  type={type}
+  name={name}
+  id={id || name}
+  placeholder={placeholder}
+  value={value}
+  required={required}
+  disabled={disabled}
+  class={inputClasses}
+/>
+

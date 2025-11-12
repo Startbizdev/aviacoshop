@@ -1,0 +1,85 @@
+---
+import Image from '../atoms/Image.astro';
+
+interface Props {
+  name: string;
+  role: string;
+  image?: string;
+}
+
+const { name, role, image } = Astro.props;
+---
+
+<div class="group flex flex-col items-center cursor-pointer">
+  <!-- Photo container - round design with enhanced effects -->
+  <div class="relative mb-5 md:mb-6 w-full max-w-[180px] md:max-w-[240px] aspect-square mx-auto">
+    {image ? (
+      <div class="relative w-full h-full rounded-full overflow-hidden group-hover:ring-4 group-hover:ring-primary/40 transition-all duration-700 shadow-xl group-hover:shadow-2xl group-hover:shadow-primary/30 group-hover:scale-105">
+        <Image
+          src={image}
+          alt={name}
+          class="w-full h-full object-cover group-hover:scale-[1.15] transition-transform duration-700 ease-out"
+        />
+        <!-- Animated gradient overlay on hover -->
+        <div class="absolute inset-0 bg-gradient-to-t from-primary/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-full"></div>
+        <!-- Glow effect -->
+        <div class="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+          <div class="absolute inset-0 rounded-full bg-primary/20 blur-xl"></div>
+        </div>
+        <!-- Shine effect -->
+        <div class="absolute inset-0 rounded-full overflow-hidden">
+          <div class="absolute -inset-10 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 group-hover:animate-shine"></div>
+        </div>
+      </div>
+    ) : (
+      <div class="w-full h-full rounded-full bg-gradient-to-br from-primary/20 via-primary/30 to-primary/40 dark:from-primary/30 dark:via-primary/40 dark:to-primary/50 flex items-center justify-center group-hover:ring-4 group-hover:ring-primary/40 transition-all duration-700 shadow-xl group-hover:shadow-2xl group-hover:shadow-primary/30 group-hover:scale-105">
+        <span class="text-4xl md:text-5xl font-outfit font-bold text-primary/70 dark:text-primary/50 group-hover:scale-110 transition-transform duration-300">
+          {name.charAt(0).toUpperCase()}
+        </span>
+      </div>
+    )}
+  </div>
+  
+  <!-- Text content with enhanced animations -->
+  <div class="text-center px-2 transform group-hover:-translate-y-1 transition-transform duration-500">
+    <h3 class="font-outfit font-bold text-base md:text-lg lg:text-xl mb-2 md:mb-2.5 text-gray-900 dark:text-white group-hover:text-primary transition-all duration-500 relative inline-block">
+      {name}
+      <!-- Underline effect on hover -->
+      <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-500"></span>
+    </h3>
+    <p class="font-outfit text-xs md:text-sm lg:text-base text-gray-600 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 leading-relaxed transition-colors duration-500">
+      {role}
+    </p>
+  </div>
+</div>
+
+<style>
+  @keyframes shine {
+    0% {
+      transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    }
+    100% {
+      transform: translateX(200%) translateY(200%) rotate(45deg);
+    }
+  }
+
+  .animate-shine {
+    animation: shine 1.5s ease-in-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .group-hover\:scale-105,
+    .group-hover\:scale-\[1\.15\] {
+      transform: none;
+    }
+    
+    .group-hover\:-translate-y-1 {
+      transform: none;
+    }
+    
+    .animate-shine {
+      animation: none;
+    }
+  }
+</style>
+

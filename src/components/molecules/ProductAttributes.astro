@@ -1,0 +1,458 @@
+---
+import { Helicopter, Tag } from 'lucide-astro';
+
+interface Props {
+  attributes: Array<{
+    id?: number;
+    name?: string;
+    label?: string;
+    slug?: string;
+    options?: string[] | string;
+    values?: Array<{ name?: string; value?: string; slug?: string }>;
+    value?: string | number;
+    option?: string;
+    terms?: Array<{ name?: string; slug?: string }>;
+    default?: string;
+    selected?: string;
+  }>;
+  title?: string;
+  variant?: 'default' | 'compact' | 'grid';
+  class?: string;
+}
+
+const {
+  attributes = [],
+  title = 'Spécifications',
+  variant = 'default',
+  class: className = '',
+} = Astro.props;
+
+// Fonction pour extraire la valeur d'un attribut
+function getAttributeValue(attr: any): string {
+  // Format: options array
+  if (attr.options && Array.isArray(attr.options) && attr.options.length > 0) {
+    const filtered = attr.options.filter((opt: any) => opt && opt !== '' && opt !== null);
+    return filtered.length > 0 ? filtered.join(', ') : 'N/A';
+  }
+  
+  // Format: values array d'objets
+  if (attr.values && Array.isArray(attr.values) && attr.values.length > 0) {
+    const mapped = attr.values.map((v: any) => v.name || v.value || v).filter((v: any) => v && v !== '' && v !== null);
+    return mapped.length > 0 ? mapped.join(', ') : 'N/A';
+  }
+  
+  // Format: value directe
+  if (attr.value !== undefined && attr.value !== null && attr.value !== '') {
+    return String(attr.value);
+  }
+  
+  // Format: options string
+  if (typeof attr.options === 'string' && attr.options !== '') {
+    return attr.options;
+  }
+  
+  // Format: option (singulier)
+  if (attr.option) {
+    return String(attr.option);
+  }
+  
+  // Format: terms (taxonomie)
+  if (attr.terms && Array.isArray(attr.terms) && attr.terms.length > 0) {
+    return attr.terms.map((t: any) => t.name || t.slug || t).filter((t: any) => t && t !== '').join(', ');
+  }
+  
+  // Chercher dans les autres champs possibles
+  const possibleFields = ['default', 'selected', 'slug', 'id'];
+  for (const field of possibleFields) {
+    if (attr[field] !== undefined && attr[field] !== null && attr[field] !== '') {
+      return String(attr[field]);
+    }
+  }
+  
+  return 'N/A';
+}
+
+// Fonction pour formater le nom de l'attribut
+function formatAttributeName(name: string | undefined, label: string | undefined): string {
+  const displayName = name || label || 'Attribut';
+  // Convertir les underscores en espaces et mettre en Title Case
+  return displayName
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (l: string) => l.toUpperCase());
+}
+
+// Fonction pour obtenir le type d'icône appropriée selon le nom ET la valeur de l'attribut
+function getAttributeIconType(attrName: string): string {
+  const name = attrName.toLowerCase().trim();
+  
+  // Part Number - Icône Helicopter
+  // Vérifier "part number", "partnumber", "part-number", "part_number"
+  if ((name.includes('part') && name.includes('number')) || 
+      name.includes('partnumber') || 
+      name.includes('part-number') ||
+      name.includes('part_number')) {
+    return 'helicopter';
+  }
+  
+  // Serial/Lot Number - Icône Tag
+  if ((name.includes('serial') || name.includes('lot')) && name.includes('number')) {
+    return 'tag';
+  }
+  
+  return 'default';
+}
+
+// Fonction pour obtenir l'icône SVG appropriée selon le nom ET la valeur de l'attribut
+function getAttributeIcon(attrName: string, attrValue: string): string {
+  const name = attrName.toLowerCase();
+  const value = attrValue.toLowerCase();
+  const combined = `${name} ${value}`;
+  
+  // Item Name / Nom du produit
+  if (name.includes('item') && name.includes('name') || name.includes('nom') || name.includes('name')) {
+    return `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+    </svg>`;
+  }
+  
+  // Dimensions / Taille / Poids
+  if (name.includes('dimension') || name.includes('size') || name.includes('taille') || name.includes('poids') || name.includes('weight') || 
+      name.includes('length') || name.includes('longueur') || name.includes('width') || name.includes('largeur') || 
+      name.includes('height') || name.includes('hauteur') || name.includes('depth') || name.includes('profondeur') ||
+      value.match(/\d+\s*(cm|mm|m|inch|in|kg|g|lb)/i)) {
+    return `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+    </svg>`;
+  }
+  
+  // Matériau / Matière / Fabric
+  if (name.includes('material') || name.includes('matériau') || name.includes('matiere') || name.includes('fabric') ||
+      name.includes('composant') || name.includes('composition')) {
+    return `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+    </svg>`;
+  }
+  
+  // Couleur
+  if (name.includes('color') || name.includes('couleur') || name.includes('colour') ||
+      value.match(/^(rouge|red|bleu|blue|vert|green|jaune|yellow|noir|black|blanc|white|gris|gray|orange|violet|purple)/i)) {
+    return `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
+    </svg>`;
+  }
+  
+  // Part Number - Icône Helicopter
+  if (name.includes('part') && name.includes('number')) {
+    return `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    </svg>`;
+  }
+  
+  // Serial/Lot Number - Icône Tag
+  if ((name.includes('serial') || name.includes('lot')) && name.includes('number')) {
+    return `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+    </svg>`;
+  }
+  
+  // Référence / SKU / Code (autres références)
+  if (name.includes('reference') || name.includes('ref') || name.includes('sku') ||
+      name.includes('code') || name.includes('article') || name.includes('numéro') || name.includes('numero') ||
+      value.match(/^[A-Z0-9-]+$/i) && value.length > 3) {
+    return `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
+    </svg>`;
+  }
+  
+  // Date / Année / Year
+  if (name.includes('date') || name.includes('year') || name.includes('année') || name.includes('annee') ||
+      name.includes('manufacture') || name.includes('fabrication') ||
+      value.match(/\d{4}/) || value.match(/\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}/)) {
+    return `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+    </svg>`;
+  }
+  
+  // Condition / État / Status
+  if (name.includes('condition') || name.includes('état') || name.includes('etat') || name.includes('status') || 
+      name.includes('statut') || name.includes('state') ||
+      value.match(/^(neuf|new|occasion|used|reconditionné|refurbished|excellent|good|fair)/i)) {
+    return `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    </svg>`;
+  }
+  
+  // Quantité / Stock / Qty
+  if (name.includes('quantity') || name.includes('quantité') || name.includes('quantite') || name.includes('stock') || 
+      name.includes('qty') || name.includes('available') || name.includes('disponible')) {
+    return `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+    </svg>`;
+  }
+  
+  // Modèle / Type / Version
+  if (name.includes('model') || name.includes('modèle') || name.includes('modele') || name.includes('type') || 
+      name.includes('version') || name.includes('variant') || name.includes('variante')) {
+    return `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+    </svg>`;
+  }
+  
+  // Fabricant / Marque / Brand / Manufacturer
+  if (name.includes('manufacturer') || name.includes('fabricant') || name.includes('brand') || name.includes('marque') || 
+      name.includes('maker') || name.includes('producer') || name.includes('producteur')) {
+    return `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+    </svg>`;
+  }
+  
+  // Certification / Standard / Norme / Approval
+  if (name.includes('certification') || name.includes('standard') || name.includes('norme') || name.includes('approval') || 
+      name.includes('approbation') || name.includes('certified') || name.includes('certifié') ||
+      value.match(/(iso|ce|faa|easa|icao)/i)) {
+    return `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+    </svg>`;
+  }
+  
+  // Description / Notes / Comment / Info
+  if (name.includes('description') || name.includes('note') || name.includes('comment') || name.includes('remarque') || 
+      name.includes('info') || name.includes('detail') || name.includes('détail')) {
+    return `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+    </svg>`;
+  }
+  
+  // Prix / Price / Coût / Cost
+  if (name.includes('price') || name.includes('prix') || name.includes('cost') || name.includes('coût') || 
+      name.includes('tarif') || value.match(/[\d,.]+\s*(€|eur|usd|\$)/i)) {
+    return `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    </svg>`;
+  }
+  
+  // Icône par défaut (info) - unique pour chaque attribut non reconnu
+  // Utiliser un hash simple basé sur le nom pour générer des variations
+  const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const iconVariants = [
+    `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`,
+    `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`,
+    `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg>`,
+  ];
+  return iconVariants[hash % iconVariants.length];
+}
+
+// Fonction pour filtrer les attributs à masquer
+function shouldHideAttribute(attr: any): boolean {
+  const name = (attr.name || attr.label || '').toLowerCase();
+  const slug = (attr.slug || '').toLowerCase();
+  const key = (attr.key || '').toLowerCase();
+  const value = getAttributeValue(attr).toLowerCase();
+  
+  // Liste des attributs à masquer (insensible à la casse)
+  const hiddenAttributes = [
+    'référence interne',
+    'reference interne',
+    'vendeur',
+    'seller',
+    'vendor',
+    'easa file',
+    'easa',
+    'serial/lot number id',
+    'aircraft',
+  ];
+  
+  // Vérifier si l'attribut doit être masqué par son nom
+  const shouldHideByName = hiddenAttributes.some(hidden => 
+    name.includes(hidden) || 
+    slug.includes(hidden) || 
+    key.includes(hidden)
+  );
+  
+  // Masquer les attributs qui contiennent un lien EASA dans leur valeur
+  const valueStr = getAttributeValue(attr);
+  const containsEasaLink = valueStr.includes('easa') && 
+                           (valueStr.includes('netsuite.com') || 
+                            valueStr.includes('media.nl') || 
+                            valueStr.includes('<a') ||
+                            valueStr.includes('voir le document'));
+  
+  // Ne plus masquer les codes de référence car on veut afficher "Référence interne"
+  return shouldHideByName || containsEasaLink;
+}
+
+// Fonction pour renommer certains attributs
+function renameAttribute(attr: any): any {
+  const name = (attr.name || attr.label || '').toLowerCase();
+  const slug = (attr.slug || '').toLowerCase();
+  const key = (attr.key || '').toLowerCase();
+  
+  // Renommer "item name" en "Description"
+  if (name.includes('item') && name.includes('name') || 
+      name.includes('itemname') || 
+      name.includes('item_name') ||
+      slug.includes('itemname') ||
+      key.includes('itemname')) {
+    return {
+      ...attr,
+      name: 'Description',
+      label: 'Description',
+    };
+  }
+  
+  return attr;
+}
+
+// Fonction pour obtenir l'ordre de priorité d'un attribut (AVANT renommage)
+function getAttributeOrder(attr: any): number {
+  const name = (attr.name || attr.label || '').toLowerCase();
+  
+  // Ordre souhaité: Description, Part number, Serial number, Condition, Weight, Dimension
+  // Note: on utilise le nom AVANT renommage
+  if (name.includes('item') && name.includes('name') || name.includes('itemname')) return 1; // Description
+  if (name.includes('part') && name.includes('number')) return 2; // Part number
+  if (name.includes('serial') && name.includes('number') && !name.includes('id')) return 3; // Serial/lot number
+  if (name.includes('condition')) return 4; // Condition
+  if (name.includes('weight')) return 5; // Weight
+  if (name.includes('length')) return 6; // Dimension - Length
+  if (name.includes('width')) return 7; // Dimension - Width
+  if (name.includes('height')) return 8; // Dimension - Height
+  
+  // Autres attributs à la fin
+  return 100;
+}
+
+// Filtrer et trier AVANT de renommer (pour que l'ordre fonctionne correctement)
+const processedAttributes = attributes
+  .filter((attr: any) => !shouldHideAttribute(attr))
+  .sort((a: any, b: any) => getAttributeOrder(a) - getAttributeOrder(b))
+  .map((attr: any) => renameAttribute(attr));
+const filteredAttributes = processedAttributes;
+const hasAttributes = filteredAttributes && filteredAttributes.length > 0;
+---
+
+{hasAttributes && (
+  <div class={`product-attributes ${className}`}>
+    {variant === 'grid' ? (
+      <!-- Variante Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {filteredAttributes.map((attr: any) => {
+                const value = getAttributeValue(attr);
+                const displayName = formatAttributeName(attr.name, attr.label);
+                const iconType = getAttributeIconType(displayName);
+                const iconSvg = getAttributeIcon(displayName, value);
+                
+                return (
+                  <div class="group relative overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 transition-all duration-200 hover:shadow-md hover:border-primary/30 dark:hover:border-primary/50">
+                    <div class="flex items-start gap-2.5">
+                      <div class="flex-shrink-0 w-7 h-7 rounded-md bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
+                        {iconType === 'helicopter' ? (
+                          <Helicopter class="w-3.5 h-3.5 text-primary dark:text-primary" />
+                        ) : iconType === 'tag' ? (
+                          <Tag class="w-3.5 h-3.5 text-primary dark:text-primary" />
+                        ) : (
+                          <div class="w-3.5 h-3.5 text-primary dark:text-primary" set:html={iconSvg}></div>
+                        )}
+                      </div>
+                      <div class="flex flex-col gap-1 flex-1 min-w-0">
+                        <span class="font-outfit font-semibold text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                          {displayName}
+                        </span>
+                        <span class="font-outfit text-sm text-gray-900 dark:text-white font-medium break-words">
+                          {value}
+                        </span>
+                      </div>
+                    </div>
+                    <!-- Indicateur visuel -->
+                    <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary/0 via-primary/40 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                  </div>
+                );
+              })}
+      </div>
+    ) : variant === 'compact' ? (
+      <!-- Variante Compact -->
+      <div class="space-y-2">
+        {filteredAttributes.map((attr: any) => {
+          const value = getAttributeValue(attr);
+          const displayName = formatAttributeName(attr.name, attr.label);
+          const iconType = getAttributeIconType(displayName);
+          const iconSvg = getAttributeIcon(displayName, value);
+          
+          return (
+            <div class="flex items-center gap-2.5 py-2 border-b border-gray-100 dark:border-gray-800 last:border-0">
+              <div class="flex-shrink-0 w-6 h-6 rounded bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
+                {iconType === 'helicopter' ? (
+                  <Helicopter class="w-3 h-3 text-primary dark:text-primary" />
+                ) : iconType === 'tag' ? (
+                  <Tag class="w-3 h-3 text-primary dark:text-primary" />
+                ) : (
+                  <div class="w-3 h-3 text-primary dark:text-primary" set:html={iconSvg}></div>
+                )}
+              </div>
+              <span class="font-outfit font-medium text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide flex-1">
+                {displayName}
+              </span>
+              <span class="font-outfit text-sm font-medium text-gray-900 dark:text-white text-right">
+                {value}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    ) : (
+      <!-- Variante Default (Grille 2 colonnes avec icônes uniques) -->
+      <div class="grid grid-cols-2 gap-2 sm:gap-2.5">
+        {filteredAttributes.map((attr: any) => {
+          const value = getAttributeValue(attr);
+          const displayName = formatAttributeName(attr.name, attr.label);
+          const iconType = getAttributeIconType(displayName);
+          const iconSvg = getAttributeIcon(displayName, value);
+          
+          return (
+            <div class="group relative overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 transition-all duration-200 hover:shadow-md hover:border-primary/30 dark:hover:border-primary/50 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+              <div class="flex items-start gap-2.5">
+                <!-- Icône unique dynamique -->
+                <div class="flex-shrink-0 w-7 h-7 rounded-md bg-primary/10 dark:bg-primary/20 flex items-center justify-center group-hover:bg-primary/15 dark:group-hover:bg-primary/25 transition-colors duration-200">
+                  {iconType === 'helicopter' ? (
+                    <Helicopter class="w-3.5 h-3.5 text-primary dark:text-primary" />
+                  ) : iconType === 'tag' ? (
+                    <Tag class="w-3.5 h-3.5 text-primary dark:text-primary" />
+                  ) : (
+                    <div class="w-3.5 h-3.5 text-primary dark:text-primary" set:html={iconSvg}></div>
+                  )}
+                </div>
+                
+                <!-- Contenu sur 2 lignes -->
+                <div class="flex-1 min-w-0">
+                  <dt class="font-outfit font-semibold text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+                    {displayName}
+                  </dt>
+                  <dd class="font-outfit text-sm text-gray-900 dark:text-white break-words leading-snug">
+                    {value}
+                  </dd>
+                </div>
+              </div>
+              
+              <!-- Indicateur visuel au hover -->
+              <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary/0 via-primary/40 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+            </div>
+          );
+        })}
+      </div>
+    )}
+  </div>
+)}
+
+<style>
+  .product-attributes {
+    scroll-margin-top: 2rem;
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    .product-attributes * {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+</style>
+

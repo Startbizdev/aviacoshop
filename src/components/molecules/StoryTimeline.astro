@@ -1,0 +1,329 @@
+---
+interface StoryItem {
+  year: string;
+  title: string;
+  description: string;
+}
+
+interface Props {
+  title: string;
+  subtitle: string;
+  items: StoryItem[];
+}
+
+const { title, subtitle, items } = Astro.props;
+---
+
+<section class="py-20 md:py-28 lg:py-32 bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 relative overflow-hidden">
+  <!-- Background decorative elements -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute top-1/4 left-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse-slow"></div>
+    <div class="absolute bottom-1/4 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse-slow" style="animation-delay: 2s;"></div>
+  </div>
+
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <div class="max-w-6xl mx-auto">
+      <!-- Header avec animation -->
+      <div class="text-center mb-16 md:mb-20 lg:mb-24 timeline-header">
+        <h2 class="font-outfit font-bold text-3xl md:text-4xl lg:text-5xl mb-6 text-gray-900 dark:text-white">
+          {title}
+        </h2>
+        <p class="font-outfit text-lg md:text-xl lg:text-2xl text-gray-600 dark:text-gray-400 mt-8 max-w-2xl mx-auto leading-relaxed">
+          {subtitle}
+        </p>
+      </div>
+      
+      <!-- Timeline -->
+      <div class="relative timeline-container">
+        <!-- Timeline line avec animation de remplissage -->
+        <div class="timeline-line absolute left-[15px] md:left-1/2 w-1 md:w-0.5 transform md:-translate-x-1/2">
+          <div class="absolute inset-0 bg-gradient-to-b from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded-full"></div>
+          <div class="timeline-progress absolute top-0 left-0 w-full bg-gradient-to-b from-primary via-primary/80 to-primary/60 rounded-full origin-top" style="height: 0%; transition: height 1.5s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+        </div>
+        
+        <!-- Timeline items -->
+        <div class="space-y-16 md:space-y-20 lg:space-y-24">
+          {items.map((item, index) => (
+            <div 
+              class={`timeline-item relative flex items-start md:items-center ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'}`}
+              data-index={index}
+              data-year={item.year}
+            >
+              <!-- Timeline dot avec effets avancés -->
+              <div class="timeline-dot absolute left-0 md:left-1/2 w-12 h-12 md:w-14 md:h-14 transform md:-translate-x-1/2 z-20 group">
+                <!-- Glow effect externe -->
+                <div class="absolute inset-0 bg-primary rounded-full opacity-20 blur-xl group-hover:opacity-40 group-hover:blur-2xl transition-all duration-500 animate-pulse-glow"></div>
+                <!-- Cercle principal -->
+                <div class="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-primary/70 rounded-full border-4 border-white dark:border-gray-900 shadow-2xl shadow-primary/50 group-hover:shadow-primary/70 group-hover:scale-110 transition-all duration-500 flex items-center justify-center">
+                  <!-- Point central élégant -->
+                  <div class="w-2 h-2 md:w-3 md:h-3 bg-white dark:bg-gray-100 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+                  <!-- Cercle intérieur animé -->
+                  <div class="absolute inset-2 bg-white/20 dark:bg-gray-800/20 rounded-full animate-ping-slow"></div>
+                </div>
+                <!-- Ripple effect -->
+                <div class="absolute inset-0 rounded-full border-2 border-primary/30 animate-ripple"></div>
+              </div>
+              
+              <!-- Content card avec effets avancés -->
+              <div class={`ml-20 md:ml-0 md:w-[calc(50%-2rem)] ${index % 2 === 0 ? 'md:pr-12 lg:pr-16' : 'md:pl-12 lg:pl-16'}`}>
+                <div class={`timeline-card bg-white dark:bg-gray-900 rounded-3xl p-6 md:p-8 lg:p-10 shadow-xl border border-gray-100 dark:border-gray-700/50 relative overflow-hidden group cursor-pointer transition-all duration-700 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-2 ${index % 2 === 0 ? 'md:text-right' : ''}`}>
+                  <!-- Gradient overlay au hover -->
+                  <div class="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/0 to-primary/0 group-hover:from-primary/5 group-hover:via-primary/3 group-hover:to-primary/5 transition-all duration-700 rounded-3xl"></div>
+                  
+                  <!-- Effet de brillance animé -->
+                  <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+                  </div>
+                  
+                  <!-- Contenu -->
+                  <div class="relative z-10">
+                    <!-- Year badge avec animation -->
+                    <div class={`inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-primary via-primary/90 to-primary/80 rounded-full mb-5 md:mb-6 shadow-lg shadow-primary/30 group-hover:shadow-primary/50 group-hover:scale-105 transition-all duration-500 ${index % 2 === 0 ? 'md:ml-auto' : ''}`}>
+                      <span class="font-outfit font-bold text-base md:text-lg text-white tracking-wider">{item.year}</span>
+                    </div>
+                    
+                    <!-- Title avec effet de texte -->
+                    <h3 class="font-outfit font-bold text-xl md:text-2xl lg:text-3xl mb-4 md:mb-5 text-gray-900 dark:text-white group-hover:text-primary dark:group-hover:text-primary/80 transition-colors duration-500 leading-tight">
+                      <span class="relative inline-block">
+                        {item.title}
+                        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/50 group-hover:w-full transition-all duration-700"></span>
+                      </span>
+                    </h3>
+                    
+                    <!-- Description avec animation de révélation -->
+                    <p class="font-outfit text-base md:text-lg text-gray-600 dark:text-gray-400 leading-relaxed group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors duration-500">
+                      {item.description}
+                    </p>
+                  </div>
+                  
+                  <!-- Decorative corner elements -->
+                  <div class="absolute top-0 right-0 w-20 h-20 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                    <div class="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-primary/30 rounded-tr-3xl"></div>
+                  </div>
+                  <div class="absolute bottom-0 left-0 w-20 h-20 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                    <div class="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-primary/30 rounded-bl-3xl"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Animation du header */
+  .timeline-header {
+    opacity: 0;
+    transform: translateY(-20px);
+    animation: fadeInDown 1s ease-out forwards;
+  }
+
+  /* Animation des items de timeline */
+  .timeline-item {
+    opacity: 0;
+    transform: translateY(50px) scale(0.95);
+    transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .timeline-item.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  
+  /* Classe pour indiquer que l'animation est terminée */
+  .timeline-item.animation-complete {
+    /* Pas de style supplémentaire, juste un marqueur */
+  }
+
+  /* Animation pour les cartes */
+  .timeline-card {
+    transform: perspective(1000px) rotateX(0deg);
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .timeline-card:hover {
+    transform: perspective(1000px) rotateX(2deg) translateY(-8px);
+  }
+
+  /* Animations keyframes */
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      opacity: 0.2;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.4;
+      transform: scale(1.1);
+    }
+  }
+
+  @keyframes ping-slow {
+    0% {
+      transform: scale(1);
+      opacity: 0.8;
+    }
+    50% {
+      transform: scale(1.3);
+      opacity: 0.4;
+    }
+    100% {
+      transform: scale(1.5);
+      opacity: 0;
+    }
+  }
+
+  @keyframes ripple {
+    0% {
+      transform: scale(1);
+      opacity: 0.8;
+    }
+    100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+
+  @keyframes pulse-slow {
+    0%, 100% {
+      opacity: 0.3;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(1.05);
+    }
+  }
+
+  /* Classes d'animation */
+  .animate-pulse-glow {
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+
+  .animate-ping-slow {
+    animation: ping-slow 3s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  .animate-ripple {
+    animation: ripple 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-slow 4s ease-in-out infinite;
+  }
+
+  /* Effet parallaxe pour les items pairs/impairs */
+  .timeline-item:nth-child(even) .timeline-card {
+    transform-origin: left center;
+  }
+
+  .timeline-item:nth-child(odd) .timeline-card {
+    transform-origin: right center;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .timeline-card {
+      transform: none !important;
+    }
+    
+    .timeline-card:hover {
+      transform: translateY(-4px) !important;
+    }
+  }
+
+  /* Respect de prefers-reduced-motion */
+  @media (prefers-reduced-motion: reduce) {
+    .timeline-header,
+    .timeline-item,
+    .timeline-card,
+    .timeline-dot,
+    .animate-pulse-glow,
+    .animate-ping-slow,
+    .animate-ripple,
+    .animate-pulse-slow {
+      animation: none !important;
+      transition: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Observer simple pour les animations
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const timelineObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        const item = entry.target;
+        const index = parseInt(item.dataset.index || '0');
+        
+        if (entry.isIntersecting && !item.classList.contains('visible')) {
+          setTimeout(() => {
+            item.classList.add('visible');
+          }, index * 150);
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('.timeline-item').forEach((item) => {
+      timelineObserver.observe(item);
+    });
+
+    // Calcul simple de la ligne : une seule fois après le chargement
+    const adjustTimelineLine = () => {
+      const timelineContainer = document.querySelector('.timeline-container');
+      const timelineLine = document.querySelector('.timeline-line');
+      const firstDot = document.querySelector('.timeline-item:first-child .timeline-dot');
+      const lastDot = document.querySelector('.timeline-item:last-child .timeline-dot');
+      
+      if (!timelineContainer || !timelineLine || !firstDot || !lastDot) return;
+      
+      const containerRect = timelineContainer.getBoundingClientRect();
+      const firstDotRect = firstDot.getBoundingClientRect();
+      const lastDotRect = lastDot.getBoundingClientRect();
+      
+      const firstDotCenterY = (firstDotRect.top - containerRect.top) + (firstDotRect.height / 2);
+      const lastDotCenterY = (lastDotRect.top - containerRect.top) + (lastDotRect.height / 2);
+      
+      timelineLine.style.top = `${firstDotCenterY}px`;
+      timelineLine.style.height = `${lastDotCenterY - firstDotCenterY}px`;
+    };
+    
+    // Calculer une seule fois après que tout soit chargé et animé
+    const totalItems = document.querySelectorAll('.timeline-item').length;
+    const maxDelay = totalItems * 150 + 800 + 200; // Délai max + durée animation + marge
+    
+    setTimeout(() => {
+      adjustTimelineLine();
+    }, maxDelay);
+    
+    // Réajuster uniquement au resize
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(adjustTimelineLine, 250);
+    });
+  });
+</script>
+

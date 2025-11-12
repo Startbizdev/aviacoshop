@@ -1,0 +1,15 @@
+---
+import Icon from '../atoms/Icon.astro';
+
+---
+
+<button
+  id="theme-toggle"
+  class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+  aria-label="Toggle theme"
+  type="button"
+>
+  <Icon name="sun" size="md" id="theme-icon-sun" class="hidden dark:block" />
+  <Icon name="moon" size="md" id="theme-icon-moon" class="dark:hidden" />
+</button>
+

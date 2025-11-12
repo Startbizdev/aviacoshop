@@ -1,0 +1,64 @@
+---
+import { ShoppingBag } from 'lucide-astro';
+import Badge from '../atoms/Badge.astro';
+
+---
+
+<button
+  id="cart-button"
+  class="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
+  aria-label="Open cart"
+>
+  <ShoppingBag size={22} />
+  <span
+    id="cart-count"
+    class="absolute -top-1 -right-1 bg-primary text-white text-xs font-outfit font-bold rounded-full w-5 h-5 flex items-center justify-center hidden"
+  >
+    0
+  </span>
+</button>
+
+<script>
+  async function updateCartCount() {
+    try {
+      const response = await fetch('/api/cart', {
+        credentials: 'include',
+      });
+      
+      if (response.ok) {
+        const cart = await response.json();
+        const count = cart.items_count || 0;
+        const cartCount = document.getElementById('cart-count');
+        if (cartCount) {
+          cartCount.textContent = count.toString();
+          cartCount.classList.toggle('hidden', count === 0);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching cart count:', error);
+    }
+  }
+  
+  function openCartPopup() {
+    if ((window as any).openCartPopup) {
+      (window as any).openCartPopup();
+      window.dispatchEvent(new Event('cartPopupOpen'));
+    }
+  }
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    updateCartCount();
+    
+    const cartButton = document.getElementById('cart-button');
+    if (cartButton) {
+      cartButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        openCartPopup();
+      });
+    }
+  });
+  
+  // Écouter les événements de mise à jour du panier
+  window.addEventListener('cartUpdated', updateCartCount);
+</script>
+

@@ -1,0 +1,162 @@
+---
+import { getProducts } from '../../lib/wc-api';
+import Badge from '../atoms/Badge.astro';
+import Image from '../atoms/Image.astro';
+
+interface Props {
+  currentProduct: {
+    id: number;
+    name: string;
+    images?: Array<{ src: string; alt: string }>;
+    attributes?: Array<any>;
+    slug?: string;
+  };
+}
+
+const { currentProduct } = Astro.props;
+
+// Fonction pour extraire un titre descriptif depuis les attributs
+function getVariationTitle(product: any): string {
+  // Chercher "Part number" d'abord
+  if (product.attributes && Array.isArray(product.attributes)) {
+    const partNumberAttr = product.attributes.find((attr: any) => {
+      const name = (attr.name || attr.label || '').toLowerCase();
+      return name.includes('part') && name.includes('number');
+    });
+    
+    if (partNumberAttr) {
+      if (Array.isArray(partNumberAttr.terms) && partNumberAttr.terms.length > 0) {
+        return partNumberAttr.terms[0]?.name || partNumberAttr.terms[0]?.slug || '';
+      }
+      if (Array.isArray(partNumberAttr.options) && partNumberAttr.options.length > 0) {
+        return String(partNumberAttr.options[0] || '');
+      }
+      if (partNumberAttr.value) {
+        return String(partNumberAttr.value);
+      }
+    }
+    
+    // Sinon chercher "Serial number"
+    const serialNumberAttr = product.attributes.find((attr: any) => {
+      const name = (attr.name || attr.label || '').toLowerCase();
+      return (name.includes('serial') || name.includes('lot')) && name.includes('number') && !name.includes('id');
+    });
+    
+    if (serialNumberAttr) {
+      if (Array.isArray(serialNumberAttr.terms) && serialNumberAttr.terms.length > 0) {
+        const value = serialNumberAttr.terms[0]?.name || serialNumberAttr.terms[0]?.slug || '';
+        if (value && value !== 'N/A') return value;
+      }
+      if (Array.isArray(serialNumberAttr.options) && serialNumberAttr.options.length > 0) {
+        const value = String(serialNumberAttr.options[0] || '');
+        if (value && value !== 'N/A') return value;
+      }
+      if (serialNumberAttr.value) {
+        const value = String(serialNumberAttr.value);
+        if (value && value !== 'N/A') return value;
+      }
+    }
+  }
+  
+  // Fallback: utiliser le slug si disponible
+  if (product.slug) {
+    return product.slug;
+  }
+  
+  // Dernier recours: utiliser l'ID
+  return `#${product.id}`;
+}
+
+// Récupérer tous les produits avec le même titre
+let variations: any[] = [];
+
+try {
+  const allProducts = await getProducts({ per_page: '100', search: currentProduct.name });
+  const productsArray = Array.isArray(allProducts) ? allProducts : [];
+  
+  // Filtrer les produits qui ont exactement le même nom (insensible à la casse)
+  const otherVariations = productsArray.filter((product: any) => {
+    const productName = (product.name || '').trim().toLowerCase();
+    const currentName = (currentProduct.name || '').trim().toLowerCase();
+    return productName === currentName && product.id !== currentProduct.id;
+  });
+  
+  // Ajouter le produit actuel à la liste des variations
+  variations = [currentProduct, ...otherVariations];
+  
+  // Trier par ID pour un ordre cohérent
+  variations.sort((a: any, b: any) => a.id - b.id);
+} catch (error) {
+  console.error('Error fetching variations:', error);
+  variations = [];
+}
+
+const hasVariations = variations.length > 1;
+---
+
+{hasVariations && (
+  <div class="mb-6">
+    <h3 class="font-outfit font-semibold text-sm text-gray-700 dark:text-gray-300 mb-3">
+      Other part numbers available
+    </h3>
+    <div class="flex flex-wrap gap-2">
+      {variations.map((variation: any) => {
+        const variationId = variation.id;
+        const currentId = currentProduct.id;
+        const isSelected = variationId === currentId;
+        const variationImage = variation.images?.[0]?.src || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5Qcm9kdWl0PC90ZXh0Pjwvc3ZnPg==';
+        const variationTitle = getVariationTitle(variation);
+        
+        return (
+          <a
+            href={`/produit/${variationId}`}
+            class={`group relative inline-flex flex-col items-center gap-1.5 p-2 rounded-lg border-2 transition-all duration-200 ${
+              isSelected
+                ? 'border-primary bg-primary/10 dark:bg-primary/20 shadow-md ring-1 ring-primary/40'
+                : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary/50 hover:bg-primary/5 dark:hover:bg-primary/10 hover:shadow-sm'
+            }`}
+          >
+            <!-- Image miniature -->
+            <div class={`relative w-14 h-14 rounded-md overflow-hidden transition-all duration-200 ${
+              isSelected 
+                ? 'ring-1.5 ring-primary' 
+                : ''
+            }`}>
+              <Image
+                src={variationImage}
+                alt={variation.name || `Variation ${variationId}`}
+                class={`w-full h-full object-cover transition-transform duration-200 ${
+                  isSelected ? '' : 'group-hover:scale-105'
+                }`}
+              />
+              {isSelected && (
+                <div class="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                  <div class="w-4 h-4 bg-primary rounded-full flex items-center justify-center">
+                    <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <!-- Titre -->
+            <span class={`font-outfit font-medium text-[10px] text-center whitespace-normal break-words ${
+              isSelected 
+                ? 'text-primary dark:text-primary font-semibold' 
+                : 'text-gray-700 dark:text-gray-300'
+            }`} style="max-width: 70px; word-break: break-word;">
+              {variationTitle}
+            </span>
+            
+            <!-- Indicateur de sélection en bas -->
+            {isSelected && (
+              <div class="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full"></div>
+            )}
+          </a>
+        );
+      })}
+    </div>
+  </div>
+)}
+

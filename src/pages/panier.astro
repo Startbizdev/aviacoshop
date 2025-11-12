@@ -1,0 +1,146 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import CartItem from '../components/molecules/CartItem.astro';
+import Button from '../components/atoms/Button.astro';
+import { getCart } from '../lib/wc-api';
+import { ShoppingCart, ArrowRight, ShoppingBag } from 'lucide-astro';
+
+let cart: any = null;
+let error = false;
+
+try {
+  const cookie = Astro.request.headers.get('cookie') || '';
+  cart = await getCart(cookie);
+} catch (err) {
+  console.error('Error fetching cart:', err);
+  error = true;
+}
+
+const items = cart?.items || [];
+const totals = cart?.totals || {};
+---
+
+<script>
+  // Update cart counter on load
+  document.addEventListener('DOMContentLoaded', () => {
+    window.dispatchEvent(new Event('cartUpdated'));
+    
+    // Listen for cart updates to reload the page
+    window.addEventListener('cartUpdated', () => {
+      // Wait a bit for cookies to be updated
+      setTimeout(() => {
+        window.location.reload();
+      }, 300);
+    });
+  });
+</script>
+
+<MainLayout title="Cart" description="Your shopping cart">
+  <div class="container mx-auto px-4 py-8 md:py-12 max-w-7xl">
+    <div class="mb-8">
+      <h1 class="font-outfit font-bold text-3xl md:text-4xl mb-2 text-gray-900 dark:text-white">
+        Cart
+      </h1>
+      <p class="font-outfit text-gray-600 dark:text-gray-400">
+        {items.length > 0 ? `${items.length} ${items.length === 1 ? 'item' : 'items'}` : 'Your cart is empty'}
+      </p>
+    </div>
+    
+    {items.length > 0 ? (
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        <!-- Cart Items -->
+        <div class="lg:col-span-2">
+          <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+            <div class="p-4 md:p-6 border-b border-gray-200 dark:border-gray-700">
+              <h2 class="font-outfit font-semibold text-lg text-gray-900 dark:text-white flex items-center gap-2">
+                <ShoppingBag class="w-5 h-5" />
+                Items
+              </h2>
+            </div>
+            <div id="cart-items-container">
+              {items.map((item: any) => (
+                <CartItem item={item} />
+              ))}
+            </div>
+          </div>
+        </div>
+        
+        <!-- Cart Summary -->
+        <div class="lg:col-span-1">
+          <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 sticky top-24">
+            <h2 class="font-outfit font-semibold text-xl mb-6 text-gray-900 dark:text-white">
+              Order Summary
+            </h2>
+            
+            <div class="space-y-4 mb-6">
+              <div class="flex justify-between items-center font-outfit text-gray-600 dark:text-gray-400">
+                <span>Subtotal</span>
+                <span class="font-medium">{totals.total_items || '0'} €</span>
+              </div>
+              
+              {totals.total_tax && totals.total_tax !== '0' && parseFloat(totals.total_tax) > 0 && (
+                <div class="flex justify-between items-center font-outfit text-gray-600 dark:text-gray-400">
+                  <span>Tax</span>
+                  <span class="font-medium">{totals.total_tax} €</span>
+                </div>
+              )}
+              
+              {totals.total_shipping && totals.total_shipping !== '0' && parseFloat(totals.total_shipping) > 0 && (
+                <div class="flex justify-between items-center font-outfit text-gray-600 dark:text-gray-400">
+                  <span>Shipping</span>
+                  <span class="font-medium">{totals.total_shipping} €</span>
+                </div>
+              )}
+              
+              <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                <div class="flex justify-between items-center font-outfit font-bold text-xl text-gray-900 dark:text-white">
+                  <span>Total</span>
+                  <span class="text-primary">{totals.total_price || '0'} €</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Stacked Buttons -->
+            <div class="flex flex-col gap-3">
+              <Button
+                href="/checkout"
+                variant="primary"
+                size="lg"
+                class="w-full group flex items-center justify-center whitespace-nowrap"
+              >
+                Proceed to Checkout
+                <ArrowRight class="w-5 h-5 ml-2 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
+              </Button>
+              
+              <Button
+                href="/catalogue"
+                variant="outline"
+                size="lg"
+                class="w-full flex items-center justify-center whitespace-nowrap"
+              >
+                Continue Shopping
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    ) : (
+      <div class="flex flex-col items-center justify-center py-16 md:py-24 px-4">
+        <div class="bg-gray-100 dark:bg-gray-800 rounded-full p-6 mb-6">
+          <ShoppingCart class="w-16 h-16 text-gray-400 dark:text-gray-500" />
+        </div>
+        <h2 class="font-outfit font-bold text-2xl md:text-3xl mb-3 text-gray-900 dark:text-white text-center">
+          Your cart is empty
+        </h2>
+        <p class="font-outfit text-gray-600 dark:text-gray-400 text-center mb-8 max-w-md">
+          Discover our catalog and find the perfect products for you.
+        </p>
+        <Button href="/catalogue" variant="primary" size="lg" class="group">
+          <ShoppingBag class="w-5 h-5 mr-2" />
+          Discover our products
+          <ArrowRight class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+        </Button>
+      </div>
+    )}
+  </div>
+</MainLayout>

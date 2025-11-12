@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary: #0413a5;
+  --color-primary-dark: #030d7a;
+  --color-primary-light: #0a1cc7;
+}
+
+@layer base {
+  :root {
+    --color-primary: #0413a5;
+    --color-primary-dark: #030d7a;
+    --color-primary-light: #0a1cc7;
+  }
+
+  html {
+    color-scheme: light dark;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100;
+    font-family: 'Outfit', sans-serif;
+  }
+
+  /* Transitions ciblées uniquement pour les changements de thème */
+  /* Exclure les SVG et éléments interactifs pour éviter le clignotement */
+  @media (prefers-reduced-motion: no-preference) {
+    body {
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    
+    header {
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+    
+    button:not(:hover):not(:focus),
+    a:not(:hover):not(:focus) {
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+    
+    input:not(:focus),
+    select:not(:focus),
+    textarea:not(:focus) {
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+  }
+  
+  /* Pas de transition sur les SVG pour éviter le clignotement */
+  svg {
+    transition: none !important;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+  }
+}
+
+@layer utilities {
+  .font-outfit {
+    font-family: 'Outfit', sans-serif;
+  }
+
+  .text-primary {
+    color: var(--color-primary);
+  }
+
+  .bg-primary {
+    background-color: var(--color-primary);
+  }
+
+  .border-primary {
+    border-color: var(--color-primary);
+  }
+
+  .hover-primary:hover {
+    background-color: var(--color-primary-dark);
+  }
+}
+
+/* Scrollbar styles for sheet menu */
+#sheet-menu nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+#sheet-menu nav::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+.dark #sheet-menu nav::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+#sheet-menu nav::-webkit-scrollbar-thumb {
+  background: rgba(4, 19, 165, 0.3);
+  border-radius: 3px;
+}
+
+#sheet-menu nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(4, 19, 165, 0.5);
+}
+

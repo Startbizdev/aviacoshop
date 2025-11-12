@@ -1,0 +1,55 @@
+---
+interface Props {
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
+  type?: 'button' | 'submit' | 'reset';
+  disabled?: boolean;
+  class?: string;
+  href?: string;
+  [key: string]: any; // Permet d'accepter tous les autres attributs
+}
+
+const {
+  variant = 'primary',
+  size = 'md',
+  type = 'button',
+  disabled = false,
+  class: className = '',
+  href,
+  ...restProps
+} = Astro.props;
+
+const baseClasses = 'font-outfit font-medium rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2';
+const variantClasses = {
+  primary: 'bg-primary text-white hover:bg-primary-dark focus:ring-primary',
+  secondary: 'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 focus:ring-gray-500',
+  outline: 'border-2 border-primary text-primary hover:bg-primary hover:text-white focus:ring-primary',
+  ghost: 'text-primary hover:bg-primary/10 focus:ring-primary',
+};
+const sizeClasses = {
+  sm: 'px-3 py-1.5 text-sm',
+  md: 'px-4 py-2 text-base',
+  lg: 'px-6 py-3 text-lg',
+};
+const disabledClasses = 'opacity-50 cursor-not-allowed';
+
+const classes = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${disabled ? disabledClasses : ''} ${className}`;
+
+// Filtrer les props pour ne garder que les attributs HTML valides
+const htmlProps = Object.fromEntries(
+  Object.entries(restProps).filter(([key]) => 
+    !['variant', 'size', 'type', 'disabled', 'class', 'href'].includes(key)
+  )
+);
+---
+
+{href ? (
+  <a href={href} class={classes} {...htmlProps}>
+    <slot />
+  </a>
+) : (
+  <button type={type} class={classes} disabled={disabled} {...htmlProps}>
+    <slot />
+  </button>
+)}
+

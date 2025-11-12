@@ -1,0 +1,166 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Hero from '../components/molecules/Hero.astro';
+import Button from '../components/atoms/Button.astro';
+---
+
+<MainLayout title="Exchange" description="Aviaco specializes in helicopter spare parts exchange, providing comprehensive solutions for maintenance and inventory optimization">
+  <!-- Hero Section -->
+  <Hero 
+    title="Exchange" 
+    image="/copter/4.jpg"
+    imageAlt="Helicopter maintenance"
+  />
+
+  <!-- Introduction Section -->
+  <section class="py-12 md:py-16 lg:py-20 bg-white dark:bg-gray-900">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto">
+        <p class="font-outfit text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 leading-relaxed mb-6 md:mb-8">
+          Aviaco specialises in helicopter spare parts exchange, providing a comprehensive range of products for sale and exchange. We understand the importance of quick and efficient solutions in the aviation industry, and our exchange service is designed to meet the needs of helicopter operators worldwide.
+        </p>
+        <p class="font-outfit text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 leading-relaxed">
+          Whether you are in need of critical components for maintenance or looking to optimise your inventory management, Aviaco has you covered.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Image Section -->
+  <section class="py-8 md:py-10 lg:py-12 bg-white dark:bg-gray-900">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto">
+        <div class="aspect-square w-full overflow-hidden rounded-xl shadow-2xl">
+          <img 
+            src="/copter/5.jpg" 
+            alt="Helicopter spare parts" 
+            class="w-full h-full object-cover"
+            loading="lazy"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Inventory Section -->
+  <section class="py-12 md:py-16 lg:py-20 bg-gray-50 dark:bg-gray-800/50">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="font-outfit font-bold text-2xl md:text-3xl lg:text-4xl mb-5 md:mb-6 lg:mb-8 text-gray-900 dark:text-white">
+          Extensive inventory
+        </h2>
+        <p class="font-outfit text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 leading-relaxed">
+          Our extensive inventory includes a wide range of spare parts for various helicopter models, ensuring that you can find the parts you need, when you need them.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Exchange Service Section -->
+  <section class="py-12 md:py-16 lg:py-20 bg-white dark:bg-gray-900">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-6xl mx-auto">
+        <div class="grid md:grid-cols-2 gap-6 md:gap-8 lg:gap-12 items-center">
+          <div>
+            <h2 class="font-outfit font-bold text-2xl md:text-3xl lg:text-4xl mb-5 md:mb-6 lg:mb-8 text-gray-900 dark:text-white">
+              Exchange service
+            </h2>
+            <p class="font-outfit text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 leading-relaxed mb-5 md:mb-6">
+              Our exchange service offers a convenient and cost-effective solution for replacing TBO or damaged parts. By exchanging your parts with Aviaco, you can minimise downtime, reduce costs, and keep your helicopters operating at peak performance.
+            </p>
+            <p class="font-outfit text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 leading-relaxed">
+              Plus, our team is dedicated to providing fair evaluations and ensuring a seamless exchange process for our customers.
+            </p>
+          </div>
+          <div class="mt-8 md:mt-0">
+            <div class="aspect-square w-full overflow-hidden rounded-xl shadow-xl">
+              <img 
+                src="/copter/6.jpg" 
+                alt="Helicopter parts exchange" 
+                class="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quality & Safety Section -->
+  <section class="py-12 md:py-16 lg:py-20 bg-gray-50 dark:bg-gray-800/50">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-6xl mx-auto">
+        <div class="grid md:grid-cols-2 gap-6 md:gap-8 lg:gap-12 items-center">
+          <div class="order-2 md:order-1 mt-8 md:mt-0">
+            <div class="aspect-square w-full overflow-hidden rounded-xl shadow-xl">
+              <img 
+                src="/copter/7.jpg" 
+                alt="Quality inspection" 
+                class="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </div>
+          </div>
+          <div class="order-1 md:order-2">
+            <h2 class="font-outfit font-bold text-2xl md:text-3xl lg:text-4xl mb-5 md:mb-6 lg:mb-8 text-gray-900 dark:text-white">
+              Quality & safety first
+            </h2>
+            <p class="font-outfit text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 leading-relaxed mb-5 md:mb-6">
+              At Aviaco, we prioritise customer satisfaction and safety above all else. We meticulously inspect and test all exchanged parts to ensure they meet the highest quality standards.
+            </p>
+            <p class="font-outfit text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 leading-relaxed">
+              With Aviaco, you can trust that every part you receive is reliable, authentic, and ready to be installed on your helicopter.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Certification Section -->
+  <section class="py-12 md:py-16 lg:py-20 bg-white dark:bg-gray-900">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto text-center">
+        <h2 class="font-outfit font-bold text-2xl md:text-3xl lg:text-4xl mb-5 md:mb-6 lg:mb-8 text-gray-900 dark:text-white">
+          Certified parts
+        </h2>
+        <p class="font-outfit text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 leading-relaxed mb-6 md:mb-8">
+          All parts will come with a valid EASA, FAA, TCCA Form 1 issued by our Part 145 maintenance centre.
+        </p>
+        <div class="max-w-2xl mx-auto">
+          <div class="aspect-square w-full overflow-hidden rounded-xl shadow-xl">
+            <img 
+              src="/copter/8.jpg" 
+              alt="Certified helicopter parts" 
+              class="w-full h-full object-cover"
+              loading="lazy"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="py-12 md:py-16 lg:py-20 bg-gray-900 dark:bg-black text-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto text-center">
+        <h2 class="font-outfit font-bold text-2xl md:text-3xl lg:text-4xl mb-5 md:mb-6 lg:mb-8">
+          Experience the convenience and reliability
+        </h2>
+        <p class="font-outfit text-base md:text-lg lg:text-xl text-gray-300 leading-relaxed mb-8 md:mb-10">
+          Experience the convenience and reliability of Aviaco's exchange service. Contact us today to learn more about our exchange program and how we can help you streamline your maintenance operations and keep your helicopters flying safely and efficiently.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button href="/contact" variant="secondary" size="lg" class="shadow-2xl">
+            Contact us
+          </Button>
+          <Button href="/catalogue" variant="outline" size="lg" class="!bg-transparent !border-2 !border-white !text-white hover:!bg-white hover:!text-gray-900 !transition-all">
+            Browse catalog
+          </Button>
+        </div>
+      </div>
+    </div>
+  </section>
+</MainLayout>

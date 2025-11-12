@@ -1,0 +1,151 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Hero from '../components/molecules/Hero.astro';
+import Button from '../components/atoms/Button.astro';
+---
+
+<MainLayout title="CSR" description="Aviaco France CSR commitment - B Corp Certification, waste sorting, recycling, and environmental impact reduction">
+  <!-- Hero Section -->
+  <Hero 
+    title="CSR" 
+    image="/copter/9.jpg"
+    imageAlt="Corporate Social Responsibility"
+  />
+
+  <!-- Introduction Section -->
+  <section class="py-12 md:py-16 lg:py-20 bg-white dark:bg-gray-900">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto">
+        <p class="font-outfit text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 leading-relaxed">
+          Aviaco France strengthens its commitment to CSR. Fully involved in its social responsibilities as a company, Aviaco increases its actions to reinforce its positive impact in terms of human resources, environment, and society.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sorting and Recycling Section -->
+  <section class="py-12 md:py-16 lg:py-20 bg-gray-50 dark:bg-gray-800/50">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-6xl mx-auto">
+        <div class="grid md:grid-cols-2 gap-6 md:gap-8 lg:gap-12 items-center">
+          <div>
+            <h2 class="font-outfit font-bold text-2xl md:text-3xl lg:text-4xl mb-5 md:mb-6 lg:mb-8 text-gray-900 dark:text-white">
+              Sorting and recycling
+            </h2>
+            <p class="font-outfit text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 leading-relaxed">
+              Since 2021, Aviaco France works with Lemontri, a local company, to sort its waste. Special bins for office waste (paper, cardboard…) and food waste (cans, plastic bottles…) have been installed.
+            </p>
+          </div>
+          <div class="mt-8 md:mt-0">
+            <div class="aspect-square w-full overflow-hidden rounded-xl shadow-xl">
+              <img 
+                src="/copter/10.jpg" 
+                alt="Sorting and recycling" 
+                class="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- B Corp Section -->
+  <section class="py-12 md:py-16 lg:py-20 bg-white dark:bg-gray-900">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="font-outfit font-bold text-2xl md:text-3xl lg:text-4xl mb-5 md:mb-6 lg:mb-8 text-gray-900 dark:text-white">
+          Certified B Corporation™
+        </h2>
+        <p class="font-outfit text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 leading-relaxed mb-5 md:mb-6">
+          Aviaco France has earned B Corp Certification in May 2024 from the non-profit B Lab. Being a member of the Certified B Corporation™ community requires a holistic review of a business' social and environmental performance, accountability and transparency, and is based on a vision of creating a community of for-profit companies committed to redefining success in business.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Image Section -->
+  <section class="py-8 md:py-10 lg:py-12 bg-white dark:bg-gray-900">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto">
+        <div class="aspect-square w-full overflow-hidden rounded-xl shadow-2xl">
+          <img 
+            src="/copter/11.jpg" 
+            alt="B Corp Certification" 
+            class="w-full h-full object-cover"
+            loading="lazy"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Impact Section -->
+  <section class="py-12 md:py-16 lg:py-20 bg-gray-50 dark:bg-gray-800/50">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="font-outfit font-bold text-2xl md:text-3xl lg:text-4xl mb-5 md:mb-6 lg:mb-8 text-gray-900 dark:text-white">
+          Thanks to sorting, we have saved
+        </h2>
+        <p class="font-outfit text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 leading-relaxed mb-5 md:mb-6">
+          In our efforts, we have managed to reduce more than 277 kilograms of waste and cut down over 48 kilograms of CO2 emissions. Additionally, we have generated more than 8 hours of employment, contributing positively to both the environment and the economy.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Toumaï Label Section -->
+  <section class="py-12 md:py-16 lg:py-20 bg-white dark:bg-gray-900">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="font-outfit font-bold text-2xl md:text-3xl lg:text-4xl mb-5 md:mb-6 lg:mb-8 text-gray-900 dark:text-white">
+          Toumaï label by Lucie
+        </h2>
+        <p class="font-outfit text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 leading-relaxed mb-5 md:mb-6">
+          With Toumaï, Lucie Agency has created a seamless labeling process, accessible to all companies trying to assess their CSR maturity. A Lucie expert makes the assessment by coming a half-day on-site. This assessment is rated on 1000 points thanks to a repository, based on the international CSR standards, the ISO 26000. We have already started the procedures and want to obtain the label before 2023.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CO2 Reduction Section -->
+  <section class="py-12 md:py-16 lg:py-20 bg-gray-50 dark:bg-gray-800/50">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto text-center">
+        <h2 class="font-outfit font-bold text-2xl md:text-3xl lg:text-4xl mb-5 md:mb-6 lg:mb-8 text-gray-900 dark:text-white">
+          Environmental impact
+        </h2>
+        <p class="font-outfit text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 leading-relaxed mb-8 md:mb-10">
+          Finally, our core business, helicopter dismantling, leads to a reduction in CO2 emissions. Indeed, thanks to our second-hand products, it's more than 14 tons of CO2 that have been saved.
+        </p>
+        <p class="font-outfit text-xl md:text-2xl lg:text-3xl font-semibold text-gray-900 dark:text-white">
+          Saving our society and our planet, at Aviaco, we make it our mission.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="py-12 md:py-16 lg:py-20 bg-gray-900 dark:bg-black text-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto text-center">
+        <h2 class="font-outfit font-bold text-2xl md:text-3xl lg:text-4xl mb-5 md:mb-6 lg:mb-8">
+          Join us in our CSR mission
+        </h2>
+        <p class="font-outfit text-base md:text-lg lg:text-xl text-gray-300 leading-relaxed mb-8 md:mb-10">
+          Discover how Aviaco France is committed to creating a positive impact on society and the environment through our CSR initiatives.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button href="/contact" variant="secondary" size="lg" class="shadow-2xl">
+            Contact us
+          </Button>
+          <Button href="/about" variant="outline" size="lg" class="!bg-transparent !border-2 !border-white !text-white hover:!bg-white hover:!text-gray-900 !transition-all">
+            Learn more about us
+          </Button>
+        </div>
+      </div>
+    </div>
+  </section>
+</MainLayout>
+

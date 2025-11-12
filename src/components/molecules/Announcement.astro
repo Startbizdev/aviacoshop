@@ -1,0 +1,108 @@
+---
+// Date de fin de l'événement : 20 novembre 2025 à 23:59:59
+const eventEndDate = new Date('2025-11-20T23:59:59').getTime();
+---
+
+<div 
+  id="announcement-banner" 
+  class="bg-gradient-to-r from-primary to-primary/80 text-white py-3 border-b border-primary/20"
+>
+  <div class="container mx-auto px-4">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-3 md:gap-6">
+      <!-- Contenu texte -->
+      <div class="flex-1 text-center md:text-left">
+        <h3 class="font-outfit font-bold text-xs md:text-sm mb-0.5 md:mb-1">
+          Meet us at EUROPEAN ROTORS 2025 Cologne, Germany
+        </h3>
+        <p class="font-outfit text-[10px] md:text-xs opacity-90 leading-tight">
+          Nov 17–20, 2025 • Discover our certified helicopter parts, components & maintenance solutions
+        </p>
+      </div>
+      
+      <!-- Compteur de temps -->
+      <div class="flex items-center gap-2 md:gap-3 flex-shrink-0">
+        <div id="countdown" class="flex items-center gap-1.5 md:gap-2 font-outfit">
+          <div class="flex flex-col items-center bg-white/15 backdrop-blur-sm rounded-md px-2.5 md:px-3 py-1.5 md:py-2 min-w-[48px] md:min-w-[56px] border border-white/10">
+            <span id="days" class="text-sm md:text-base font-bold leading-none">00</span>
+            <span class="text-[9px] md:text-[10px] font-medium opacity-85 leading-none mt-1 uppercase tracking-wider">Days</span>
+          </div>
+          <span class="text-xs md:text-sm font-medium opacity-60">:</span>
+          <div class="flex flex-col items-center bg-white/15 backdrop-blur-sm rounded-md px-2.5 md:px-3 py-1.5 md:py-2 min-w-[48px] md:min-w-[56px] border border-white/10">
+            <span id="hours" class="text-sm md:text-base font-bold leading-none">00</span>
+            <span class="text-[9px] md:text-[10px] font-medium opacity-85 leading-none mt-1 uppercase tracking-wider">Hours</span>
+          </div>
+          <span class="text-xs md:text-sm font-medium opacity-60">:</span>
+          <div class="flex flex-col items-center bg-white/15 backdrop-blur-sm rounded-md px-2.5 md:px-3 py-1.5 md:py-2 min-w-[48px] md:min-w-[56px] border border-white/10">
+            <span id="minutes" class="text-sm md:text-base font-bold leading-none">00</span>
+            <span class="text-[9px] md:text-[10px] font-medium opacity-85 leading-none mt-1 uppercase tracking-wider">Min</span>
+          </div>
+          <span class="text-xs md:text-sm font-medium opacity-60">:</span>
+          <div class="flex flex-col items-center bg-white/15 backdrop-blur-sm rounded-md px-2.5 md:px-3 py-1.5 md:py-2 min-w-[48px] md:min-w-[56px] border border-white/10">
+            <span id="seconds" class="text-sm md:text-base font-bold leading-none">00</span>
+            <span class="text-[9px] md:text-[10px] font-medium opacity-85 leading-none mt-1 uppercase tracking-wider">Sec</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const announcementBanner = document.getElementById('announcement-banner');
+  const eventEndTime = new Date('2025-11-20T23:59:59').getTime();
+  
+  function updateCountdown() {
+    const now = new Date().getTime();
+    const distance = eventEndTime - now;
+    
+    // Si l'événement est passé, masquer l'annonce
+    if (distance < 0) {
+      if (announcementBanner) {
+        announcementBanner.style.display = 'none';
+        // Retirer aussi de localStorage pour ne plus l'afficher
+        localStorage.setItem('announcement-hidden', 'true');
+      }
+      return;
+    }
+    
+    // Calculer le temps restant
+    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+    
+    // Mettre à jour l'affichage
+    const daysEl = document.getElementById('days');
+    const hoursEl = document.getElementById('hours');
+    const minutesEl = document.getElementById('minutes');
+    const secondsEl = document.getElementById('seconds');
+    
+    if (daysEl) daysEl.textContent = String(days).padStart(2, '0');
+    if (hoursEl) hoursEl.textContent = String(hours).padStart(2, '0');
+    if (minutesEl) minutesEl.textContent = String(minutes).padStart(2, '0');
+    if (secondsEl) secondsEl.textContent = String(seconds).padStart(2, '0');
+  }
+  
+  // Vérifier si l'annonce doit être masquée
+  const isHidden = localStorage.getItem('announcement-hidden');
+  if (isHidden === 'true') {
+    if (announcementBanner) {
+      announcementBanner.style.display = 'none';
+    }
+  } else {
+    // Mettre à jour immédiatement
+    updateCountdown();
+    
+    // Mettre à jour toutes les secondes
+    const countdownInterval = setInterval(() => {
+      updateCountdown();
+      
+      // Arrêter l'intervalle si l'événement est passé
+      const now = new Date().getTime();
+      if (now >= eventEndTime) {
+        clearInterval(countdownInterval);
+      }
+    }, 1000);
+  }
+</script>
+

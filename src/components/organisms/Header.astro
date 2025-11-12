@@ -1,0 +1,109 @@
+---
+import SearchBar from '../molecules/SearchBar.astro';
+import CartButton from '../molecules/CartButton.astro';
+import SheetMenu from '../molecules/SheetMenu.astro';
+import { Search, User, ShoppingBag } from 'lucide-astro';
+import Button from '../atoms/Button.astro';
+import Image from '../atoms/Image.astro';
+
+---
+
+<header class="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 shadow-sm will-change-[background-color,border-color]">
+  <div class="container mx-auto px-4 py-3">
+    <div class="flex items-center justify-between">
+      <!-- Hamburger + Logo Group -->
+      <div class="flex items-center gap-5">
+        <!-- Hamburger Menu Button -->
+        <button 
+          id="hamburger-btn" 
+          class="flex flex-col items-center gap-1 text-gray-700 dark:text-gray-300 hover:text-primary transition-colors group"
+          aria-label="Ouvrir le menu"
+        >
+          <div class="flex flex-col gap-1.5">
+            <span id="hamburger-line-1" class="block w-6 h-0.5 bg-current transition-colors"></span>
+            <span id="hamburger-line-2" class="block w-6 h-0.5 bg-current transition-colors"></span>
+            <span id="hamburger-line-3" class="block w-6 h-0.5 bg-current transition-colors"></span>
+          </div>
+          <span class="text-[8px] font-medium uppercase tracking-wider w-6 text-center">Menu</span>
+        </button>
+
+        <!-- Logo -->
+        <a href="/" class="flex-shrink-0 flex items-center group">
+          <Image
+            src="/aviacologo.png"
+            alt="Aviaco Shop Logo"
+            width={40}
+            height={40}
+            class="h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+          />
+        </a>
+      </div>
+      
+      <!-- Search Bar (desktop) -->
+      <div class="hidden md:flex flex-1 max-w-2xl mx-8">
+        <SearchBar />
+      </div>
+      
+      <!-- Actions -->
+      <div class="flex items-center gap-1">
+        <!-- Search Button (mobile) -->
+        <button
+          id="mobile-search-toggle"
+          class="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
+          aria-label="Search"
+        >
+          <Search size={22} />
+        </button>
+        
+        <!-- User Button -->
+        <a
+          href="/login"
+          class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
+          aria-label="Account"
+          title="Account"
+        >
+          <User size={22} />
+        </a>
+        
+        <CartButton />
+      </div>
+    </div>
+    
+    <!-- Mobile Search Bar (toujours cachée, s'affiche uniquement au clic sur le bouton search) -->
+    <div id="mobile-search" class="hidden md:hidden mt-4">
+      <SearchBar />
+    </div>
+  </div>
+
+  <SheetMenu />
+</header>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const mobileSearchToggle = document.getElementById('mobile-search-toggle');
+    const mobileSearch = document.getElementById('mobile-search');
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    const sheetMenu = document.getElementById('sheet-menu');
+    
+    // S'assurer que la barre de recherche mobile est toujours cachée au chargement
+    if (mobileSearch) {
+      mobileSearch.classList.add('hidden');
+    }
+    
+    if (mobileSearchToggle && mobileSearch) {
+      mobileSearchToggle.addEventListener('click', () => {
+        mobileSearch.classList.toggle('hidden');
+      });
+    }
+
+    // Toggle hamburger menu (sheet)
+    if (hamburgerBtn) {
+      hamburgerBtn.addEventListener('click', () => {
+        if (window.openSheetMenu) {
+          window.openSheetMenu();
+        }
+      });
+    }
+  });
+</script>
+

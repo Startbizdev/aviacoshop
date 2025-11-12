@@ -1,0 +1,99 @@
+---
+interface Value {
+  title: string;
+  description: string;
+  icon: string;
+}
+
+interface Props {
+  title: string;
+  subtitle: string;
+  values: Value[];
+}
+
+const { title, subtitle, values } = Astro.props;
+---
+
+<section class="py-16 md:py-20 lg:py-24 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+  <div class="container mx-auto px-4">
+    <div class="max-w-7xl mx-auto">
+      <!-- Header -->
+      <div class="text-center mb-12 md:mb-16 lg:mb-20">
+        <h2 class="font-outfit font-bold text-3xl md:text-4xl lg:text-5xl mb-3 md:mb-4 text-gray-900 dark:text-white">
+          {title}
+        </h2>
+        <p class="font-outfit text-base md:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          {subtitle}
+        </p>
+      </div>
+      
+      <!-- Values Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 lg:gap-10">
+        {values.map((value, index) => (
+          <div 
+            class="value-card group relative bg-white dark:bg-gray-800 rounded-2xl p-8 md:p-10 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 dark:border-gray-700 hover:border-primary/30 dark:hover:border-primary/50"
+            style={`animation-delay: ${index * 100}ms`}
+          >
+            <!-- Icon Container -->
+            <div class="mb-6 relative inline-flex">
+              <div class="absolute inset-0 bg-primary/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+              <div class="relative w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-500">
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="28" 
+                  height="28" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  stroke-width="2" 
+                  stroke-linecap="round" 
+                  stroke-linejoin="round" 
+                  class="text-white"
+                >
+                  <Fragment set:html={value.icon} />
+                </svg>
+              </div>
+            </div>
+            
+            <!-- Content -->
+            <h3 class="font-outfit font-bold text-xl md:text-2xl mb-3 md:mb-4 text-gray-900 dark:text-white group-hover:text-primary transition-colors duration-300">
+              {value.title}
+            </h3>
+            <p class="font-outfit text-sm md:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
+              {value.description}
+            </p>
+            
+            <!-- Decorative element -->
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/5 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .value-card {
+    opacity: 0;
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    .value-card {
+      animation: none;
+      opacity: 1;
+    }
+  }
+</style>
+

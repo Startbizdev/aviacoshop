@@ -1,0 +1,150 @@
+---
+import TeamMember from './TeamMember.astro';
+
+interface Props {
+  title: string;
+  members: Array<{
+    name: string;
+    role: string;
+    image?: string;
+  }>;
+  class?: string;
+  topMargin?: string; // Marge en haut personnalisable (ex: 'pt-16', 'pt-20', etc.)
+}
+
+const { title, members, class: className = '', topMargin } = Astro.props;
+const hasGrayBackground = className.includes('bg-gray-50');
+
+// Padding vertical - utiliser py- directement pour que Tailwind le détecte
+// Si topMargin est fourni, on l'utilise avec pb, sinon on utilise py directement
+const paddingClasses = topMargin 
+  ? `${topMargin} pb-20 md:pb-24 lg:pb-28`
+  : 'pt-8 md:pt-12 pb-20 md:pb-24 lg:pb-28';
+
+// Déterminer le nombre de colonnes optimal selon le nombre de membres
+const getGridClasses = (memberCount: number) => {
+  if (memberCount >= 5) {
+    return 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5';
+  }
+  // Toujours utiliser grid-cols-4 sur grand écran pour garder la même taille
+  return 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4';
+};
+
+// Calculer le nombre de colonnes vides à gauche et à droite pour centrer
+const getEmptyColumns = (memberCount: number) => {
+  if (memberCount >= 4) {
+    return { left: 0, right: 0 };
+  }
+  const totalColumns = 4;
+  const emptyColumns = totalColumns - memberCount;
+  // Répartir équitablement les colonnes vides
+  const left = Math.floor(emptyColumns / 2);
+  const right = emptyColumns - left;
+  return { left, right };
+};
+---
+
+<section class={`relative overflow-hidden ${paddingClasses} ${className}`}>
+  <!-- Subtle background gradient (only on gray backgrounds) -->
+  {hasGrayBackground && (
+    <div class="absolute inset-0 bg-gradient-to-br from-transparent via-primary/5 to-transparent dark:via-primary/10 opacity-50"></div>
+  )}
+  
+  <div class="container mx-auto px-4 relative z-10">
+    <div class="max-w-7xl mx-auto">
+      <!-- Title with animation -->
+      <div class="mb-12 md:mb-16 lg:mb-20">
+        <h3 class="font-outfit font-bold text-xl md:text-2xl lg:text-3xl text-gray-900 dark:text-white text-center tracking-tight">
+          {title}
+        </h3>
+      </div>
+      
+      <!-- Grid with staggered animation - centered when members are fewer than columns -->
+      <div class={`grid ${getGridClasses(members.length)} gap-8 md:gap-10 lg:gap-12 justify-items-center`}>
+        {(() => {
+          const emptyCols = getEmptyColumns(members.length);
+          const items = [];
+          
+          // Colonnes vides à gauche (invisibles sur petits écrans, visibles sur lg pour prendre de l'espace)
+          for (let i = 0; i < emptyCols.left; i++) {
+            items.push(<div class="invisible lg:visible" aria-hidden="true"></div>);
+          }
+          
+          // Membres
+          members.forEach((member, index) => {
+            items.push(
+              <div 
+                class="team-member-card opacity-0 translate-y-8"
+                style={`animation-delay: ${index * 100}ms`}
+              >
+                <TeamMember
+                  name={member.name}
+                  role={member.role}
+                  image={member.image}
+                />
+              </div>
+            );
+          });
+          
+          // Colonnes vides à droite (invisibles sur petits écrans, visibles sur lg pour prendre de l'espace)
+          for (let i = 0; i < emptyCols.right; i++) {
+            items.push(<div class="invisible lg:visible" aria-hidden="true"></div>);
+          }
+          
+          return items;
+        })()}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(32px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .team-member-card {
+    animation: fadeInUp 0.8s ease-out forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .team-member-card {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+</style>
+
+<script>
+  // Intersection Observer pour déclencher les animations au scroll
+  document.addEventListener('DOMContentLoaded', () => {
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-in');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
+
+    // Observer tous les cards de team members
+    document.querySelectorAll('.team-member-card').forEach((card) => {
+      observer.observe(card);
+    });
+  });
+</script>
+

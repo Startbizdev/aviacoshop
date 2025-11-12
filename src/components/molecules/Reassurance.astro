@@ -1,0 +1,62 @@
+---
+import { Truck, Shield, Headphones, Award } from 'lucide-astro';
+
+interface Props {
+  variant?: 'default' | 'compact';
+}
+
+const { variant = 'default' } = Astro.props;
+
+const items = [
+  {
+    icon: Truck,
+    title: 'Express delivery',
+    description: 'We offer express delivery with DHL within 24 to 48 hours.',
+  },
+  {
+    icon: Shield,
+    title: 'Secure payment',
+    description: 'We protect your payment with using SSL & 3D secure.',
+  },
+  {
+    icon: Headphones,
+    title: 'Support 5/7',
+    description: 'Available Monday to Friday from 9 am to 6 pm.',
+  },
+  {
+    icon: Award,
+    title: 'Certified part',
+    description: 'All parts are certified with EASA Form 1, FAA form 1 upon request.',
+  },
+];
+---
+
+<section class={`${variant === 'compact' ? 'py-12 md:py-16' : 'py-16 md:py-24'} bg-gray-50 dark:bg-gray-800`}>
+  <div class="container mx-auto px-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+      {items.map((item) => {
+        const IconComponent = item.icon;
+        return (
+          <div class="group relative bg-white dark:bg-gray-900 rounded-xl p-6 md:p-8 border border-gray-200 dark:border-gray-700 hover:border-primary dark:hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
+            <!-- Icon -->
+            <div class="w-14 h-14 md:w-16 md:h-16 bg-primary/10 dark:bg-primary/20 rounded-xl flex items-center justify-center mb-4 group-hover:bg-primary group-hover:scale-110 transition-all duration-300">
+              <IconComponent class="w-7 h-7 md:w-8 md:h-8 text-primary group-hover:text-white transition-colors duration-300" />
+            </div>
+            
+            <!-- Content -->
+            <h3 class="font-outfit font-bold text-lg md:text-xl mb-2 text-gray-900 dark:text-white group-hover:text-primary transition-colors duration-300">
+              {item.title}
+            </h3>
+            <p class="font-outfit text-sm md:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
+              {item.description}
+            </p>
+            
+            <!-- Decorative element -->
+            <div class="absolute top-0 right-0 w-20 h-20 bg-primary/5 dark:bg-primary/10 rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+</section>
+

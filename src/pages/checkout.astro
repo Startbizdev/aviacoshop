@@ -1,0 +1,573 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Button from '../components/atoms/Button.astro';
+import FormInput from '../components/atoms/FormInput.astro';
+import FormSelect from '../components/atoms/FormSelect.astro';
+import FormTextarea from '../components/atoms/FormTextarea.astro';
+import ToggleSwitch from '../components/atoms/ToggleSwitch.astro';
+import { getCart } from '../lib/wc-api';
+import { countries } from '../lib/countries';
+
+let cart: any = null;
+let error = false;
+
+try {
+  const cookie = Astro.request.headers.get('cookie') || '';
+  cart = await getCart(cookie);
+} catch (err) {
+  console.error('Error fetching cart:', err);
+  error = true;
+}
+
+const items = cart?.items || [];
+const totals = cart?.totals || {};
+
+if (items.length === 0 && !error) {
+  return Astro.redirect('/panier');
+}
+---
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    window.dispatchEvent(new Event('cartUpdated'));
+  });
+</script>
+
+<MainLayout title="Checkout" description="Complete your order">
+  <div class="container mx-auto px-4 py-8 max-w-6xl">
+    <h1 class="font-outfit font-bold text-3xl md:text-4xl mb-8 text-gray-900 dark:text-white">
+      Checkout
+    </h1>
+    
+    <form id="checkout-form" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Checkout Form -->
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Billing Address -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <h2 class="font-outfit font-semibold text-xl mb-6 text-gray-900 dark:text-white">
+            Billing Address
+          </h2>
+          
+          <div class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormInput name="billing_first_name" label="First Name" required />
+              <FormInput name="billing_last_name" label="Last Name" required />
+            </div>
+
+            <FormInput name="billing_company" label="Company" />
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormInput name="billing_email" label="Email" type="email" required />
+              <FormInput name="billing_phone" label="Phone" type="tel" required />
+            </div>
+
+            <FormInput name="billing_address_1" label="Address" required />
+            <FormInput name="billing_address_2" label="Address 2" />
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormInput name="billing_city" label="City" required />
+              <FormInput name="billing_postcode" label="Postcode" required />
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormSelect name="billing_country" label="Country" options={countries} value="FR" required />
+              <FormInput name="billing_state" label="State" />
+            </div>
+          </div>
+        </div>
+        
+        <!-- Shipping Address -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="font-outfit font-semibold text-xl text-gray-900 dark:text-white">
+              Shipping Address
+            </h2>
+            <ToggleSwitch id="same-as-billing" label="Same as billing address" checked />
+          </div>
+          
+          <div id="shipping-address" class="hidden space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormInput name="shipping_first_name" label="First Name" required />
+              <FormInput name="shipping_last_name" label="Last Name" required />
+            </div>
+
+            <FormInput name="shipping_company" label="Company" />
+            <FormInput name="shipping_address_1" label="Address" required />
+            <FormInput name="shipping_address_2" label="Address 2" />
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormInput name="shipping_city" label="City" required />
+              <FormInput name="shipping_postcode" label="Postcode" required />
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormSelect name="shipping_country" label="Country" options={countries} value="FR" required />
+              <FormInput name="shipping_state" label="State" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Shipping Methods -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <h2 class="font-outfit font-semibold text-xl mb-4 text-gray-900 dark:text-white">
+            Shipping Method
+          </h2>
+          <div id="shipping-methods" class="space-y-3">
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              Enter your shipping address to see available shipping methods
+            </p>
+          </div>
+        </div>
+          
+        <!-- Payment Method -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <h2 class="font-outfit font-semibold text-xl mb-4 text-gray-900 dark:text-white">
+            Payment Method
+          </h2>
+          
+          <div class="space-y-3">
+            <label class="flex items-center gap-3 p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:border-primary transition-all">
+              <input
+                type="radio"
+                name="payment_method"
+                value="bacs"
+                checked
+                class="w-4 h-4 text-primary focus:ring-2 focus:ring-primary"
+              />
+              <div class="flex-1">
+                <div class="font-outfit font-medium text-gray-900 dark:text-white">Bank Transfer</div>
+                <div class="font-outfit text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Make your payment directly into our bank account
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Order Notes -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <h2 class="font-outfit font-semibold text-xl mb-4 text-gray-900 dark:text-white">
+            Order Notes
+          </h2>
+          <FormTextarea 
+            name="order_comments" 
+            label="Notes" 
+            placeholder="Notes about your order, e.g. special delivery instructions"
+          />
+        </div>
+      </div>
+      
+      <!-- Order Summary -->
+      <div class="lg:col-span-1">
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 sticky top-24">
+          <h2 class="font-outfit font-semibold text-xl mb-6 text-gray-900 dark:text-white">
+            Order Summary
+          </h2>
+          
+          <div class="space-y-3 mb-6 max-h-80 overflow-y-auto pr-1">
+            {items.map((item: any) => {
+              const imageUrl = item.images?.[0]?.src || '/placeholder-product.jpg';
+              const unitPrice = item.prices?.price || item.price || '0';
+              const totalPrice = item.prices?.total || item.total || '0';
+              
+              return (
+                <div class="flex gap-3 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <img
+                    src={imageUrl}
+                    alt={item.name}
+                    class="w-16 h-16 object-cover rounded-md flex-shrink-0"
+                  />
+                  <div class="flex-1 min-w-0">
+                    <h3 class="font-outfit font-medium text-sm text-gray-900 dark:text-white mb-1 line-clamp-2">
+                      {item.name}
+                    </h3>
+                    <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                      <span>{unitPrice} €</span>
+                      <span>×</span>
+                      <span>{item.quantity}</span>
+                    </div>
+                    <div class="font-outfit font-semibold text-sm text-primary mt-1">
+                      {totalPrice} €
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          
+          <div class="border-t-2 border-gray-200 dark:border-gray-700 pt-4 space-y-3">
+            <div class="flex justify-between font-outfit text-sm text-gray-600 dark:text-gray-400">
+              <span>Subtotal</span>
+              <span id="order-subtotal" class="font-semibold text-gray-900 dark:text-white">{totals.total_items || '0'} €</span>
+            </div>
+            
+            <div class="flex justify-between font-outfit text-sm text-gray-600 dark:text-gray-400">
+              <span>Shipping</span>
+              <span id="order-shipping" class="font-semibold text-gray-900 dark:text-white">
+                {totals.total_shipping && totals.total_shipping !== '0' ? `${totals.total_shipping} €` : 'Calculated at next step'}
+              </span>
+            </div>
+            
+            <div id="order-tax-row" class={`flex justify-between font-outfit text-sm text-gray-600 dark:text-gray-400 ${totals.total_tax && totals.total_tax !== '0' ? '' : 'hidden'}`}>
+              <span>Tax (VAT)</span>
+              <span id="order-tax" class="font-semibold text-gray-900 dark:text-white">{totals.total_tax || '0'} €</span>
+            </div>
+            
+            <div class="border-t-2 border-gray-200 dark:border-gray-700 pt-3 mt-3">
+              <div class="flex justify-between font-outfit font-bold text-lg">
+                <span class="text-gray-900 dark:text-white">Total</span>
+                <span id="order-total" class="text-primary text-xl">{totals.total_price || '0'} €</span>
+              </div>
+            </div>
+          </div>
+          
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            class="w-full mt-6 text-center"
+          >
+            <span id="submit-text">Confirm Order</span>
+          </Button>
+        </div>
+      </div>
+    </form>
+  </div>
+</MainLayout>
+
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const sameAsBilling = document.getElementById('same-as-billing') as HTMLInputElement;
+    const shippingAddress = document.getElementById('shipping-address') as HTMLElement;
+    const shippingMethodsContainer = document.getElementById('shipping-methods') as HTMLElement;
+    let loadingShipping = false;
+    
+    // Toggle shipping address visibility
+    if (sameAsBilling && shippingAddress) {
+      sameAsBilling.addEventListener('change', () => {
+        if (sameAsBilling.checked) {
+          shippingAddress.classList.add('hidden');
+        } else {
+          shippingAddress.classList.remove('hidden');
+        }
+        // Reload shipping methods when toggle changes
+        loadShippingMethods();
+      });
+    }
+
+    // Load shipping methods
+    async function loadShippingMethods() {
+      if (loadingShipping) return;
+
+      const isSameAsBilling = sameAsBilling?.checked !== false;
+      
+      const country = isSameAsBilling 
+        ? (document.getElementById('billing_country') as HTMLSelectElement)?.value
+        : (document.getElementById('shipping_country') as HTMLSelectElement)?.value || (document.getElementById('billing_country') as HTMLSelectElement)?.value;
+      
+      const postcode = isSameAsBilling
+        ? (document.getElementById('billing_postcode') as HTMLInputElement)?.value
+        : (document.getElementById('shipping_postcode') as HTMLInputElement)?.value || (document.getElementById('billing_postcode') as HTMLInputElement)?.value;
+      
+      const city = isSameAsBilling
+        ? (document.getElementById('billing_city') as HTMLInputElement)?.value
+        : (document.getElementById('shipping_city') as HTMLInputElement)?.value || (document.getElementById('billing_city') as HTMLInputElement)?.value;
+      
+      const state = isSameAsBilling
+        ? (document.getElementById('billing_state') as HTMLInputElement)?.value
+        : (document.getElementById('shipping_state') as HTMLInputElement)?.value || (document.getElementById('billing_state') as HTMLInputElement)?.value;
+
+      // Validate required fields
+      if (!country) {
+        shippingMethodsContainer.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">Please select a country</p>';
+        return;
+      }
+      
+      if (!postcode || postcode.trim().length < 3) {
+        shippingMethodsContainer.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">Please enter a valid postcode</p>';
+        return;
+      }
+      
+      if (!city || city.trim().length < 2) {
+        shippingMethodsContainer.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">Please enter a city</p>';
+        return;
+      }
+
+      try {
+        loadingShipping = true;
+        shippingMethodsContainer.innerHTML = '<div class="flex items-center justify-center py-8"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>';
+        
+        console.log('Loading shipping methods with:', { country, postcode: postcode.trim(), city: city.trim(), state });
+        
+        const response = await fetch('/api/shipping-methods', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            country: country.trim(),
+            postcode: postcode.trim(),
+            city: city.trim(),
+            state: state?.trim() || '',
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const methods = data.methods || [];
+          
+          console.log('Shipping methods received:', methods);
+          
+          if (methods.length === 0) {
+            shippingMethodsContainer.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">No shipping methods available for this address</p>';
+            return;
+          }
+
+          shippingMethodsContainer.innerHTML = methods.map((method: any, index: number) => `
+            <label class="flex items-center gap-3 p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:border-primary transition-all">
+              <input
+                type="radio"
+                name="shipping_method"
+                value="${method.id}"
+                data-rate-id="${method.id}"
+                ${index === 0 ? 'checked' : ''}
+                class="w-4 h-4 text-primary focus:ring-2 focus:ring-primary shipping-method-radio"
+              />
+              <div class="flex-1">
+                <div class="font-outfit font-medium text-gray-900 dark:text-white">${method.name}</div>
+                ${method.description ? `<div class="font-outfit text-xs text-gray-500 dark:text-gray-400 mt-1">${method.description}</div>` : ''}
+              </div>
+              <div class="font-outfit font-semibold text-primary">${method.price || '0'} €</div>
+            </label>
+          `).join('');
+
+          // Update shipping method when radio changes
+          document.querySelectorAll('.shipping-method-radio').forEach((radio: any) => {
+            radio.addEventListener('change', async () => {
+              if (radio.checked) {
+                await updateShippingMethod(radio.dataset.rateId);
+                await refreshCart();
+              }
+            });
+          });
+
+          // Auto-select first method and refresh cart
+          if (methods.length > 0) {
+            await updateShippingMethod(methods[0].id);
+            await refreshCart();
+          }
+        } else {
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+          console.error('Shipping methods error response:', errorData);
+          
+          let errorMessage = 'Error loading shipping methods';
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+          
+          shippingMethodsContainer.innerHTML = `
+            <div class="text-sm text-red-500 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+              <p class="font-medium mb-1">Unable to load shipping methods</p>
+              <p class="text-xs">${errorMessage}</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error('Error loading shipping methods:', error);
+        shippingMethodsContainer.innerHTML = `
+          <div class="text-sm text-red-500 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+            <p class="font-medium mb-1">Connection error</p>
+            <p class="text-xs">Please check your internet connection and try again</p>
+          </div>
+        `;
+      } finally {
+        loadingShipping = false;
+      }
+    }
+
+    async function updateShippingMethod(rateId: string) {
+      try {
+        await fetch('/api/shipping-methods/update', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ rate_id: rateId }),
+        });
+      } catch (error) {
+        console.error('Error updating shipping method:', error);
+      }
+    }
+
+    async function refreshCart() {
+      try {
+        const response = await fetch('/api/cart', {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const cart = await response.json();
+          updateOrderSummary(cart.totals || {});
+        }
+      } catch (error) {
+        console.error('Error refreshing cart:', error);
+      }
+    }
+
+    function updateOrderSummary(totals: any) {
+      const subtotalEl = document.getElementById('order-subtotal');
+      const shippingEl = document.getElementById('order-shipping');
+      const taxEl = document.getElementById('order-tax');
+      const taxRow = document.getElementById('order-tax-row');
+      const totalEl = document.getElementById('order-total');
+
+      if (subtotalEl) subtotalEl.textContent = `${totals.total_items || '0'} €`;
+      if (shippingEl) shippingEl.textContent = `${totals.total_shipping || '0'} €`;
+      if (taxEl) taxEl.textContent = `${totals.total_tax || '0'} €`;
+      if (totalEl) totalEl.textContent = `${totals.total_price || '0'} €`;
+      
+      // Show/hide tax row
+      if (taxRow) {
+        if (totals.total_tax && totals.total_tax !== '0' && parseFloat(totals.total_tax) > 0) {
+          taxRow.classList.remove('hidden');
+        } else {
+          taxRow.classList.add('hidden');
+        }
+      }
+    }
+
+    // Load shipping methods when address fields change (with debounce)
+    let debounceTimer: number;
+    const addressFields = [
+      'billing_country', 'billing_postcode', 'billing_city', 'billing_state',
+      'shipping_country', 'shipping_postcode', 'shipping_city', 'shipping_state'
+    ];
+
+    addressFields.forEach((fieldId) => {
+      const field = document.getElementById(fieldId);
+      if (field) {
+        field.addEventListener('input', () => {
+          clearTimeout(debounceTimer);
+          debounceTimer = window.setTimeout(() => {
+            loadShippingMethods();
+          }, 1200); // Increased delay to avoid premature calls
+        });
+        
+        field.addEventListener('change', () => {
+          clearTimeout(debounceTimer);
+          debounceTimer = window.setTimeout(() => {
+            loadShippingMethods();
+          }, 500);
+        });
+      }
+    });
+    
+    // Don't auto-load on page load - wait for user to enter address
+    
+    // Form submission
+    const form = document.getElementById('checkout-form') as HTMLFormElement;
+    
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const data: any = {
+          billing_address: {},
+          shipping_address: {},
+          payment_method: formData.get('payment_method') || 'bacs',
+          payment_method_title: 'Bank Transfer',
+          order_comments: formData.get('order_comments') || '',
+        };
+        
+        // Billing address
+        data.billing_address.first_name = formData.get('billing_first_name');
+        data.billing_address.last_name = formData.get('billing_last_name');
+        data.billing_address.company = formData.get('billing_company') || '';
+        data.billing_address.email = formData.get('billing_email');
+        data.billing_address.phone = formData.get('billing_phone');
+        data.billing_address.address_1 = formData.get('billing_address_1');
+        data.billing_address.address_2 = formData.get('billing_address_2') || '';
+        data.billing_address.city = formData.get('billing_city');
+        data.billing_address.postcode = formData.get('billing_postcode');
+        data.billing_address.country = formData.get('billing_country') || 'FR';
+        data.billing_address.state = formData.get('billing_state') || '';
+        
+        // Shipping address
+        if (sameAsBilling?.checked) {
+          data.shipping_address = { ...data.billing_address };
+          delete data.shipping_address.email;
+          delete data.shipping_address.phone;
+        } else {
+          data.shipping_address.first_name = formData.get('shipping_first_name');
+          data.shipping_address.last_name = formData.get('shipping_last_name');
+          data.shipping_address.company = formData.get('shipping_company') || '';
+          data.shipping_address.address_1 = formData.get('shipping_address_1');
+          data.shipping_address.address_2 = formData.get('shipping_address_2') || '';
+          data.shipping_address.city = formData.get('shipping_city');
+          data.shipping_address.postcode = formData.get('shipping_postcode');
+          data.shipping_address.country = formData.get('shipping_country') || 'FR';
+          data.shipping_address.state = formData.get('shipping_state') || '';
+        }
+
+        // Shipping method
+        const selectedShipping = form.querySelector('input[name="shipping_method"]:checked') as HTMLInputElement;
+        if (selectedShipping) {
+          data.shipping_method = selectedShipping.value;
+          const shippingLabel = selectedShipping.closest('label')?.querySelector('.font-outfit.font-medium')?.textContent;
+          data.shipping_method_title = shippingLabel || selectedShipping.value;
+        }
+        
+        try {
+          const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+          const submitText = document.getElementById('submit-text');
+          
+          if (submitButton) {
+            submitButton.disabled = true;
+          }
+          if (submitText) {
+            submitText.textContent = 'Processing...';
+          }
+          
+          const response = await fetch('/api/checkout', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(data),
+          });
+          
+          if (response.ok) {
+            const order = await response.json();
+            window.location.href = `/commande/${order.id}`;
+          } else {
+            const error = await response.json();
+            alert('Error placing order: ' + (error.error || error.message || 'Unknown error'));
+            
+            if (submitButton) {
+              submitButton.disabled = false;
+            }
+            if (submitText) {
+              submitText.textContent = 'Confirm Order';
+            }
+          }
+        } catch (error) {
+          console.error('Error creating order:', error);
+          alert('Error placing order. Please try again.');
+          
+          const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+          const submitText = document.getElementById('submit-text');
+          
+          if (submitButton) {
+            submitButton.disabled = false;
+          }
+          if (submitText) {
+            submitText.textContent = 'Confirm Order';
+          }
+        }
+      });
+    }
+  });
+</script>
