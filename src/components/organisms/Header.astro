@@ -3,7 +3,6 @@ import SearchBar from '../molecules/SearchBar.astro';
 import CartButton from '../molecules/CartButton.astro';
 import SheetMenu from '../molecules/SheetMenu.astro';
 import UserMenu from '../molecules/UserMenu.astro';
-import { Search } from 'lucide-astro';
 import Image from '../atoms/Image.astro';
 
 ---
@@ -46,15 +45,6 @@ import Image from '../atoms/Image.astro';
       
       <!-- Actions -->
       <div class="flex items-center gap-1">
-        <!-- Search Button (mobile) -->
-        <button
-          id="mobile-search-toggle"
-          class="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
-          aria-label="Search"
-        >
-          <Search size={22} />
-        </button>
-        
         <!-- User Menu -->
         <UserMenu />
         
@@ -62,8 +52,8 @@ import Image from '../atoms/Image.astro';
       </div>
     </div>
     
-    <!-- Mobile Search Bar (toujours cachée, s'affiche uniquement au clic sur le bouton search) -->
-    <div id="mobile-search" class="hidden md:hidden mt-4">
+    <!-- Mobile Search Bar (toujours visible sur mobile) -->
+    <div class="md:hidden mt-3 pt-3 border-t border-gray-200 dark:border-gray-800">
       <SearchBar uniqueId="mobile" />
     </div>
   </div>
@@ -73,22 +63,8 @@ import Image from '../atoms/Image.astro';
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const mobileSearchToggle = document.getElementById('mobile-search-toggle');
-    const mobileSearch = document.getElementById('mobile-search');
     const hamburgerBtn = document.getElementById('hamburger-btn');
-    const sheetMenu = document.getElementById('sheet-menu');
     
-    // S'assurer que la barre de recherche mobile est toujours cachée au chargement
-    if (mobileSearch) {
-      mobileSearch.classList.add('hidden');
-    }
-    
-    if (mobileSearchToggle && mobileSearch) {
-      mobileSearchToggle.addEventListener('click', () => {
-        mobileSearch.classList.toggle('hidden');
-      });
-    }
-
     // Toggle hamburger menu (sheet)
     if (hamburgerBtn) {
       hamburgerBtn.addEventListener('click', () => {
@@ -97,7 +73,6 @@ import Image from '../atoms/Image.astro';
         }
       });
     }
-
   });
 </script>
 

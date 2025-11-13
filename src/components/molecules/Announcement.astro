@@ -5,41 +5,45 @@ const eventEndDate = new Date('2025-11-20T23:59:59').getTime();
 
 <div 
   id="announcement-banner" 
-  class="bg-gradient-to-r from-primary to-primary/80 text-white py-3 border-b border-primary/20"
+  class="bg-gradient-to-r from-primary to-primary/80 text-white py-2 sm:py-2.5 md:py-3 border-b border-primary/20"
 >
-  <div class="container mx-auto px-4">
-    <div class="flex flex-col md:flex-row items-center justify-between gap-3 md:gap-6">
+  <div class="container mx-auto px-3 sm:px-4">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3 md:gap-6">
       <!-- Contenu texte -->
-      <div class="flex-1 text-center md:text-left">
-        <h3 class="font-outfit font-bold text-xs md:text-sm mb-0.5 md:mb-1">
+      <div class="flex-1 text-center sm:text-left w-full sm:w-auto">
+        <h3 class="font-outfit font-bold text-[11px] sm:text-xs md:text-sm mb-0.5 sm:mb-0.5 md:mb-1 leading-tight sm:leading-normal">
           Meet us at EUROPEAN ROTORS 2025 Cologne, Germany
         </h3>
-        <p class="font-outfit text-[10px] md:text-xs opacity-90 leading-tight">
+        <p class="font-outfit text-[9px] sm:text-[10px] md:text-xs opacity-90 leading-tight sm:leading-normal mt-0.5 sm:mt-0">
           Nov 17–20, 2025 • Discover our certified helicopter parts, components & maintenance solutions
         </p>
       </div>
       
       <!-- Compteur de temps -->
-      <div class="flex items-center gap-2 md:gap-3 flex-shrink-0">
-        <div id="countdown" class="flex items-center gap-1.5 md:gap-2 font-outfit">
-          <div class="flex flex-col items-center bg-white/15 backdrop-blur-sm rounded-md px-2.5 md:px-3 py-1.5 md:py-2 min-w-[48px] md:min-w-[56px] border border-white/10">
-            <span id="days" class="text-sm md:text-base font-bold leading-none">00</span>
-            <span class="text-[9px] md:text-[10px] font-medium opacity-85 leading-none mt-1 uppercase tracking-wider">Days</span>
+      <div class="flex items-center justify-center sm:justify-end gap-1.5 sm:gap-2 md:gap-3 flex-shrink-0 w-full sm:w-auto">
+        <div id="countdown" class="flex items-center gap-1 sm:gap-1.5 md:gap-2 font-outfit">
+          <!-- Days - caché sur très petits écrans si trop de jours -->
+          <div id="days-container" class="flex flex-col items-center bg-white/15 backdrop-blur-sm rounded px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 md:py-2 min-w-[36px] sm:min-w-[42px] md:min-w-[56px] border border-white/10">
+            <span id="days" class="text-xs sm:text-sm md:text-base font-bold leading-none">00</span>
+            <span class="text-[8px] sm:text-[9px] md:text-[10px] font-medium opacity-85 leading-none mt-0.5 sm:mt-1 uppercase tracking-wider">Days</span>
           </div>
-          <span class="text-xs md:text-sm font-medium opacity-60">:</span>
-          <div class="flex flex-col items-center bg-white/15 backdrop-blur-sm rounded-md px-2.5 md:px-3 py-1.5 md:py-2 min-w-[48px] md:min-w-[56px] border border-white/10">
-            <span id="hours" class="text-sm md:text-base font-bold leading-none">00</span>
-            <span class="text-[9px] md:text-[10px] font-medium opacity-85 leading-none mt-1 uppercase tracking-wider">Hours</span>
+          <span class="text-[10px] sm:text-xs md:text-sm font-medium opacity-60 hidden sm:inline">:</span>
+          <!-- Hours -->
+          <div class="flex flex-col items-center bg-white/15 backdrop-blur-sm rounded px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 md:py-2 min-w-[36px] sm:min-w-[42px] md:min-w-[56px] border border-white/10">
+            <span id="hours" class="text-xs sm:text-sm md:text-base font-bold leading-none">00</span>
+            <span class="text-[8px] sm:text-[9px] md:text-[10px] font-medium opacity-85 leading-none mt-0.5 sm:mt-1 uppercase tracking-wider">Hours</span>
           </div>
-          <span class="text-xs md:text-sm font-medium opacity-60">:</span>
-          <div class="flex flex-col items-center bg-white/15 backdrop-blur-sm rounded-md px-2.5 md:px-3 py-1.5 md:py-2 min-w-[48px] md:min-w-[56px] border border-white/10">
-            <span id="minutes" class="text-sm md:text-base font-bold leading-none">00</span>
-            <span class="text-[9px] md:text-[10px] font-medium opacity-85 leading-none mt-1 uppercase tracking-wider">Min</span>
+          <span class="text-[10px] sm:text-xs md:text-sm font-medium opacity-60">:</span>
+          <!-- Minutes -->
+          <div class="flex flex-col items-center bg-white/15 backdrop-blur-sm rounded px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 md:py-2 min-w-[36px] sm:min-w-[42px] md:min-w-[56px] border border-white/10">
+            <span id="minutes" class="text-xs sm:text-sm md:text-base font-bold leading-none">00</span>
+            <span class="text-[8px] sm:text-[9px] md:text-[10px] font-medium opacity-85 leading-none mt-0.5 sm:mt-1 uppercase tracking-wider">Min</span>
           </div>
-          <span class="text-xs md:text-sm font-medium opacity-60">:</span>
-          <div class="flex flex-col items-center bg-white/15 backdrop-blur-sm rounded-md px-2.5 md:px-3 py-1.5 md:py-2 min-w-[48px] md:min-w-[56px] border border-white/10">
-            <span id="seconds" class="text-sm md:text-base font-bold leading-none">00</span>
-            <span class="text-[9px] md:text-[10px] font-medium opacity-85 leading-none mt-1 uppercase tracking-wider">Sec</span>
+          <span class="text-[10px] sm:text-xs md:text-sm font-medium opacity-60">:</span>
+          <!-- Seconds -->
+          <div class="flex flex-col items-center bg-white/15 backdrop-blur-sm rounded px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 md:py-2 min-w-[36px] sm:min-w-[42px] md:min-w-[56px] border border-white/10">
+            <span id="seconds" class="text-xs sm:text-sm md:text-base font-bold leading-none">00</span>
+            <span class="text-[8px] sm:text-[9px] md:text-[10px] font-medium opacity-85 leading-none mt-0.5 sm:mt-1 uppercase tracking-wider">Sec</span>
           </div>
         </div>
       </div>

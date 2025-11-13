@@ -22,7 +22,7 @@ try {
 
 <MainLayout title="Home" description="Welcome to Aviaco Shop - Your online store for all your aeronautical needs">
   <!-- Hero Section -->
-  <section class="relative w-full h-[calc(100vh-120px)] md:h-[calc(100vh-140px)] overflow-hidden flex items-center justify-center">
+  <section class="relative w-full h-[60vh] sm:h-[70vh] md:h-[calc(100vh-140px)] overflow-hidden flex items-center justify-center py-8 sm:py-12">
     <!-- Video Background -->
     <video 
       autoplay 
@@ -40,17 +40,17 @@ try {
     <!-- Content -->
     <div class="relative z-20 container mx-auto px-4">
       <div class="max-w-4xl mx-auto text-center">
-        <h1 class="font-outfit font-bold text-4xl md:text-5xl lg:text-6xl mb-5 md:mb-6 text-white leading-tight tracking-tight hero-title">
+        <h1 class="font-outfit font-bold text-2xl sm:text-3xl md:text-5xl lg:text-6xl mb-3 sm:mb-4 md:mb-6 text-white leading-tight tracking-tight hero-title">
           Premium helicopter spare parts
         </h1>
-        <p class="font-outfit text-lg md:text-xl lg:text-2xl mb-10 text-gray-100 max-w-3xl mx-auto leading-relaxed hero-description">
+        <p class="font-outfit text-sm sm:text-base md:text-xl lg:text-2xl mb-6 sm:mb-8 md:mb-10 text-gray-100 max-w-3xl mx-auto leading-relaxed hero-description px-2">
           Certified components, expert maintenance solutions, and unparalleled quality for the aviation industry. Trusted by professionals worldwide.
         </p>
-        <div class="flex flex-col sm:flex-row gap-4 justify-center hero-cta">
-          <Button href="/catalogue" variant="secondary" size="lg" class="shadow-2xl">
+        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center hero-cta px-4">
+          <Button href="/catalogue" variant="secondary" size="lg" class="shadow-2xl w-full sm:w-auto">
             Explore catalog
           </Button>
-          <Button href="/contact" variant="outline" size="lg" class="!bg-transparent !border-2 !border-white !text-white hover:!bg-white hover:!text-gray-900 !transition-all">
+          <Button href="/contact" variant="outline" size="lg" class="!bg-transparent !border-2 !border-white !text-white hover:!bg-white hover:!text-gray-900 !transition-all w-full sm:w-auto">
             Contact us
           </Button>
         </div>
@@ -58,8 +58,8 @@ try {
     </div>
     
     <!-- Scroll indicator -->
-    <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 animate-bounce">
-      <svg class="w-6 h-6 text-white opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="absolute bottom-4 sm:bottom-8 left-1/2 transform -translate-x-1/2 z-20 animate-bounce hidden sm:block">
+      <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
       </svg>
     </div>
