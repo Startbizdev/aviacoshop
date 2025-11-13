@@ -26,19 +26,16 @@ try {
   const response = await getProducts(params);
   const allProducts = Array.isArray(response) ? response : [];
   
+  // Log pour déboguer le chargement initial
+  console.log(`Page initiale: ${allProducts.length} produits bruts reçus de WooCommerce`);
+  
   // Grouper les produits par titre (insensible à la casse) et ne garder qu'un seul produit par groupe
   const productsByTitle = new Map<string, any>();
   
   allProducts.forEach((product: any) => {
     const productName = (product.name || '').trim().toLowerCase();
     
-    // Optimiser l'URL de l'image - réduire la taille pour un chargement plus rapide
-    if (product.images && product.images.length > 0 && product.images[0].src) {
-      // WooCommerce permet de spécifier la taille dans l'URL
-      const imgUrl = product.images[0].src;
-      // Remplacer la taille par 'medium' (généralement 300x300) au lieu de 'large'
-      product.images[0].src = imgUrl.replace(/\.(jpg|jpeg|png|gif|webp)/i, '-300x300.$1');
-    }
+    // Utiliser l'URL originale de l'image telle quelle (pas de modification)
     
     // Si on n'a pas encore de produit pour ce titre, ou si le produit actuel est en stock et l'autre non
     if (!productsByTitle.has(productName)) {
@@ -60,10 +57,13 @@ try {
     }
   });
   
-  // Convertir la Map en tableau, trier par ID et limiter à displayPerPage
+  // Convertir la Map en tableau, trier par ID
+  // Ne pas limiter ici - afficher tous les produits uniques de cette page
   products = Array.from(productsByTitle.values())
-    .sort((a: any, b: any) => a.id - b.id)
-    .slice(0, displayPerPage);
+    .sort((a: any, b: any) => a.id - b.id);
+  
+  // Log pour déboguer après déduplication
+  console.log(`Page initiale: ${products.length} produits uniques après déduplication (sur ${allProducts.length} bruts)`);
 } catch (error) {
   console.error('Error fetching products:', error);
   products = [];
@@ -119,8 +119,17 @@ try {
     
     let currentPage = 1;
     let isLoading = false;
-    let hasMore = true;
     const searchQuery = new URLSearchParams(window.location.search).get('search') || '';
+    
+    // Déterminer s'il y a plus de produits à charger en fonction du nombre de produits bruts reçus
+    // Si on a reçu exactement 100 produits bruts, il y a probablement plus de pages
+    // Si on a reçu moins de 100 produits bruts, c'est peut-être la dernière page, mais on essaie quand même
+    const initialProductCount = productsGrid.children.length;
+    // Si on a moins de 100 produits affichés mais qu'on ne fait pas de recherche,
+    // on suppose qu'il y a peut-être plus de produits (car la déduplication peut réduire le nombre)
+    let hasMore = !searchQuery || initialProductCount >= 100;
+    
+    console.log(`Initialisation: ${initialProductCount} produits affichés, hasMore initial: ${hasMore}, recherche: "${searchQuery}"`);
     const perPageWC = 100; // Charger beaucoup de produits de WooCommerce
     const displayPerLoad = 20; // Afficher 20 produits uniques par chargement (4 lignes de 5)
     let loadedProductNames = new Set(); // Pour éviter les doublons entre les chargements
@@ -173,36 +182,114 @@ try {
         const html = await response.text();
         
         if (html && html.trim().length > 0) {
-          // Parser le HTML retourné
-          const tempDiv = document.createElement('div');
-          tempDiv.innerHTML = html;
+          // Parser le HTML retourné (peut être un document HTML complet ou un fragment)
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
           
-          // Le premier élément contient les attributs data
-          const wrapper = tempDiv.firstElementChild;
-          const hasMoreData = wrapper?.getAttribute('data-has-more') === 'true';
-          const count = parseInt(wrapper?.getAttribute('data-count') || '0');
+          // Chercher le wrapper avec les attributs data dans le document
+          let wrapper = doc.querySelector('[data-has-more]') as HTMLElement | null;
+          let hasMoreData = false;
+          let count = 0;
+          let uniqueCount = 0;
           
-          // Récupérer tous les ProductCard (enfants du wrapper)
-          const newCards = wrapper?.children || [];
+          if (wrapper) {
+            hasMoreData = wrapper.getAttribute('data-has-more') === 'true';
+            count = parseInt(wrapper.getAttribute('data-count') || '0');
+            uniqueCount = parseInt(wrapper.getAttribute('data-unique-count') || '0');
+          }
           
+          // Log pour déboguer le parsing
+          console.log(`[Client] HTML reçu - longueur: ${html.length}, wrapper existe: ${!!wrapper}, tagName: ${wrapper?.tagName}`);
+          console.log(`[Client] Attributs data - hasMore: ${hasMoreData}, count: ${count}, uniqueCount: ${uniqueCount}`);
+          console.log(`[Client] Nombre d'enfants du wrapper: ${wrapper?.children?.length || 0}`);
+          
+          // Récupérer tous les ProductCard (enfants directs du wrapper)
+          // ProductCard génère un <a> via le composant Card
+          let newCards: Element[] = [];
+          if (wrapper) {
+            // Les ProductCard sont des enfants directs du wrapper (des éléments <a> générés par Card)
+            // Prendre tous les enfants directs qui ne sont pas des scripts ou des commentaires
+            newCards = Array.from(wrapper.children).filter(child => {
+              // Exclure les scripts et autres éléments non-product
+              return child.tagName !== 'SCRIPT' && 
+                     child.tagName !== 'STYLE' &&
+                     child.tagName !== 'NOSCRIPT' &&
+                     !child.hasAttribute('data-astro');
+            });
+          }
+          
+          // Log détaillé des cartes trouvées
+          console.log(`[Client] ${newCards.length} ProductCard trouvés dans le HTML`);
+          if (newCards.length === 0 && wrapper) {
+            console.warn(`[Client] Aucune carte trouvée mais wrapper existe. Structure HTML:`, wrapper.outerHTML.substring(0, 500));
+          }
+          
+          // Ajouter chaque ProductCard à la grille même s'il n'y en a pas beaucoup
+          // (après déduplication, une page peut avoir peu ou pas de nouveaux produits uniques)
           if (newCards.length > 0) {
-            // Ajouter chaque ProductCard à la grille
             Array.from(newCards).forEach(card => {
               productsGrid.appendChild(card);
             });
             
-            // Continuer seulement si WooCommerce a retourné le maximum de produits (100)
-            // Ce qui signifie qu'il y a probablement une page suivante
-            hasMore = hasMoreData;
-          } else {
+            // Vérifier l'authentification et attacher les listeners pour les nouveaux produits ajoutés
+            // Utiliser setTimeout pour s'assurer que le DOM est mis à jour
+            setTimeout(() => {
+              if ((window as any).checkProductAuth) {
+                (window as any).checkProductAuth();
+              }
+              if ((window as any).attachAddToCartListeners) {
+                (window as any).attachAddToCartListeners();
+              }
+              // Déclencher aussi l'événement personnalisé
+              window.dispatchEvent(new Event('products-loaded'));
+            }, 0);
+          }
+          
+          // Log pour déboguer - afficher aussi le nombre total de produits dans la grille
+          const totalProductsInGrid = productsGrid.children.length;
+          console.log(`Page ${currentPage}: ${newCards.length} nouveaux produits uniques, ${totalProductsInGrid} total dans la grille, hasMore: ${hasMoreData}, produits WC bruts: ${count}`);
+          
+          // Logique de pagination améliorée :
+          // - Si on reçoit 0 produits bruts (count === 0) ET 0 ProductCard, il n'y a vraiment plus de produits
+          // - Si on reçoit exactement 100 produits bruts, il y a probablement une page suivante
+          // - Si on reçoit moins de 100 mais > 0 produits bruts, c'est peut-être la dernière page
+          //   MAIS on continue quand même à charger au cas où il y aurait encore des pages
+          //   (car après déduplication, on peut avoir moins de 100 produits uniques même s'il y a plus de pages)
+          // - Si count est 0 mais qu'on a des ProductCard, c'est que le parsing des attributs a échoué,
+          //   mais on continue quand même car il y a des produits
+          
+          if (count === 0 && newCards.length === 0) {
+            // Aucun produit brut ET aucune carte = vraiment la fin
             hasMore = false;
+            console.log(`Page ${currentPage}: 0 produits bruts ET 0 cartes reçus, fin du chargement`);
+          } else if (count === 100) {
+            // Exactement 100 produits = il y a probablement une page suivante
+            hasMore = true;
+            console.log(`Page ${currentPage}: 100 produits bruts reçus, continuation du chargement`);
+          } else if (count > 0 && count < 100) {
+            // Moins de 100 produits mais > 0 = dernière page probable, mais on essaie quand même la suivante
+            // On s'arrête seulement si la page suivante retourne 0 produits
+            hasMore = true;
+            console.log(`Page ${currentPage}: ${count} produits bruts (< 100), on essaie quand même la page suivante`);
+          } else if (count === 0 && newCards.length > 0) {
+            // Count est 0 mais on a des cartes = parsing des attributs a échoué, mais on continue
+            hasMore = true;
+            console.log(`Page ${currentPage}: count=0 mais ${newCards.length} cartes trouvées, continuation (parsing attributs peut avoir échoué)`);
+          } else {
+            // Cas par défaut : continuer si on a des cartes
+            hasMore = newCards.length > 0;
+            console.log(`Page ${currentPage}: Cas par défaut - count: ${count}, cartes: ${newCards.length}, hasMore: ${hasMore}`);
           }
         } else {
+          // Si la réponse HTML est vide, il n'y a vraiment plus de produits
           hasMore = false;
+          console.log(`Page ${currentPage}: Réponse HTML vide, fin du chargement`);
         }
         
         // Si plus de produits, afficher le message de fin
+        // Mais seulement si on a vraiment reçu 0 produits bruts (pas juste hasMoreData = false)
         if (!hasMore && endMessage) {
+          console.log(`Affichage du message "All products have been loaded" - hasMore: ${hasMore}, total produits: ${productsGrid.children.length}`);
           endMessage.classList.remove('hidden');
           if (sentinel) {
             observer.unobserve(sentinel);

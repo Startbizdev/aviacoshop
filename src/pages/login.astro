@@ -84,6 +84,13 @@ import Icon from '../components/atoms/Icon.astro';
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    // Redirect if already logged in
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      window.location.href = '/my-account';
+      return;
+    }
+    
     const form = document.getElementById('login-form') as HTMLFormElement;
     const submitButton = document.getElementById('submit-button') as HTMLButtonElement;
     const buttonText = document.getElementById('button-text');
@@ -128,12 +135,24 @@ import Icon from '../components/atoms/Icon.astro';
         const data = await response.json();
         
         if (response.ok && data.token) {
+          console.log('✅ Login successful, data received:', data);
+          
           // Store token in localStorage
           localStorage.setItem('auth_token', data.token);
-          localStorage.setItem('user', JSON.stringify(data.user));
           
-          // Redirect to home or previous page
-          const returnUrl = new URLSearchParams(window.location.search).get('return') || '/';
+          // Store user data (l'API garantit maintenant qu'il y a toujours un user)
+          if (data.user) {
+            localStorage.setItem('user', JSON.stringify(data.user));
+            console.log('✅ User data stored:', data.user);
+          } else {
+            console.error('❌ No user data in response!');
+          }
+          
+          // Dispatch event to update header
+          window.dispatchEvent(new Event('user-logged-in'));
+          
+          // Redirect to my-account page
+          const returnUrl = new URLSearchParams(window.location.search).get('return') || '/my-account';
           window.location.href = returnUrl;
         } else {
           // Show error message

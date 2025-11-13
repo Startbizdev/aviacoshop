@@ -42,10 +42,26 @@ export const POST: APIRoute = async ({ request }) => {
     
     const data = await response.json();
     
+    console.log('🔍 JWT Response data:', JSON.stringify(data, null, 2));
+    
+    // Extraire les informations utilisateur de la réponse JWT
+    // L'API JWT peut retourner user ou user_display_name, user_email, etc.
+    const userData = data.user || {
+      id: data.user_id || data.id,
+      username: data.user_login || data.username,
+      email: data.user_email || data.email,
+      name: data.user_display_name || data.display_name || data.user_login || data.username,
+      first_name: data.first_name || '',
+      last_name: data.last_name || '',
+      user_nicename: data.user_nicename || data.user_login || data.username,
+    };
+    
+    console.log('👤 Extracted user data:', userData);
+    
     // Retourner le token et les informations utilisateur
     return new Response(JSON.stringify({
       token: data.token,
-      user: data.user,
+      user: userData,
       success: true,
     }), {
       status: 200,

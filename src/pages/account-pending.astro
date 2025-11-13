@@ -1,0 +1,322 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Button from '../components/atoms/Button.astro';
+import Card from '../components/atoms/Card.astro';
+import Icon from '../components/atoms/Icon.astro';
+import { WC_API_URL, WC_CONSUMER_KEY, WC_CONSUMER_SECRET } from '../lib/config';
+
+// Vérifier si l'utilisateur est validé et rediriger vers my-account
+let shouldRedirect = false;
+
+try {
+  const cookies = Astro.request.headers.get('cookie') || '';
+  const tokenMatch = cookies.match(/auth_token=([^;]+)/);
+  
+  if (tokenMatch && tokenMatch[1]) {
+    const token = tokenMatch[1];
+    
+    try {
+      const userUrl = `${WC_API_URL}/wp-json/wp/v2/users/me`;
+      const userResponse = await fetch(userUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        const userId = userData.id;
+        
+        // Vérifier si l'utilisateur est admin
+        const isAdmin = userData.capabilities?.administrator === true || 
+                       userData.roles?.includes('administrator') ||
+                       userData.roles?.includes('shop_manager');
+        
+        // Si c'est un admin, rediriger immédiatement vers my-account
+        if (isAdmin) {
+          shouldRedirect = true;
+        } else {
+          // Vérifier le statut du compte via WooCommerce pour les non-admins
+          const customerUrl = `${WC_API_URL}/wp-json/wc/v3/customers/${userId}`;
+          const auth = Buffer.from(`${WC_CONSUMER_KEY}:${WC_CONSUMER_SECRET}`).toString('base64');
+          
+          const customerResponse = await fetch(customerUrl, {
+            headers: {
+              'Authorization': `Basic ${auth}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (customerResponse.ok) {
+            const customerData = await customerResponse.json();
+            const accountStatusMeta = customerData.meta_data?.find((meta: any) => meta.key === 'account_status');
+            const accountStatus = accountStatusMeta?.value || 'pending';
+            
+            // Si le compte est approuvé, rediriger vers my-account
+            if (accountStatus === 'approved') {
+              shouldRedirect = true;
+            }
+          }
+        }
+      }
+    } catch (error) {
+      // Ignorer les erreurs
+    }
+  }
+} catch (error) {
+  // Ignorer les erreurs
+}
+
+if (shouldRedirect) {
+  return Astro.redirect('/my-account');
+}
+
+---
+
+<MainLayout title="Account Verification" description="Your account is pending verification">
+  <div class="container mx-auto px-4 py-16">
+    <div class="max-w-2xl mx-auto">
+      <Card variant="elevated" class="p-8 sm:p-12">
+        <div class="text-center mb-8">
+          <!-- Animated Icon -->
+          <div class="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 relative">
+            <div class="absolute inset-0 rounded-full border-4 border-primary/20 animate-ping"></div>
+            <div class="absolute inset-0 rounded-full border-4 border-primary/30"></div>
+            <Icon name="clock" size="xl" class="text-primary relative z-10" />
+          </div>
+          
+          <h1 class="font-outfit font-bold text-3xl sm:text-4xl mb-3 text-gray-900 dark:text-white">
+            Account Verification Pending
+          </h1>
+          <p class="font-outfit text-lg text-gray-600 dark:text-gray-400">
+            Your account is being reviewed by the Aviaco team
+          </p>
+        </div>
+        
+        <!-- Content Card -->
+        <div class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-xl p-6 sm:p-8 mb-8 border border-gray-200 dark:border-gray-700">
+          <div class="space-y-6">
+            <div class="flex items-start gap-4">
+              <div class="flex-shrink-0 w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-outfit font-semibold text-lg text-gray-900 dark:text-white mb-1">
+                  Account Created Successfully
+                </h3>
+                <p class="font-outfit text-gray-600 dark:text-gray-400">
+                  Your registration has been received and is now under review by our team.
+                </p>
+              </div>
+            </div>
+            
+            <div class="flex items-start gap-4">
+              <div class="flex-shrink-0 w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-outfit font-semibold text-lg text-gray-900 dark:text-white mb-1">
+                  Verification Process
+                </h3>
+                <p class="font-outfit text-gray-600 dark:text-gray-400">
+                  Our team is carefully reviewing your account to ensure security and compliance. This process typically takes 24-48 hours.
+                </p>
+              </div>
+            </div>
+            
+            <div class="flex items-start gap-4">
+              <div class="flex-shrink-0 w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-outfit font-semibold text-lg text-gray-900 dark:text-white mb-1">
+                  Email Notification
+                </h3>
+                <p class="font-outfit text-gray-600 dark:text-gray-400">
+                  You will receive an email notification once your account has been verified and activated. Please check your inbox (and spam folder) for updates.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Timeline -->
+        <div class="mb-8">
+          <h2 class="font-outfit font-semibold text-xl text-gray-900 dark:text-white mb-6 text-center">
+            What Happens Next?
+          </h2>
+          <div class="space-y-4">
+            <div class="flex items-center gap-4">
+              <div class="flex-shrink-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-outfit font-semibold text-sm">
+                1
+              </div>
+              <div class="flex-1">
+                <p class="font-outfit text-gray-700 dark:text-gray-300">
+                  <span class="font-semibold">Account Review</span> - Our team reviews your registration details
+                </p>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+              <div class="flex-shrink-0 w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-400 font-outfit font-semibold text-sm">
+                2
+              </div>
+              <div class="flex-1">
+                <p class="font-outfit text-gray-500 dark:text-gray-500">
+                  <span class="font-semibold">Verification</span> - Account verification and activation
+                </p>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+              <div class="flex-shrink-0 w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-400 font-outfit font-semibold text-sm">
+                3
+              </div>
+              <div class="flex-1">
+                <p class="font-outfit text-gray-500 dark:text-gray-500">
+                  <span class="font-semibold">Email Sent</span> - You'll receive confirmation and can start shopping
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button
+            href="/login"
+            variant="outlined"
+            size="lg"
+            class="w-full sm:w-auto"
+          >
+            Back to Login
+          </Button>
+          <Button
+            href="/catalogue"
+            variant="primary"
+            size="lg"
+            class="w-full sm:w-auto"
+          >
+            Browse Catalog
+          </Button>
+        </div>
+        
+        <!-- Support Info -->
+        <div class="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700 text-center">
+          <p class="font-outfit text-sm text-gray-600 dark:text-gray-400 mb-2">
+            Need assistance?
+          </p>
+          <a 
+            href="/contact" 
+            class="font-outfit text-sm text-primary hover:text-primary-dark font-medium inline-flex items-center gap-1"
+          >
+            Contact our support team
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </a>
+        </div>
+      </Card>
+    </div>
+  </div>
+</MainLayout>
+
+<style>
+  @keyframes ping {
+    75%, 100% {
+      transform: scale(1.2);
+      opacity: 0;
+    }
+  }
+  
+  .animate-ping {
+    animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Vérifier périodiquement si l'utilisateur est validé
+    async function checkAccountStatus() {
+      const token = localStorage.getItem('auth_token');
+      
+      // Si pas de token, ne rien faire - l'utilisateur vient peut-être de s'inscrire
+      // et n'a pas encore de token. Il doit rester sur la page account-pending.
+      if (!token) {
+        return;
+      }
+      
+      try {
+        // Vérifier le statut via l'API my-account
+        const response = await fetch('/api/my-account/user', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Vérifier le statut du compte depuis account_status
+          if (data.user && data.user.id) {
+            // Vérifier si l'utilisateur est admin
+            const isAdmin = data.user.roles?.includes('administrator') || 
+                           data.user.roles?.includes('shop_manager') ||
+                           data.user.capabilities?.administrator === true;
+            
+            // Si c'est un admin, rediriger vers my-account immédiatement
+            if (isAdmin) {
+              window.location.href = '/my-account';
+              return;
+            }
+            
+            const accountStatus = data.user.account_status || 'pending';
+            
+            // Si le compte est approuvé, rediriger vers my-account
+            if (accountStatus === 'approved') {
+              window.location.href = '/my-account';
+              return;
+            }
+            
+            // Si le compte est rejeté, afficher un message (optionnel)
+            if (accountStatus === 'rejected') {
+              console.log('Account has been rejected');
+              // Vous pouvez afficher un message à l'utilisateur ici si nécessaire
+            }
+            
+            // Sinon, le compte est toujours en attente, rester sur la page
+          }
+        } else if (response.status === 401) {
+          // Token invalide ou expiré, mais ne pas rediriger vers login
+          // L'utilisateur doit rester sur account-pending jusqu'à validation
+          console.log('Token invalid, but staying on account-pending page');
+        }
+      } catch (error) {
+        console.error('Error checking account status:', error);
+        // En cas d'erreur, ne pas rediriger - rester sur account-pending
+      }
+    }
+    
+    // Vérifier immédiatement
+    checkAccountStatus();
+    
+    // Vérifier toutes les 30 secondes
+    const checkInterval = setInterval(() => {
+      checkAccountStatus();
+    }, 30000);
+    
+    // Nettoyer l'intervalle si on quitte la page
+    window.addEventListener('beforeunload', () => {
+      clearInterval(checkInterval);
+    });
+  });
+</script>
+

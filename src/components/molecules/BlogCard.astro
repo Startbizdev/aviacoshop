@@ -1,0 +1,171 @@
+---
+import Card from '../atoms/Card.astro';
+import Badge from '../atoms/Badge.astro';
+import Image from '../atoms/Image.astro';
+
+interface Props {
+  post: {
+    id: number;
+    slug: string;
+    title: {
+      rendered: string;
+    };
+    excerpt: {
+      rendered: string;
+    };
+    date: string;
+    _embedded?: {
+      'wp:featuredmedia'?: Array<{
+        source_url: string;
+        alt_text: string;
+        media_details?: {
+          sizes?: {
+            medium?: {
+              source_url: string;
+            };
+            large?: {
+              source_url: string;
+            };
+          };
+        };
+      }>;
+      'wp:term'?: Array<Array<{
+        id: number;
+        name: string;
+        slug: string;
+      }>>;
+      author?: Array<{
+        name: string;
+        avatar_urls?: {
+          '48'?: string;
+          '96'?: string;
+        };
+      }>;
+    };
+    featured_media?: number;
+    categories?: number[];
+  };
+  class?: string;
+}
+
+const { post, class: className = '' } = Astro.props;
+
+// Extract featured image
+const featuredMedia = post._embedded?.['wp:featuredmedia']?.[0];
+const imageUrl = featuredMedia?.media_details?.sizes?.large?.source_url || 
+                 featuredMedia?.media_details?.sizes?.medium?.source_url || 
+                 featuredMedia?.source_url || 
+                 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5CbG9nIEFydGljbGU8L3RleHQ+PC9zdmc+';
+
+const imageAlt = featuredMedia?.alt_text || post.title.rendered;
+
+// Extract categories
+const categories = post._embedded?.['wp:term']?.[0] || [];
+const primaryCategory = categories[0];
+
+// Extract author
+const author = post._embedded?.author?.[0];
+
+// Format date
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  }).format(date);
+};
+
+// Clean excerpt (remove HTML tags)
+const cleanExcerpt = (html: string) => {
+  return html
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&hellip;/g, '...')
+    .trim();
+};
+
+const excerpt = cleanExcerpt(post.excerpt.rendered);
+---
+
+<Card 
+  variant="elevated" 
+  href={`/blog/${post.slug}`} 
+  class={`group overflow-hidden h-full flex flex-col ${className}`}
+>
+  <!-- Image -->
+  <div class="relative aspect-[16/9] overflow-hidden bg-gray-100 dark:bg-gray-800">
+    <Image
+      src={imageUrl}
+      alt={imageAlt}
+      class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+      loading="lazy"
+    />
+    
+    <!-- Overlay gradient -->
+    <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+    
+    <!-- Category badge -->
+    {primaryCategory && (
+      <div class="absolute top-3 left-3 z-10">
+        <Badge 
+          variant="primary" 
+          size="sm" 
+          class="text-xs px-3 py-1 backdrop-blur-sm bg-primary/90 hover:bg-primary transition-colors !text-white"
+        >
+          {primaryCategory.name}
+        </Badge>
+      </div>
+    )}
+  </div>
+  
+  <!-- Content -->
+  <div class="p-5 flex-1 flex flex-col">
+    <!-- Meta information -->
+    <div class="flex items-center gap-3 mb-3 text-sm text-gray-500 dark:text-gray-400">
+      <!-- Date -->
+      <div class="flex items-center gap-1.5">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <span class="font-outfit text-xs">{formatDate(post.date)}</span>
+      </div>
+      
+      <!-- Author -->
+      {author && (
+        <>
+          <span class="text-gray-300 dark:text-gray-600">•</span>
+          <div class="flex items-center gap-1.5">
+            {author.avatar_urls?.['48'] && (
+              <img 
+                src={author.avatar_urls['48']} 
+                alt={author.name}
+                class="w-4 h-4 rounded-full object-cover"
+              />
+            )}
+            <span class="font-outfit text-xs">{author.name}</span>
+          </div>
+        </>
+      )}
+    </div>
+    
+    <!-- Title -->
+    <h3 class="font-outfit font-bold text-lg md:text-xl text-gray-900 dark:text-white group-hover:text-primary dark:group-hover:text-primary transition-colors line-clamp-2 mb-3">
+      {post.title.rendered}
+    </h3>
+    
+    <!-- Excerpt -->
+    <p class="font-outfit text-sm text-gray-600 dark:text-gray-300 line-clamp-3 mb-4 flex-1">
+      {excerpt}
+    </p>
+    
+    <!-- "Read more" link -->
+    <div class="flex items-center gap-2 text-primary font-outfit font-medium text-sm group-hover:gap-3 transition-all duration-300">
+      <span>Read more</span>
+      <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+      </svg>
+    </div>
+  </div>
+</Card>
+

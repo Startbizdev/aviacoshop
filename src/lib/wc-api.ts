@@ -103,27 +103,133 @@ async function parseWooCommerceResponse(response: Response) {
   return parsedBody;
 }
 
-// Fonction pour créer l'URL d'authentification WooCommerce
-function getAuthUrl(url: string): string {
-  const urlObj = new URL(url);
-  urlObj.username = WC_CONSUMER_KEY;
-  urlObj.password = WC_CONSUMER_SECRET;
-  return urlObj.toString();
+// Fonction pour créer les headers d'authentification Basic Auth
+// Node.js ne supporte pas les credentials dans l'URL avec fetch(), il faut utiliser Basic Auth dans les headers
+function getBasicAuthHeaders(): Record<string, string> {
+  const auth = Buffer.from(`${WC_CONSUMER_KEY}:${WC_CONSUMER_SECRET}`).toString('base64');
+  return {
+    'Authorization': `Basic ${auth}`,
+  };
 }
 
 // Récupérer tous les produits
 export async function getProducts(params?: Record<string, string>) {
   const searchParams = new URLSearchParams(params);
-  const url = `${WC_API_URL}/wp-json/wc/store/v1/products?${searchParams.toString()}`;
+  const pageNum = params?.page ? parseInt(params.page) : 1;
+  
+  // Utiliser l'API Store pour toutes les pages (testé avec CURL, fonctionne pour toutes les pages)
+  const storeUrl = `${WC_API_URL}/wp-json/wc/store/v1/products?${searchParams.toString()}`;
+  const restUrl = `${WC_API_URL}/wp-json/wc/v3/products?${searchParams.toString()}`;
   
   try {
-    const response = await fetch(url, {
-      headers: buildHeaders(),
+    // Pour la page 1, utiliser l'API Store
+    // Pour les pages > 1, utiliser directement l'API REST (plus fiable pour la pagination)
+    if (pageNum === 1) {
+      console.log(`[getProducts] Page 1 - Utilisation de l'API Store: ${storeUrl}`);
+      
+      const response = await fetch(storeUrl, {
+        headers: buildHeaders(),
+      });
+      
+      console.log(`[getProducts] API Store - Page ${pageNum}: Status ${response.status}, OK: ${response.ok}`);
+      
+      if (response.ok) {
+        try {
+          const products = await parseWooCommerceResponse(response);
+          console.log(`[getProducts] API Store - Page ${pageNum}: Type réponse: ${typeof products}, IsArray: ${Array.isArray(products)}`);
+          
+          if (Array.isArray(products) && products.length > 0) {
+            console.log(`[getProducts] API Store - Page ${pageNum}: ${products.length} produits retournés`);
+            // Normaliser les produits pour s'assurer qu'ils ont toujours un objet prices
+            return products.map((product: any) => {
+              if (!product.prices) {
+                product.prices = {
+                  price: product.price || '0',
+                  regular_price: product.regular_price,
+                  sale_price: product.sale_price,
+                };
+              }
+              return product;
+            });
+          } else if (Array.isArray(products) && products.length === 0) {
+            console.warn(`[getProducts] API Store - Page ${pageNum}: 0 produits retournés, passage à l'API REST`);
+          } else {
+            console.warn(`[getProducts] API Store - Page ${pageNum}: réponse n'est pas un tableau (type: ${typeof products}), utilisation de l'API REST`);
+          }
+        } catch (parseError) {
+          console.error(`[getProducts] Erreur lors du parsing de la réponse Store API pour la page ${pageNum}:`, parseError);
+        }
+      } else {
+        const errorText = await response.text().catch(() => 'Impossible de lire le texte d\'erreur');
+        console.error(`[getProducts] API Store - Page ${pageNum}: réponse non-OK (${response.status}), texte: ${errorText.substring(0, 200)}`);
+      }
+    } else {
+      console.log(`[getProducts] Page ${pageNum} - Utilisation directe de l'API REST (plus fiable pour pagination)`);
+    }
+    
+    // Utiliser l'API REST (pour pages > 1 ou si API Store a échoué)
+    console.log(`[getProducts] Tentative API REST pour la page ${pageNum}`);
+    const restResponse = await fetch(restUrl, {
+      headers: {
+        ...buildHeaders(),
+        ...getBasicAuthHeaders(),
+      },
     });
-
-    return await parseWooCommerceResponse(response);
+    
+    console.log(`[getProducts] API REST - Page ${pageNum}: Status ${restResponse.status}, OK: ${restResponse.ok}`);
+    
+    if (!restResponse.ok) {
+      const errorText = await restResponse.text().catch(() => 'Impossible de lire le texte d\'erreur');
+      console.error(`[getProducts] API REST - Page ${pageNum}: Erreur ${restResponse.status}, texte: ${errorText.substring(0, 200)}`);
+      throw new WooCommerceError(
+        `API REST a échoué avec le statut ${restResponse.status}: ${errorText.substring(0, 100)}`,
+        restResponse.status
+      );
+    }
+    
+    const restProducts = await parseWooCommerceResponse(restResponse);
+    console.log(`[getProducts] API REST - Page ${pageNum}: Type réponse: ${typeof restProducts}, IsArray: ${Array.isArray(restProducts)}`);
+    
+    // Normaliser les produits de l'API REST pour qu'ils correspondent au format de l'API Store
+    if (Array.isArray(restProducts)) {
+      console.log(`[getProducts] API REST - Page ${pageNum}: ${restProducts.length} produits`);
+      if (restProducts.length === 0) {
+        console.warn(`[getProducts] API REST - Page ${pageNum}: 0 produits retournés, mais réponse OK. Vérification de l'URL: ${restUrl}`);
+      }
+      return restProducts.map((product: any) => {
+        const normalized: any = { ...product };
+        
+        // Normaliser les images si nécessaire
+        if (product.images && Array.isArray(product.images)) {
+          normalized.images = product.images.map((img: any) => ({
+            src: img.src || img.url,
+            alt: img.alt || product.name || '',
+          }));
+        }
+        
+        // Normaliser les prix - toujours créer un objet prices même s'il est vide
+        if (!normalized.prices) {
+          normalized.prices = {
+            price: product.price || product.prices?.price || '0',
+            regular_price: product.regular_price || product.prices?.regular_price,
+            sale_price: product.sale_price || product.prices?.sale_price,
+          };
+        }
+        
+        // Normaliser le permalink si nécessaire
+        if (product.permalink && !normalized.permalink) {
+          normalized.permalink = product.permalink;
+        }
+        
+        return normalized;
+      });
+    }
+    
+    // Si ce n'est pas un tableau, retourner un tableau vide plutôt que undefined
+    console.error(`[getProducts] API REST - Page ${pageNum}: Réponse n'est pas un tableau, retour d'un tableau vide`);
+    return [];
   } catch (error) {
-    console.error('Error fetching products:', error);
+    console.error(`[getProducts] Erreur pour la page ${pageNum}:`, error);
     throw error;
   }
 }
@@ -142,13 +248,24 @@ export async function getProduct(id: string | number) {
     
     if (!response.ok) {
       // Si l'API Store échoue, essayer l'API REST classique
-      const authUrl = getAuthUrl(restUrl);
-      response = await fetch(authUrl, {
-        headers: buildHeaders(),
+      response = await fetch(restUrl, {
+        headers: {
+          ...buildHeaders(),
+          ...getBasicAuthHeaders(),
+        },
       });
     }
     
     const product: any = await parseWooCommerceResponse(response);
+    
+    // Normaliser les prix - toujours créer un objet prices même s'il est vide
+    if (!product.prices) {
+      product.prices = {
+        price: product.price || '0',
+        regular_price: product.regular_price,
+        sale_price: product.sale_price,
+      };
+    }
     
     // Normaliser les attributs pour une structure cohérente
     if (product.attributes && Array.isArray(product.attributes)) {
@@ -451,37 +568,104 @@ export async function getShippingMethods(shippingAddress: Record<string, any>, c
     
     if (nonce) {
       headers['Nonce'] = nonce;
-      headers['X-WC-Store-API-Nonce'] = nonce;
+      headers['X-Wc-Store-Api-Nonce'] = nonce;
     }
     
-    // Update shipping address in cart
-    const updateResponse = await fetch(updateUrl, {
-      method: 'POST',
-      headers,
-      credentials: 'include',
-      body: JSON.stringify({
-        shipping_address: shippingAddress,
-      }),
-    });
+    // Update shipping address in cart - cette réponse contient déjà les shipping rates
+    // Utiliser AbortController pour timeout après 15 secondes
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 secondes timeout
     
-    console.log('getShippingMethods - Update response status:', updateResponse.status);
+    try {
+      const updateResponse = await fetch(updateUrl, {
+        method: 'POST',
+        headers,
+        credentials: 'include',
+        signal: controller.signal,
+        body: JSON.stringify({
+          shipping_address: shippingAddress,
+        }),
+      });
+      
+      clearTimeout(timeoutId);
     
-    if (!updateResponse.ok) {
-      const errorText = await updateResponse.text();
-      console.error('getShippingMethods - Update error:', errorText);
+      console.log('getShippingMethods - Update response status:', updateResponse.status);
+      
+      if (!updateResponse.ok) {
+        const errorText = await updateResponse.text();
+        console.error('getShippingMethods - Update error:', errorText);
+        throw new WooCommerceError(`Failed to update shipping address: ${updateResponse.status}`, updateResponse.status, errorText);
+      }
+      
+      // La réponse de update-customer contient déjà le panier avec les shipping rates
+      const cart = await parseWooCommerceResponse(updateResponse);
+      
+      // Extraire les shipping rates depuis la réponse
+      // WooCommerce peut retourner les rates dans différentes structures
+      let shippingRates: any[] = [];
+      
+      if ((cart as any)?.shipping_rates && Array.isArray((cart as any).shipping_rates)) {
+        shippingRates = (cart as any).shipping_rates;
+      } else if ((cart as any)?.shipping_packages && Array.isArray((cart as any).shipping_packages)) {
+        // Extraire les rates de tous les packages
+        (cart as any).shipping_packages.forEach((pkg: any) => {
+          if (pkg.shipping_rates && Array.isArray(pkg.shipping_rates)) {
+            shippingRates.push(...pkg.shipping_rates);
+          }
+        });
+      }
+      
+      console.log('getShippingMethods - Shipping rates found:', shippingRates.length);
+      
+      // Si pas de rates dans la réponse update, récupérer le panier séparément
+      if (shippingRates.length === 0) {
+        console.log('getShippingMethods - No rates in update response, fetching cart separately');
+        const cartUrl = `${WC_API_URL}/wp-json/wc/store/v1/cart`;
+        const cartController = new AbortController();
+        const cartTimeoutId = setTimeout(() => cartController.abort(), 10000); // 10 secondes pour le second appel
+        
+        try {
+          const cartResponse = await fetch(cartUrl, {
+            headers: buildHeaders(cookie),
+            credentials: 'include',
+            signal: cartController.signal,
+          });
+          
+          clearTimeout(cartTimeoutId);
+          
+          const cartData = await parseWooCommerceResponse(cartResponse);
+          
+          if ((cartData as any)?.shipping_rates && Array.isArray((cartData as any).shipping_rates)) {
+            shippingRates = (cartData as any).shipping_rates;
+          } else if ((cartData as any)?.shipping_packages && Array.isArray((cartData as any).shipping_packages)) {
+            (cartData as any).shipping_packages.forEach((pkg: any) => {
+              if (pkg.shipping_rates && Array.isArray(pkg.shipping_rates)) {
+                shippingRates.push(...pkg.shipping_rates);
+              }
+            });
+          }
+        } catch (cartError: any) {
+          clearTimeout(cartTimeoutId);
+          if (cartError.name === 'AbortError') {
+            console.error('getShippingMethods - Cart fetch timeout');
+            throw new WooCommerceError('Timeout while fetching shipping methods', 504);
+          }
+          throw cartError;
+        }
+      }
+      
+      console.log('getShippingMethods - Final shipping rates:', shippingRates);
+      
+      return shippingRates;
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        console.error('getShippingMethods - Request timeout');
+        throw new WooCommerceError('Timeout while fetching shipping methods. Please check your shipping address and try again.', 504);
+      }
+      console.error('Error fetching shipping methods:', error);
+      throw error;
     }
-    
-    // Get cart with shipping rates
-    const cartUrl = `${WC_API_URL}/wp-json/wc/store/v1/cart`;
-    const cartResponse = await fetch(cartUrl, {
-      headers: buildHeaders(cookie),
-      credentials: 'include',
-    });
-    
-    const cart = await parseWooCommerceResponse(cartResponse);
-    console.log('getShippingMethods - Shipping rates:', (cart as any)?.shipping_rates);
-    
-    return (cart as any)?.shipping_rates || [];
   } catch (error) {
     console.error('Error fetching shipping methods:', error);
     throw error;
@@ -522,9 +706,11 @@ export async function getTaxRates(country: string, state?: string) {
   if (state) params.append('state', state);
   
   try {
-    const authUrl = getAuthUrl(`${url}?${params.toString()}`);
-    const response = await fetch(authUrl, {
-      headers: buildHeaders(),
+    const response = await fetch(`${url}?${params.toString()}`, {
+      headers: {
+        ...buildHeaders(),
+        ...getBasicAuthHeaders(),
+      },
     });
     
     return await parseWooCommerceResponse(response);

@@ -1,121 +1,384 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
-import Input from '../components/atoms/Input.astro';
 import Button from '../components/atoms/Button.astro';
 import Spinner from '../components/atoms/Spinner.astro';
-import Card from '../components/atoms/Card.astro';
-import Icon from '../components/atoms/Icon.astro';
+import FormInput from '../components/atoms/FormInput.astro';
+import FormSelect from '../components/atoms/FormSelect.astro';
+import RegisterHero from '../components/molecules/RegisterHero.astro';
+import { WC_API_URL, WC_CONSUMER_KEY, WC_CONSUMER_SECRET } from '../lib/config';
+import { countries } from '../lib/countries';
+
+// Vérifier si l'utilisateur est déjà inscrit mais pas validé
+let shouldRedirect = false;
+let redirectUrl = '';
+
+try {
+  // Vérifier si l'utilisateur a un token dans les cookies de la requête
+  const cookies = Astro.request.headers.get('cookie') || '';
+  const tokenMatch = cookies.match(/auth_token=([^;]+)/);
+  
+  if (tokenMatch && tokenMatch[1]) {
+    const token = tokenMatch[1];
+    
+    // Vérifier le statut de l'utilisateur
+    try {
+      const userUrl = `${WC_API_URL}/wp-json/wp/v2/users/me`;
+      const userResponse = await fetch(userUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        const userId = userData.id;
+        
+        // Vérifier si l'utilisateur peut accéder à son compte WooCommerce (signe qu'il est validé)
+        const customerUrl = `${WC_API_URL}/wp-json/wc/v3/customers/${userId}`;
+        const auth = Buffer.from(`${WC_CONSUMER_KEY}:${WC_CONSUMER_SECRET}`).toString('base64');
+        
+          try {
+            // Vérifier si l'utilisateur est admin
+            const isAdmin = userData.capabilities?.administrator === true || 
+                           userData.roles?.includes('administrator') ||
+                           userData.roles?.includes('shop_manager');
+            
+            if (isAdmin) {
+              // Si admin, rediriger directement vers my-account
+              shouldRedirect = true;
+              redirectUrl = '/my-account';
+            } else {
+              // Pour les non-admins, vérifier le statut du compte
+              const customerResponse = await fetch(customerUrl, {
+                headers: {
+                  'Authorization': `Basic ${auth}`,
+                  'Content-Type': 'application/json',
+                },
+              });
+              
+              if (customerResponse.ok) {
+                const customerData = await customerResponse.json();
+                const accountStatusMeta = customerData.meta_data?.find((meta: any) => meta.key === 'account_status');
+                const accountStatus = accountStatusMeta?.value || 'pending';
+                
+                if (accountStatus === 'approved') {
+                  // L'utilisateur est validé, rediriger vers my-account
+                  shouldRedirect = true;
+                  redirectUrl = '/my-account';
+                } else {
+                  // L'utilisateur n'est pas encore validé, rediriger vers account-pending
+                  shouldRedirect = true;
+                  redirectUrl = '/account-pending';
+                }
+              } else {
+                // L'utilisateur n'est pas encore validé, rediriger vers account-pending
+                shouldRedirect = true;
+                redirectUrl = '/account-pending';
+              }
+            }
+          } catch {
+            // En cas d'erreur, considérer comme non validé
+            shouldRedirect = true;
+            redirectUrl = '/account-pending';
+          }
+      }
+    } catch (error) {
+      // Ignorer les erreurs, continuer avec le formulaire d'inscription
+    }
+  }
+} catch (error) {
+  // Ignorer les erreurs, continuer avec le formulaire d'inscription
+}
+
+if (shouldRedirect && redirectUrl) {
+  return Astro.redirect(redirectUrl);
+}
 
 ---
 
 <MainLayout title="Register" description="Create your account">
-  <div class="container mx-auto px-4 py-16">
-    <div class="max-w-md mx-auto">
-      <Card variant="elevated" class="p-8">
-        <div class="text-center mb-8">
-          <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Icon name="user-plus" size="lg" class="text-primary" />
-          </div>
-          <h1 class="font-outfit font-bold text-3xl mb-2 text-gray-900 dark:text-white">
-            Create Account
-          </h1>
-          <p class="font-outfit text-gray-600 dark:text-gray-400">
-            Sign up to start shopping
+  <div class="min-h-screen w-full">
+    <div class="grid grid-cols-1 lg:grid-cols-2 h-screen lg:h-auto lg:min-h-screen items-stretch">
+      <!-- Left Column: Registration Form -->
+      <div class="order-2 lg:order-1 flex items-center justify-center bg-white">
+        <div class="w-full p-6 sm:p-8 md:p-10 lg:p-12 flex flex-col items-center justify-center">
+          <h2 class="font-outfit font-semibold text-xl sm:text-2xl text-gray-900 mb-2 w-full max-w-lg text-left">
+            Create your account
+          </h2>
+          <p class="font-outfit text-sm text-gray-600 mb-6 w-full max-w-lg text-left">
+            Account validation within 24-48 hours
           </p>
-        </div>
-        
-        <form id="register-form" class="space-y-6">
-          <div>
-            <Input
+        <form id="register-form" class="relative flex flex-col w-full max-w-lg">
+          <!-- Error Message -->
+          <div id="error-message" class="hidden mb-4">
+            <div class="bg-red-50 border-l-4 border-red-500 rounded-lg p-3 flex items-start gap-3">
+              <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <p class="font-outfit text-sm text-red-600" id="error-text"></p>
+            </div>
+          </div>
+          
+          <!-- Success Message -->
+          <div id="success-message" class="hidden mb-4">
+            <div class="bg-green-50 border-l-4 border-green-500 rounded-lg p-3 flex items-start gap-3">
+              <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <p class="font-outfit text-sm text-green-600" id="success-text"></p>
+            </div>
+          </div>
+
+          <!-- Step 1: Account Information -->
+          <div id="step-1-content" class="step-content space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormInput
+                type="text"
+                name="first_name"
+                label="First name"
+                placeholder="John"
+                required
+              />
+              
+              <FormInput
+                type="text"
+                name="last_name"
+                label="Last name"
+                placeholder="Doe"
+                required
+              />
+            </div>
+            
+            <FormInput
               type="text"
               name="username"
-              id="username"
               label="Username"
               placeholder="Choose a username"
               required
-              autocomplete="username"
             />
-          </div>
-          
-          <div>
-            <Input
+            
+            <FormInput
               type="email"
               name="email"
-              id="email"
-              label="Email"
-              placeholder="Enter your email"
+              label="Email address"
+              placeholder="john.doe@example.com"
               required
-              autocomplete="email"
             />
-          </div>
-          
-          <div>
-            <Input
-              type="password"
-              name="password"
-              id="password"
-              label="Password"
-              placeholder="Choose a password"
-              required
-              autocomplete="new-password"
-            />
-          </div>
-          
-          <div>
-            <Input
-              type="password"
-              name="confirm_password"
-              id="confirm_password"
-              label="Confirm Password"
-              placeholder="Confirm your password"
-              required
-              autocomplete="new-password"
-            />
-          </div>
-          
-          <div id="error-message" class="hidden">
-            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-              <p class="font-outfit text-sm text-red-600 dark:text-red-400" id="error-text"></p>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <FormInput
+                  type="password"
+                  name="password"
+                  label="Password"
+                  placeholder="Choose a strong password"
+                  required
+                />
+                <p class="mt-1 text-xs text-gray-500 font-outfit">
+              Must be at least 6 characters long
+            </p>
+              </div>
+              
+              <FormInput
+                type="password"
+                name="confirm_password"
+                label="Confirm password"
+                placeholder="Confirm your password"
+                required
+              />
             </div>
           </div>
-          
-          <div id="success-message" class="hidden">
-            <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-              <p class="font-outfit text-sm text-green-600 dark:text-green-400" id="success-text"></p>
+
+          <!-- Step 2: Contact Information -->
+          <div id="step-2-content" class="step-content hidden space-y-4">
+            <FormInput
+              type="text"
+              name="company"
+              label="Company name"
+              placeholder="Your company name"
+            />
+
+            <FormInput
+              type="tel"
+              name="phone"
+              label="Phone number"
+              placeholder="+33 6 12 34 56 78"
+              required
+            />
+          </div>
+
+          <!-- Step 3: Address Information -->
+          <div id="step-3-content" class="step-content hidden space-y-4">
+            <FormInput
+              type="text"
+              name="address_1"
+              label="Street address"
+              placeholder="123 Main Street"
+              required
+            />
+            
+            <FormInput
+              type="text"
+              name="address_2"
+              label="Address line 2 (optional)"
+              placeholder="Apartment, suite, etc."
+            />
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormInput
+                type="text"
+                name="city"
+                label="City"
+                placeholder="Paris"
+                required
+              />
+              
+              <FormInput
+                type="text"
+                name="postcode"
+                label="Postal code"
+                placeholder="75001"
+                required
+              />
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormSelect
+                name="country"
+                label="Country"
+                options={countries}
+                value="FR"
+                required
+              />
+              
+              <FormInput
+                type="text"
+                name="state"
+                label="State / Province (optional)"
+                placeholder="Optional"
+              />
             </div>
           </div>
+
+          <!-- Navigation Buttons -->
+          <div class="flex items-center justify-between gap-4 mt-5 pt-4 border-t border-gray-200">
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              class="min-w-[120px] min-h-[48px] hidden"
+              id="prev-button"
+            >
+              Previous
+            </Button>
+            
+            <div class="flex-1 hidden" id="spacer-div"></div>
+            
+            <Button
+              type="button"
+              variant="primary"
+              size="lg"
+              class="w-full min-h-[48px]"
+              id="next-button"
+            >
+              <span class="inline-flex items-center justify-center gap-2">
+                <span id="next-button-text">Continue</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+              </span>
+            </Button>
+            
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              class="min-w-[120px] min-h-[48px] hidden"
+              id="submit-button"
+            >
+              <span class="inline-flex items-center justify-center gap-2">
+                <span id="button-text">Create Account</span>
+                <span id="button-spinner" class="hidden">
+                  <Spinner size="sm" />
+                </span>
+              </span>
+            </Button>
+          </div>
           
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            class="w-full"
-            id="submit-button"
-          >
-            <span id="button-text">Sign Up</span>
-            <span id="button-spinner" class="hidden">
-              <Spinner size="sm" />
-            </span>
-          </Button>
-          
-          <div class="text-center">
-            <p class="font-outfit text-sm text-gray-600 dark:text-gray-400">
+          <!-- Login Link -->
+          <div class="text-center pt-4 mt-4 border-t border-gray-200">
+            <p class="font-outfit text-sm text-gray-600">
               Already have an account? 
-              <a href="/login" class="text-primary hover:text-primary-dark font-medium">
-                Sign in
+              <a href="/login" class="text-primary hover:text-primary-dark font-semibold transition-colors">
+                Sign in here
               </a>
             </p>
           </div>
+          
+          <!-- Terms Notice -->
+          <div class="mt-4 text-center">
+            <p class="font-outfit text-xs text-gray-500">
+              By creating an account, you agree to our 
+              <a href="/terms-and-conditions" class="text-primary hover:underline">Terms of Service</a>
+              {' '}and{' '}
+              <a href="/privacy-policy" class="text-primary hover:underline">Privacy Policy</a>
+            </p>
+          </div>
         </form>
-      </Card>
+        </div>
+      </div>
+      
+      <!-- Right Column: Marketing Hero Section -->
+      <div class="order-1 lg:order-2 flex items-stretch">
+        <RegisterHero class="w-full h-full" backgroundImage="/copter/1.jpg" />
+      </div>
     </div>
   </div>
 </MainLayout>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    // Check if user is already logged in
+    async function checkUserStatus() {
+      const token = localStorage.getItem('auth_token');
+      if (!token) return;
+      
+      try {
+        const response = await fetch('/api/my-account/user', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (response.ok) {
+          window.location.href = '/my-account';
+        } else if (response.status === 401) {
+          const user = localStorage.getItem('user');
+          if (user && user !== 'undefined' && user !== 'null') {
+            window.location.href = '/account-pending';
+          }
+        }
+      } catch (error) {
+        const user = localStorage.getItem('user');
+        if (token && user && user !== 'undefined' && user !== 'null') {
+          window.location.href = '/account-pending';
+        }
+      }
+    }
+    
+    checkUserStatus();
+    
+    // Multi-step form management
+    let currentStep = 1;
+    const totalSteps = 3;
     const form = document.getElementById('register-form') as HTMLFormElement;
+    const prevButton = document.getElementById('prev-button') as HTMLButtonElement;
+    const nextButton = document.getElementById('next-button') as HTMLButtonElement;
     const submitButton = document.getElementById('submit-button') as HTMLButtonElement;
+    const nextButtonText = document.getElementById('next-button-text');
+    const spacerDiv = document.getElementById('spacer-div');
     const buttonText = document.getElementById('button-text');
     const buttonSpinner = document.getElementById('button-spinner');
     const errorMessage = document.getElementById('error-message');
@@ -125,43 +388,181 @@ import Icon from '../components/atoms/Icon.astro';
     
     if (!form) return;
     
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+    // Show step content
+    function showStep(step: number) {
+      // Hide all steps
+      for (let i = 1; i <= totalSteps; i++) {
+        const stepContent = document.getElementById(`step-${i}-content`);
+        if (stepContent) {
+          stepContent.classList.add('hidden');
+        }
+      }
       
+      // Show current step with animation
+      const currentStepContent = document.getElementById(`step-${step}-content`);
+      if (currentStepContent) {
+        currentStepContent.classList.remove('hidden');
+      }
+      
+      // Update navigation buttons
+      if (prevButton) {
+        prevButton.classList.toggle('hidden', step === 1);
+      }
+      
+      if (spacerDiv) {
+        spacerDiv.classList.toggle('hidden', step === 1);
+      }
+      
+      if (nextButton) {
+        if (step === 1) {
+          // First step: full width button with "Continue"
+          nextButton.classList.remove('min-w-[120px]');
+          nextButton.classList.add('w-full');
+          if (nextButtonText) {
+            nextButtonText.textContent = 'Continue';
+          }
+        } else {
+          // Other steps: normal width button with "Next"
+          nextButton.classList.remove('w-full');
+          nextButton.classList.add('min-w-[120px]');
+          if (nextButtonText) {
+            nextButtonText.textContent = 'Next';
+          }
+        }
+        nextButton.classList.toggle('hidden', step === totalSteps);
+      }
+      
+      if (submitButton) {
+        submitButton.classList.toggle('hidden', step !== totalSteps);
+      }
+    }
+    
+    // Validate step
+    function validateStep(step: number): boolean {
       const formData = new FormData(form);
-      const username = formData.get('username') as string;
-      const email = formData.get('email') as string;
-      const password = formData.get('password') as string;
-      const confirmPassword = formData.get('confirm_password') as string;
       
-      // Reset messages
+      if (step === 1) {
+        const firstName = formData.get('first_name') as string;
+        const lastName = formData.get('last_name') as string;
+        const username = formData.get('username') as string;
+        const email = formData.get('email') as string;
+        const password = formData.get('password') as string;
+        const confirmPassword = formData.get('confirm_password') as string;
+        
+        if (!firstName || !lastName) {
+          showError('First name and last name are required.');
+          return false;
+        }
+        
+        if (!username) {
+          showError('Username is required.');
+          return false;
+        }
+        
+        if (!email) {
+          showError('Email address is required.');
+          return false;
+        }
+        
+        if (!password) {
+          showError('Password is required.');
+          return false;
+        }
+        
+        if (password.length < 6) {
+          showError('Password must be at least 6 characters long.');
+          return false;
+        }
+        
+        if (password !== confirmPassword) {
+          showError('Passwords do not match.');
+          return false;
+        }
+      } else if (step === 2) {
+        const phone = formData.get('phone') as string;
+        
+        if (!phone) {
+          showError('Phone number is required.');
+          return false;
+        }
+      } else if (step === 3) {
+        const address1 = formData.get('address_1') as string;
+        const city = formData.get('city') as string;
+        const postcode = formData.get('postcode') as string;
+        const country = formData.get('country') as string;
+        
+        if (!address1 || !city || !postcode || !country) {
+          showError('Please fill in all required address fields.');
+          return false;
+        }
+      }
+      
+      hideError();
+      return true;
+    }
+    
+    // Show/hide error
+    function showError(message: string) {
+      if (errorMessage) {
+        errorMessage.classList.remove('hidden');
+      }
+      if (errorText) {
+        errorText.textContent = message;
+      }
+      // Scroll to error
+      errorMessage?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    
+    function hideError() {
       if (errorMessage) {
         errorMessage.classList.add('hidden');
       }
+    }
+    
+    // Next step
+    nextButton?.addEventListener('click', () => {
+      if (validateStep(currentStep)) {
+        currentStep++;
+        showStep(currentStep);
+      }
+    });
+    
+    // Previous step
+    prevButton?.addEventListener('click', () => {
+      if (currentStep > 1) {
+        currentStep--;
+        showStep(currentStep);
+        hideError();
+      }
+    });
+    
+    // Form submission
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // Validate final step
+      if (!validateStep(currentStep)) {
+        return;
+      }
+      
+      const formData = new FormData(form);
+      const firstName = formData.get('first_name') as string;
+      const lastName = formData.get('last_name') as string;
+      const username = formData.get('username') as string;
+      const email = formData.get('email') as string;
+      const password = formData.get('password') as string;
+      const company = formData.get('company') as string;
+      const phone = formData.get('phone') as string;
+      const address1 = formData.get('address_1') as string;
+      const address2 = formData.get('address_2') as string;
+      const city = formData.get('city') as string;
+      const postcode = formData.get('postcode') as string;
+      const country = formData.get('country') as string;
+      const state = formData.get('state') as string;
+      
+      hideError();
       if (successMessage) {
         successMessage.classList.add('hidden');
-      }
-      
-      // Validate passwords match
-      if (password !== confirmPassword) {
-        if (errorMessage) {
-          errorMessage.classList.remove('hidden');
-        }
-        if (errorText) {
-          errorText.textContent = 'Passwords do not match.';
-        }
-        return;
-      }
-      
-      // Validate password strength
-      if (password.length < 6) {
-        if (errorMessage) {
-          errorMessage.classList.remove('hidden');
-        }
-        if (errorText) {
-          errorText.textContent = 'Password must be at least 6 characters long.';
-        }
-        return;
       }
       
       // Disable button and show spinner
@@ -169,7 +570,7 @@ import Icon from '../components/atoms/Icon.astro';
         submitButton.disabled = true;
       }
       if (buttonText) {
-        buttonText.textContent = 'Creating account...';
+        buttonText.textContent = 'Creating...';
       }
       if (buttonSpinner) {
         buttonSpinner.classList.remove('hidden');
@@ -181,31 +582,56 @@ import Icon from '../components/atoms/Icon.astro';
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ username, email, password }),
+          body: JSON.stringify({ 
+            username, 
+            email, 
+            password,
+            first_name: firstName,
+            last_name: lastName,
+            billing: {
+              first_name: firstName,
+              last_name: lastName,
+              company: company || '',
+              email: email,
+              phone: phone,
+              address_1: address1,
+              address_2: address2 || '',
+              city: city,
+              postcode: postcode,
+              country: country,
+              state: state || '',
+            }
+          }),
         });
         
         const data = await response.json();
         
         if (response.ok && data.success) {
-          // Show success message
-          if (successMessage) {
-            successMessage.classList.remove('hidden');
-          }
-          if (successText) {
-            successText.textContent = 'Account created successfully! Redirecting to login...';
+          const successMsg = data.accountExists 
+            ? 'Account already exists. Redirecting to login...'
+            : 'Account created successfully!';
+            
+          if (window.showToast) {
+            window.showToast(successMsg, 'success', 2000);
+          } else {
+            if (successMessage) {
+              successMessage.classList.remove('hidden');
+            }
+            if (successText) {
+              successText.textContent = successMsg;
+            }
           }
           
-          // Redirect to login after 2 seconds
+          const redirectUrl = data.accountExists ? '/login' : '/account-pending';
           setTimeout(() => {
-            window.location.href = '/login';
-          }, 2000);
+            window.location.href = redirectUrl;
+          }, 1500);
         } else {
-          // Show error message
-          if (errorMessage) {
-            errorMessage.classList.remove('hidden');
-          }
-          if (errorText) {
-            errorText.textContent = data.error || 'An error occurred. Please try again.';
+          const errorMsg = data.error || 'An error occurred. Please try again.';
+          if (window.showToast) {
+            window.showToast(errorMsg, 'error', 6000);
+          } else {
+            showError(errorMsg);
           }
           
           // Re-enable button
@@ -213,7 +639,7 @@ import Icon from '../components/atoms/Icon.astro';
             submitButton.disabled = false;
           }
           if (buttonText) {
-            buttonText.textContent = 'Sign Up';
+            buttonText.textContent = 'Create Account';
           }
           if (buttonSpinner) {
             buttonSpinner.classList.add('hidden');
@@ -221,11 +647,11 @@ import Icon from '../components/atoms/Icon.astro';
         }
       } catch (error) {
         console.error('Registration error:', error);
-        if (errorMessage) {
-          errorMessage.classList.remove('hidden');
-        }
-        if (errorText) {
-          errorText.textContent = 'An error occurred. Please try again.';
+        const errorMsg = 'An error occurred. Please try again.';
+        if (window.showToast) {
+          window.showToast(errorMsg, 'error', 6000);
+        } else {
+          showError(errorMsg);
         }
         
         // Re-enable button
@@ -233,14 +659,39 @@ import Icon from '../components/atoms/Icon.astro';
           submitButton.disabled = false;
         }
         if (buttonText) {
-          buttonText.textContent = 'Sign Up';
+          buttonText.textContent = 'Create Account';
         }
         if (buttonSpinner) {
           buttonSpinner.classList.add('hidden');
         }
       }
     });
+    
+    // Initialize first step
+    showStep(1);
   });
 </script>
+
+<style>
+  .step-content {
+    min-height: 200px;
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  .step-content.hidden {
+    display: none;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
 
 

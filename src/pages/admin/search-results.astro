@@ -1,0 +1,1237 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminHeader from '../../components/molecules/AdminHeader.astro';
+import Card from '../../components/atoms/Card.astro';
+import Icon from '../../components/atoms/Icon.astro';
+import Button from '../../components/atoms/Button.astro';
+import StatsCardSkeleton from '../../components/molecules/StatsCardSkeleton.astro';
+import Input from '../../components/atoms/Input.astro';
+import Select from '../../components/atoms/Select.astro';
+---
+
+<AdminLayout title="Search analytics" description="Advanced search tracking and analytics dashboard">
+  <AdminHeader
+    title="Search analytics"
+    description="Monitor and analyze user search behavior with detailed insights"
+    actionLabel="Export csv"
+    actionId="export-btn"
+    actionIcon="download"
+  />
+  
+  <div class="p-4 sm:p-5 md:p-6 lg:p-8 pt-24 sm:pt-4 space-y-4 sm:space-y-5 md:space-y-6">
+
+    <!-- Stats Overview -->
+    <div id="stats-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div id="stats-skeleton" class="contents">
+        <StatsCardSkeleton />
+        <StatsCardSkeleton />
+        <StatsCardSkeleton />
+        <StatsCardSkeleton />
+      </div>
+      
+      <div id="stats-real" class="contents hidden">
+        <Card variant="elevated" class="p-5 border-l-4 border-l-blue-500">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Total searches</p>
+              <p id="total-searches" class="text-3xl font-bold text-gray-900 dark:text-white mb-2">0</p>
+              <div class="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+                <span id="total-trend">All time</span>
+              </div>
+            </div>
+            <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+              <Icon name="search" size="lg" class="text-blue-600 dark:text-blue-400" />
+            </div>
+          </div>
+        </Card>
+        
+        <Card variant="elevated" class="p-5 border-l-4 border-l-green-500">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Today</p>
+              <p id="today-searches" class="text-3xl font-bold text-gray-900 dark:text-white mb-2">0</p>
+              <div class="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Last 24h</span>
+              </div>
+            </div>
+            <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+              <Icon name="calendar" size="lg" class="text-green-600 dark:text-green-400" />
+            </div>
+          </div>
+        </Card>
+        
+        <Card variant="elevated" class="p-5 border-l-4 border-l-purple-500">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">This week</p>
+              <p id="week-searches" class="text-3xl font-bold text-gray-900 dark:text-white mb-2">0</p>
+              <div class="flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+                <span>7 days</span>
+              </div>
+            </div>
+            <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+              <Icon name="trending-up" size="lg" class="text-purple-600 dark:text-purple-400" />
+            </div>
+          </div>
+        </Card>
+        
+        <Card variant="elevated" class="p-5 border-l-4 border-l-orange-500">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Unique queries</p>
+              <p id="unique-queries" class="text-3xl font-bold text-gray-900 dark:text-white mb-2">0</p>
+              <div class="flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span>Distinct searches</span>
+              </div>
+            </div>
+            <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
+              <Icon name="users" size="lg" class="text-orange-600 dark:text-orange-400" />
+            </div>
+          </div>
+        </Card>
+      </div>
+    </div>
+
+    <!-- Charts & Top Searches -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
+      <!-- Chart Card Skeleton -->
+      <div id="chart-skeleton" class="contents">
+        <Card variant="elevated" class="lg:col-span-2 p-4 sm:p-5 min-w-0">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-32 skeleton-shimmer"></div>
+            <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-28 skeleton-shimmer"></div>
+          </div>
+          <div class="h-48 sm:h-64 flex items-end justify-between gap-1 min-w-0 overflow-x-auto pb-2">
+            <div class="flex-1 flex flex-col items-center gap-2">
+              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-t skeleton-shimmer" style="height: 60%"></div>
+              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-8 skeleton-shimmer"></div>
+              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-12 skeleton-shimmer"></div>
+            </div>
+            <div class="flex-1 flex flex-col items-center gap-2">
+              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-t skeleton-shimmer" style="height: 45%"></div>
+              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-8 skeleton-shimmer"></div>
+              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-12 skeleton-shimmer"></div>
+            </div>
+            <div class="flex-1 flex flex-col items-center gap-2">
+              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-t skeleton-shimmer" style="height: 70%"></div>
+              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-8 skeleton-shimmer"></div>
+              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-12 skeleton-shimmer"></div>
+            </div>
+            <div class="flex-1 flex flex-col items-center gap-2">
+              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-t skeleton-shimmer" style="height: 55%"></div>
+              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-8 skeleton-shimmer"></div>
+              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-12 skeleton-shimmer"></div>
+            </div>
+            <div class="flex-1 flex flex-col items-center gap-2">
+              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-t skeleton-shimmer" style="height: 80%"></div>
+              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-8 skeleton-shimmer"></div>
+              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-12 skeleton-shimmer"></div>
+            </div>
+            <div class="flex-1 flex flex-col items-center gap-2">
+              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-t skeleton-shimmer" style="height: 50%"></div>
+              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-8 skeleton-shimmer"></div>
+              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-12 skeleton-shimmer"></div>
+            </div>
+            <div class="flex-1 flex flex-col items-center gap-2">
+              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-t skeleton-shimmer" style="height: 65%"></div>
+              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-8 skeleton-shimmer"></div>
+              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-12 skeleton-shimmer"></div>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      <!-- Top Searches Skeleton -->
+      <div id="top-searches-skeleton" class="contents">
+        <Card variant="elevated" class="p-4 sm:p-5 min-w-0">
+          <div class="flex items-center justify-between mb-4">
+            <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-28 skeleton-shimmer"></div>
+            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16 skeleton-shimmer"></div>
+          </div>
+          <div class="space-y-2 max-h-48 sm:max-h-64 overflow-y-auto">
+            <div class="flex items-center justify-between gap-3 p-2.5 rounded-lg">
+              <div class="flex items-center gap-2 min-w-0 flex-1">
+                <div class="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded-full skeleton-shimmer"></div>
+                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32 skeleton-shimmer"></div>
+              </div>
+              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-8 skeleton-shimmer"></div>
+            </div>
+            <div class="flex items-center justify-between gap-3 p-2.5 rounded-lg">
+              <div class="flex items-center gap-2 min-w-0 flex-1">
+                <div class="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded-full skeleton-shimmer"></div>
+                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-28 skeleton-shimmer"></div>
+              </div>
+              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-8 skeleton-shimmer"></div>
+            </div>
+            <div class="flex items-center justify-between gap-3 p-2.5 rounded-lg">
+              <div class="flex items-center gap-2 min-w-0 flex-1">
+                <div class="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded-full skeleton-shimmer"></div>
+                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-36 skeleton-shimmer"></div>
+              </div>
+              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-8 skeleton-shimmer"></div>
+            </div>
+            <div class="flex items-center justify-between gap-3 p-2.5 rounded-lg">
+              <div class="flex items-center gap-2 min-w-0 flex-1">
+                <div class="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded-full skeleton-shimmer"></div>
+                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 skeleton-shimmer"></div>
+              </div>
+              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-8 skeleton-shimmer"></div>
+            </div>
+            <div class="flex items-center justify-between gap-3 p-2.5 rounded-lg">
+              <div class="flex items-center gap-2 min-w-0 flex-1">
+                <div class="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded-full skeleton-shimmer"></div>
+                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-30 skeleton-shimmer"></div>
+              </div>
+              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-8 skeleton-shimmer"></div>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      <!-- Chart Card -->
+      <Card variant="elevated" id="chart-card" class="lg:col-span-2 p-4 sm:p-5 min-w-0 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white whitespace-nowrap">Search activity</h3>
+          <select
+            id="chart-period"
+            class="px-3 py-1.5 text-xs font-outfit text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent whitespace-nowrap w-full sm:w-auto"
+          >
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 90 days</option>
+          </select>
+        </div>
+        <div id="chart-container" class="h-48 sm:h-64 flex items-end justify-between gap-1 min-w-0 overflow-x-auto pb-2">
+          <!-- Chart bars will be inserted here -->
+        </div>
+      </Card>
+
+      <!-- Top Searches -->
+      <Card variant="elevated" id="top-searches-card" class="p-4 sm:p-5 min-w-0 hidden">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white whitespace-nowrap">Top searches</h3>
+          <span class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">Top 10</span>
+        </div>
+        <div id="top-searches-list" class="space-y-2 max-h-48 sm:max-h-64 overflow-y-auto">
+          <!-- Top searches will be inserted here -->
+        </div>
+      </Card>
+    </div>
+
+    <!-- Filters & Actions -->
+    <Card variant="elevated" class="p-4 sm:p-5">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4">
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white whitespace-nowrap">Search logs</h3>
+        <div class="flex items-center gap-2 flex-wrap">
+          <Button
+            id="clear-filters"
+            variant="outlined"
+            size="sm"
+            class="text-xs whitespace-nowrap"
+          >
+            <Icon name="x" size="sm" />
+            <span class="hidden sm:inline">Clear filters</span>
+            <span class="sm:hidden">Clear</span>
+          </Button>
+          <Button
+            id="refresh-btn"
+            variant="primary"
+            size="sm"
+            class="text-xs whitespace-nowrap flex items-center gap-1.5"
+          >
+            <Icon name="refresh-cw" size="sm" class="flex-shrink-0" />
+            <span class="whitespace-nowrap">Refresh</span>
+          </Button>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 mb-4">
+        <div class="min-w-0">
+          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Search query
+          </label>
+          <Input
+            type="text"
+            id="filter-query"
+            placeholder="Filter by query..."
+            class="w-full text-sm"
+          />
+        </div>
+        <div class="min-w-0">
+          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Date from
+          </label>
+          <Input
+            type="date"
+            id="filter-date-from"
+            class="w-full text-sm"
+          />
+        </div>
+        <div class="min-w-0">
+          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Date to
+          </label>
+          <Input
+            type="date"
+            id="filter-date-to"
+            class="w-full text-sm"
+          />
+        </div>
+        <div class="min-w-0">
+          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Customer id
+          </label>
+          <Input
+            type="number"
+            id="filter-customer"
+            placeholder="Customer id..."
+            class="w-full text-sm"
+          />
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-2 flex-wrap">
+        <select
+          id="sort-by"
+          class="px-3 py-2 text-xs font-outfit text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent whitespace-nowrap"
+        >
+          <option value="timestamp-desc">Newest first</option>
+          <option value="timestamp-asc">Oldest first</option>
+          <option value="query-asc">Query a-z</option>
+          <option value="query-desc">Query z-a</option>
+        </select>
+        <select
+          id="per-page"
+          class="px-3 py-2 text-xs font-outfit text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent whitespace-nowrap"
+        >
+          <option value="20">20 per page</option>
+          <option value="50">50 per page</option>
+          <option value="100">100 per page</option>
+        </select>
+        <Button
+          id="apply-filters"
+          variant="primary"
+          size="sm"
+          class="text-xs whitespace-nowrap flex-shrink-0"
+        >
+          <Icon name="filter" size="sm" />
+          <span class="hidden sm:inline">Apply filters</span>
+          <span class="sm:hidden">Apply</span>
+        </Button>
+      </div>
+    </Card>
+
+    <!-- Loading State - Table Skeleton -->
+    <div id="loading-state">
+      <Card variant="elevated" class="overflow-hidden">
+        <div class="p-4 sm:p-5">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-32 skeleton-shimmer"></div>
+            <div class="flex items-center gap-2">
+              <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-24 skeleton-shimmer"></div>
+              <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-24 skeleton-shimmer"></div>
+            </div>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-800/50">
+              <tr>
+                <th class="px-4 sm:px-6 py-3">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20 skeleton-shimmer"></div>
+                </th>
+                <th class="px-4 sm:px-6 py-3">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 skeleton-shimmer"></div>
+                </th>
+                <th class="px-4 sm:px-6 py-3">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20 skeleton-shimmer"></div>
+                </th>
+                <th class="px-4 sm:px-6 py-3">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 skeleton-shimmer"></div>
+                </th>
+                <th class="px-4 sm:px-6 py-3">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16 skeleton-shimmer"></div>
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              <tr>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full skeleton-shimmer"></div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 skeleton-shimmer"></div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 skeleton-shimmer"></div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 skeleton-shimmer"></div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-8 skeleton-shimmer mx-auto"></div>
+                </td>
+              </tr>
+              <tr>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full skeleton-shimmer"></div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 skeleton-shimmer"></div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 skeleton-shimmer"></div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 skeleton-shimmer"></div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-8 skeleton-shimmer mx-auto"></div>
+                </td>
+              </tr>
+              <tr>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full skeleton-shimmer"></div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 skeleton-shimmer"></div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 skeleton-shimmer"></div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 skeleton-shimmer"></div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-8 skeleton-shimmer mx-auto"></div>
+                </td>
+              </tr>
+              <tr>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full skeleton-shimmer"></div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 skeleton-shimmer"></div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 skeleton-shimmer"></div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 skeleton-shimmer"></div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-8 skeleton-shimmer mx-auto"></div>
+                </td>
+              </tr>
+              <tr>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full skeleton-shimmer"></div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 skeleton-shimmer"></div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 skeleton-shimmer"></div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 skeleton-shimmer"></div>
+                </td>
+                <td class="px-4 sm:px-6 py-4">
+                  <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-8 skeleton-shimmer mx-auto"></div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    </div>
+
+    <!-- Empty State -->
+    <div id="empty-state" class="hidden">
+      <Card variant="elevated" class="p-12">
+        <div class="flex flex-col items-center justify-center text-center">
+          <div class="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+            <Icon name="search" size="xl" class="text-gray-400 dark:text-gray-500" />
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">No searches found</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400 max-w-md">
+            No search queries match the current filters. Try adjusting your filters or check back later.
+          </p>
+        </div>
+      </Card>
+    </div>
+
+    <!-- Searches Table -->
+    <Card variant="elevated" id="searches-table-container" class="hidden overflow-hidden">
+      <div class="overflow-x-auto -mx-5 sm:mx-0">
+        <div class="inline-block min-w-full align-middle">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-800/50">
+              <tr>
+                <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                  Query
+                </th>
+                <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                  Date & time
+                </th>
+                <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                  Ip address
+                </th>
+                <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                  Customer
+                </th>
+                <th scope="col" class="px-4 sm:px-6 py-3 text-right text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody id="searches-table-body" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              <!-- Table rows will be inserted here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </Card>
+
+    <!-- Pagination -->
+    <div id="pagination-container" class="hidden">
+      <Card variant="elevated" class="p-4">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="text-sm text-gray-600 dark:text-gray-400">
+            Showing <span id="pagination-start" class="font-semibold text-gray-900 dark:text-white">0</span>
+            to <span id="pagination-end" class="font-semibold text-gray-900 dark:text-white">0</span>
+            of <span id="pagination-total" class="font-semibold text-gray-900 dark:text-white">0</span> searches
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <button
+              id="pagination-prev"
+              class="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm flex items-center gap-2"
+              disabled
+            >
+              <Icon name="chevron-left" size="sm" />
+              <span>Previous</span>
+            </button>
+            
+            <div id="pagination-numbers" class="flex items-center gap-1">
+              <!-- Page numbers will be inserted here -->
+            </div>
+            
+            <button
+              id="pagination-next"
+              class="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm flex items-center gap-2"
+              disabled
+            >
+              <span>Next</span>
+              <Icon name="chevron-right" size="sm" />
+            </button>
+          </div>
+        </div>
+      </Card>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-state" class="hidden">
+      <Card variant="elevated" class="p-6 border-l-4 border-red-500 bg-red-50/50 dark:bg-red-900/10">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+            <Icon name="alert-circle" size="lg" class="text-red-600 dark:text-red-400" />
+          </div>
+          <div class="flex-1">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Error loading searches</h3>
+            <p id="error-message" class="text-sm text-gray-600 dark:text-gray-400 mb-4"></p>
+            <Button
+              id="retry-btn"
+              variant="primary"
+              size="sm"
+            >
+              <Icon name="refresh-cw" size="sm" />
+              <span>Try again</span>
+            </Button>
+          </div>
+        </div>
+      </Card>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+
+    // Check admin
+    try {
+      const checkAdminResponse = await fetch('/api/admin/check-admin', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!checkAdminResponse.ok || !(await checkAdminResponse.json()).isAdmin) {
+        window.location.href = '/login';
+        return;
+      }
+    } catch (error) {
+      window.location.href = '/login';
+      return;
+    }
+
+    // Elements
+    const loadingState = document.getElementById('loading-state');
+    const emptyState = document.getElementById('empty-state');
+    const searchesTableContainer = document.getElementById('searches-table-container');
+    const searchesTableBody = document.getElementById('searches-table-body');
+    const errorState = document.getElementById('error-state');
+    const errorMessage = document.getElementById('error-message');
+    const refreshBtn = document.getElementById('refresh-btn');
+    const retryBtn = document.getElementById('retry-btn');
+    const exportBtn = document.getElementById('export-btn');
+    const paginationContainer = document.getElementById('pagination-container');
+    const paginationStart = document.getElementById('pagination-start');
+    const paginationEnd = document.getElementById('pagination-end');
+    const paginationTotal = document.getElementById('pagination-total');
+    const paginationPrev = document.getElementById('pagination-prev');
+    const paginationNext = document.getElementById('pagination-next');
+    const paginationNumbers = document.getElementById('pagination-numbers');
+    const applyFiltersBtn = document.getElementById('apply-filters');
+    const clearFiltersBtn = document.getElementById('clear-filters');
+    const filterQuery = document.getElementById('filter-query') as HTMLInputElement;
+    const filterDateFrom = document.getElementById('filter-date-from') as HTMLInputElement;
+    const filterDateTo = document.getElementById('filter-date-to') as HTMLInputElement;
+    const filterCustomer = document.getElementById('filter-customer') as HTMLInputElement;
+    const sortBy = document.getElementById('sort-by') as HTMLSelectElement;
+    const perPageSelect = document.getElementById('per-page') as HTMLSelectElement;
+    const chartPeriod = document.getElementById('chart-period') as HTMLSelectElement;
+
+    let searches: any[] = [];
+    let allSearches: any[] = [];
+    let currentPage = 1;
+    let perPage = 20;
+    let pagination: any = null;
+    let stats: any = {};
+    let filters: { query?: string; date_from?: string; date_to?: string; customer_id?: string } = {};
+    let currentSort = 'timestamp-desc';
+
+    // Format date
+    function formatDate(dateString: string): string {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffTime = Math.abs(now.getTime() - date.getTime());
+      const diffMinutes = Math.floor(diffTime / (1000 * 60));
+      const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffMinutes < 1) return 'Just now';
+      if (diffMinutes < 60) return `${diffMinutes}m ago`;
+      if (diffHours < 24) return `${diffHours}h ago`;
+      if (diffDays === 1) return 'Yesterday';
+      if (diffDays < 7) return `${diffDays}d ago`;
+      
+      return date.toLocaleDateString('fr-FR', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+    }
+
+    function formatFullDate(dateString: string): string {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('fr-FR', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    }
+
+    // Copy to clipboard
+    function copyToClipboard(text: string) {
+      navigator.clipboard.writeText(text).then(() => {
+        if (window.showToast) {
+          window.showToast('Copied to clipboard', 'success', 2000);
+        }
+      });
+    }
+
+    // Load searches
+    async function loadSearches(page: number = currentPage) {
+      currentPage = page;
+      loadingState?.classList.remove('hidden');
+      emptyState?.classList.add('hidden');
+      searchesTableContainer?.classList.add('hidden');
+      errorState?.classList.add('hidden');
+      paginationContainer?.classList.add('hidden');
+      
+      // Show skeletons
+      const statsSkeleton = document.getElementById('stats-skeleton');
+      const statsReal = document.getElementById('stats-real');
+      const chartSkeleton = document.getElementById('chart-skeleton');
+      const chartCard = document.getElementById('chart-card');
+      const topSearchesSkeleton = document.getElementById('top-searches-skeleton');
+      const topSearchesCard = document.getElementById('top-searches-card');
+      
+      if (statsSkeleton && statsReal) {
+        statsSkeleton.classList.remove('hidden');
+        statsReal.classList.add('hidden');
+      }
+      
+      if (chartSkeleton && chartCard) {
+        chartSkeleton.classList.remove('hidden');
+        chartCard.classList.add('hidden');
+      }
+      
+      if (topSearchesSkeleton && topSearchesCard) {
+        topSearchesSkeleton.classList.remove('hidden');
+        topSearchesCard.classList.add('hidden');
+      }
+
+      try {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          per_page: perPage.toString(),
+        });
+        
+        if (filters.query) params.append('query', filters.query);
+        if (filters.date_from) params.append('date_from', filters.date_from);
+        if (filters.date_to) params.append('date_to', filters.date_to);
+        if (filters.customer_id) params.append('customer_id', filters.customer_id);
+
+        const response = await fetch(`/api/admin/search-results?${params.toString()}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.status === 403) {
+          window.location.href = '/login';
+          return;
+        }
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to load searches');
+        }
+
+        const data = await response.json();
+        searches = data.searches || [];
+        allSearches = data.allSearches || searches;
+        pagination = data.pagination || null;
+        stats = data.stats || {};
+        
+        console.log('Loaded data:', { searchesCount: searches.length, allSearchesCount: allSearches.length, pagination });
+        
+        // Update stats - hide skeletons and show real content
+        if (statsSkeleton && statsReal) {
+          statsSkeleton.classList.add('hidden');
+          statsReal.classList.remove('hidden');
+        }
+        
+        document.getElementById('total-searches')!.textContent = stats.total?.toString() || '0';
+        document.getElementById('today-searches')!.textContent = stats.today?.toString() || '0';
+        document.getElementById('week-searches')!.textContent = stats.thisWeek?.toString() || '0';
+        document.getElementById('unique-queries')!.textContent = stats.uniqueQueries?.toString() || '0';
+        
+        // Hide chart skeleton and show real chart
+        if (chartSkeleton && chartCard) {
+          chartSkeleton.classList.add('hidden');
+          chartCard.classList.remove('hidden');
+        }
+        
+        // Render chart
+        renderChart();
+        
+        // Hide top searches skeleton and show real content
+        if (topSearchesSkeleton && topSearchesCard) {
+          topSearchesSkeleton.classList.add('hidden');
+          topSearchesCard.classList.remove('hidden');
+        }
+        
+        // Render top searches
+        renderTopSearches(stats.topSearches || []);
+
+        // Sort searches
+        sortSearches();
+
+        loadingState?.classList.add('hidden');
+        emptyState?.classList.add('hidden');
+
+        if (searches.length === 0) {
+          emptyState?.classList.remove('hidden');
+          searchesTableContainer?.classList.add('hidden');
+          paginationContainer?.classList.add('hidden');
+        } else {
+          console.log('Rendering table with', searches.length, 'searches');
+          renderSearchesTable();
+          renderPagination();
+          if (searchesTableContainer) {
+            searchesTableContainer.classList.remove('hidden');
+            console.log('Table container shown');
+          } else {
+            console.error('searchesTableContainer not found!');
+          }
+          if (paginationContainer) {
+            paginationContainer.classList.remove('hidden');
+          }
+          emptyState?.classList.add('hidden');
+        }
+      } catch (error: any) {
+        console.error('Error loading searches:', error);
+        loadingState?.classList.add('hidden');
+        errorState?.classList.remove('hidden');
+        if (errorMessage) {
+          errorMessage.textContent = error.message || 'An error occurred while loading searches';
+        }
+      }
+    }
+
+    // Render chart
+    function renderChart() {
+      const chartContainer = document.getElementById('chart-container');
+      if (!chartContainer) return;
+
+      const period = parseInt(chartPeriod?.value || '7');
+      const now = new Date();
+      const days: { date: string; count: number }[] = [];
+      
+      for (let i = period - 1; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        
+        const count = allSearches.filter(s => {
+          const searchDate = new Date(s.timestamp).toISOString().split('T')[0];
+          return searchDate === dateStr;
+        }).length;
+        
+        days.push({ date: dateStr, count });
+      }
+
+      const maxCount = Math.max(...days.map(d => d.count), 1);
+      
+      chartContainer.innerHTML = days.map(day => {
+        const height = (day.count / maxCount) * 100;
+        const dateLabel = new Date(day.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+        
+        return `
+          <div class="flex-1 flex flex-col items-center gap-2 group cursor-pointer" title="${day.count} searches on ${dateLabel}">
+            <div class="w-full flex items-end justify-center h-48">
+              <div 
+                class="w-full bg-gradient-to-t from-blue-500 to-blue-400 dark:from-blue-600 dark:to-blue-500 rounded-t transition-all duration-300 group-hover:from-blue-600 group-hover:to-blue-500 dark:group-hover:from-blue-500 dark:group-hover:to-blue-400"
+                style="height: ${height}%"
+              ></div>
+            </div>
+            <div class="text-xs font-medium text-gray-600 dark:text-gray-400">${day.count}</div>
+            <div class="text-xs text-gray-500 dark:text-gray-500">${dateLabel}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Render top searches
+    function renderTopSearches(topSearches: any[]) {
+      const topSearchesList = document.getElementById('top-searches-list');
+      if (!topSearchesList) return;
+
+      if (topSearches.length === 0) {
+        topSearchesList.innerHTML = `
+          <p class="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No searches yet</p>
+        `;
+        return;
+      }
+
+      topSearchesList.innerHTML = topSearches.map((item, index) => `
+        <div class="flex items-center justify-between gap-3 p-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group">
+          <div class="flex items-center gap-2 min-w-0 flex-1">
+            <span class="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">
+              ${index + 1}
+            </span>
+            <span class="text-sm font-medium text-gray-900 dark:text-white truncate" title="${item.query}">
+              "${item.query}"
+            </span>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <span class="text-sm font-semibold text-primary">${item.count}</span>
+            <button 
+              onclick="navigator.clipboard.writeText('${item.query.replace(/'/g, "\\'")}')"
+              class="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"
+              title="Copy query"
+            >
+              <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Sort searches
+    function sortSearches() {
+      const [field, direction] = currentSort.split('-');
+      searches.sort((a, b) => {
+        let aVal = a[field];
+        let bVal = b[field];
+        
+        if (field === 'timestamp') {
+          aVal = new Date(aVal).getTime();
+          bVal = new Date(bVal).getTime();
+        } else {
+          aVal = String(aVal).toLowerCase();
+          bVal = String(bVal).toLowerCase();
+        }
+        
+        if (direction === 'asc') {
+          return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+        } else {
+          return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+        }
+      });
+    }
+
+    // Render searches table
+    function renderSearchesTable() {
+      if (!searchesTableBody) {
+        console.error('searchesTableBody not found!');
+        return;
+      }
+
+      console.log('Rendering', searches.length, 'searches in table');
+      searchesTableBody.innerHTML = searches.map(search => {
+        const queryEscaped = search.query.replace(/"/g, '&quot;').replace(/'/g, "&#39;");
+        const ipEscaped = search.ip.replace(/'/g, "&#39;");
+        const dataJson = JSON.stringify(search);
+        const dataEncoded = encodeURIComponent(dataJson);
+        
+        return `
+        <tr class="group hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+          <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-sm font-medium text-gray-900 dark:text-white truncate" title="${queryEscaped}">"${queryEscaped}"</span>
+              <button 
+                onclick="navigator.clipboard.writeText('${queryEscaped.replace(/'/g, "\\'")}').then(() => { if(window.showToast) window.showToast('Copied!', 'success', 2000); })"
+                class="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded flex-shrink-0"
+                title="Copy query"
+              >
+                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </button>
+            </div>
+          </td>
+          <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
+            <div class="text-sm text-gray-900 dark:text-white">${formatFullDate(search.timestamp)}</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">${formatDate(search.timestamp)}</div>
+          </td>
+          <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center gap-2">
+              <code class="text-xs font-mono text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">${search.ip}</code>
+              <button 
+                onclick="navigator.clipboard.writeText('${ipEscaped}').then(() => { if(window.showToast) window.showToast('Ip copied!', 'success', 2000); })"
+                class="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded flex-shrink-0"
+                title="Copy ip"
+              >
+                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </button>
+            </div>
+          </td>
+          <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
+            ${search.customer_id ? `
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 whitespace-nowrap">
+                <svg class="w-3 h-3 mr-1.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span class="truncate max-w-[150px]" title="${search.customer_name || search.customer_email || `Customer #${search.customer_id}`}">${search.customer_name || search.customer_email || `Customer #${search.customer_id}`}</span>
+              </span>
+            ` : `
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 whitespace-nowrap">
+                <svg class="w-3 h-3 mr-1.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Anonymous
+              </span>
+            `}
+          </td>
+          <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-right">
+            <button 
+              data-search-data="${dataEncoded}"
+              class="copy-search-data-btn p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors inline-flex items-center"
+              title="Copy full data"
+            >
+              <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </button>
+          </td>
+        </tr>
+      `;
+      }).join('');
+      
+      // Attach event listeners to copy buttons
+      searchesTableBody.querySelectorAll('.copy-search-data-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const encodedData = (btn as HTMLElement).getAttribute('data-search-data');
+          if (encodedData) {
+            const jsonData = decodeURIComponent(encodedData);
+            navigator.clipboard.writeText(jsonData).then(() => {
+              if (window.showToast) {
+                window.showToast('Data copied!', 'success', 2000);
+              }
+            });
+          }
+        });
+      });
+    }
+
+    // Render pagination
+    function renderPagination() {
+      if (!pagination || !paginationContainer) return;
+
+      const start = (pagination.page - 1) * pagination.perPage + 1;
+      const end = Math.min(start + searches.length - 1, pagination.totalItems);
+      
+      if (paginationStart) paginationStart.textContent = start.toString();
+      if (paginationEnd) paginationEnd.textContent = end.toString();
+      if (paginationTotal) paginationTotal.textContent = pagination.totalItems.toString();
+
+      if (paginationPrev) {
+        paginationPrev.disabled = !pagination.hasPrevPage;
+      }
+      if (paginationNext) {
+        paginationNext.disabled = !pagination.hasNextPage;
+      }
+
+      if (paginationNumbers) {
+        paginationNumbers.innerHTML = '';
+        
+        const totalPages = pagination.totalPages;
+        const current = pagination.page;
+        
+        let startPage = Math.max(1, current - 2);
+        let endPage = Math.min(totalPages, current + 2);
+        
+        if (endPage - startPage < 4) {
+          if (startPage === 1) {
+            endPage = Math.min(5, totalPages);
+          } else if (endPage === totalPages) {
+            startPage = Math.max(1, totalPages - 4);
+          }
+        }
+        
+        if (startPage > 1) {
+          const btn = createPageButton(1, current === 1);
+          paginationNumbers.appendChild(btn);
+          
+          if (startPage > 2) {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'px-2 py-1 text-gray-500 dark:text-gray-400 text-sm';
+            ellipsis.textContent = '...';
+            paginationNumbers.appendChild(ellipsis);
+          }
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+          const btn = createPageButton(i, current === i);
+          paginationNumbers.appendChild(btn);
+        }
+        
+        if (endPage < totalPages) {
+          if (endPage < totalPages - 1) {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'px-2 py-1 text-gray-500 dark:text-gray-400 text-sm';
+            ellipsis.textContent = '...';
+            paginationNumbers.appendChild(ellipsis);
+          }
+          
+          const btn = createPageButton(totalPages, current === totalPages);
+          paginationNumbers.appendChild(btn);
+        }
+      }
+    }
+
+    function createPageButton(pageNum: number, isActive: boolean): HTMLButtonElement {
+      const btn = document.createElement('button');
+      btn.className = `px-3 py-2 rounded-lg text-sm transition-all duration-200 min-w-[2.5rem] ${
+        isActive
+          ? 'bg-primary text-white hover:bg-primary-dark shadow-sm'
+          : 'border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-primary/30'
+      }`;
+      btn.textContent = pageNum.toString();
+      btn.addEventListener('click', () => {
+        loadSearches(pageNum);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      return btn;
+    }
+
+    // Export CSV
+    function exportToCSV() {
+      const headers = ['Query', 'Date', 'Ip address', 'Customer id', 'Customer email', 'Customer name'];
+      const rows = allSearches.map(s => [
+        s.query,
+        formatFullDate(s.timestamp),
+        s.ip,
+        s.customer_id || '',
+        s.customer_email || '',
+        s.customer_name || ''
+      ]);
+      
+      const csv = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      ].join('\n');
+      
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `search-results-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      
+      if (window.showToast) {
+        window.showToast('Csv exported successfully', 'success', 2000);
+      }
+    }
+
+    // Event listeners
+    refreshBtn?.addEventListener('click', () => loadSearches(currentPage));
+    retryBtn?.addEventListener('click', () => loadSearches(currentPage));
+    exportBtn?.addEventListener('click', exportToCSV);
+    
+    applyFiltersBtn?.addEventListener('click', () => {
+      filters = {};
+      if (filterQuery.value.trim()) filters.query = filterQuery.value.trim();
+      if (filterDateFrom.value) filters.date_from = filterDateFrom.value;
+      if (filterDateTo.value) filters.date_to = filterDateTo.value;
+      if (filterCustomer.value.trim()) filters.customer_id = filterCustomer.value.trim();
+      perPage = parseInt(perPageSelect.value);
+      loadSearches(1);
+    });
+    
+    clearFiltersBtn?.addEventListener('click', () => {
+      filters = {};
+      filterQuery.value = '';
+      filterDateFrom.value = '';
+      filterDateTo.value = '';
+      filterCustomer.value = '';
+      perPageSelect.value = '20';
+      perPage = 20;
+      loadSearches(1);
+    });
+    
+    sortBy?.addEventListener('change', (e) => {
+      currentSort = (e.target as HTMLSelectElement).value;
+      sortSearches();
+      renderSearchesTable();
+    });
+    
+    chartPeriod?.addEventListener('change', () => {
+      renderChart();
+    });
+    
+    if (paginationPrev) {
+      paginationPrev.addEventListener('click', () => {
+        if (pagination && pagination.hasPrevPage) {
+          loadSearches(currentPage - 1);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    }
+    
+    if (paginationNext) {
+      paginationNext.addEventListener('click', () => {
+        if (pagination && pagination.hasNextPage) {
+          loadSearches(currentPage + 1);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    }
+
+    // Initial load
+    loadSearches(1);
+  });
+</script>
+
+<style>
+  /* Table scrollbar */
+  #searches-table-container::-webkit-scrollbar {
+    height: 8px;
+  }
+  
+  #searches-table-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  #searches-table-container::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+  }
+  
+  .dark #searches-table-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Skeleton shimmer animation */
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+  
+  .skeleton-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .skeleton-shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent
+    );
+    animation: shimmer 1.5s infinite;
+  }
+  
+  :global(.dark) .skeleton-shimmer::after {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+  }
+</style>

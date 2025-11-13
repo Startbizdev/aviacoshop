@@ -1,0 +1,442 @@
+---
+import { User, ShoppingBag } from 'lucide-astro';
+---
+
+<div id="user-menu-container" class="relative">
+  <!-- Not logged in - Show login menu -->
+  <div id="user-login-wrapper" class="relative">
+    <button
+      id="user-login-button"
+      class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition-colors"
+      aria-label="Account"
+      title="Account"
+    >
+      <User size={22} />
+    </button>
+    
+    <!-- Login Dropdown Menu -->
+    <div
+      id="login-dropdown"
+      class="absolute right-0 top-full w-48 z-50"
+    >
+      <div id="login-dropdown-content" class="mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 opacity-0 pointer-events-none transition-all duration-200">
+        <a
+          href="/login"
+          class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-outfit transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+            <polyline points="10 17 15 12 10 7"></polyline>
+            <line x1="15" y1="12" x2="3" y2="12"></line>
+          </svg>
+          <span>Login</span>
+        </a>
+        <a
+          href="/register"
+          class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-outfit transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <line x1="19" y1="8" x2="19" y2="14"></line>
+            <line x1="22" y1="11" x2="16" y2="11"></line>
+          </svg>
+          <span>Sign Up</span>
+        </a>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Logged in - Show user menu -->
+  <div id="user-menu-logged" class="hidden">
+    <div id="user-menu-wrapper" class="relative">
+      <button
+        id="user-menu-button"
+        class="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition-colors"
+        aria-label="Account menu"
+        aria-expanded="false"
+      >
+        <User size={22} />
+        <span id="user-greeting" class="hidden md:block font-outfit text-sm font-medium whitespace-nowrap">
+          Hello <span id="user-name-display">User</span>
+        </span>
+      </button>
+      
+      <!-- Dropdown Menu -->
+      <div
+        id="user-dropdown"
+        class="absolute right-0 top-full w-48 z-50"
+      >
+        <div id="user-dropdown-content" class="mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 opacity-0 pointer-events-none transition-all duration-200">
+          <a
+            href="/my-account"
+            class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-outfit transition-colors"
+          >
+            <User size={16} />
+            <span>My Account</span>
+          </a>
+          <a
+            href="/my-account#orders"
+            class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-outfit transition-colors"
+          >
+            <ShoppingBag size={16} />
+            <span>My Orders</span>
+          </a>
+          <a
+            href="/my-account#addresses"
+            class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-outfit transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <span>My Address</span>
+          </a>
+          <div id="admin-menu-section" class="hidden">
+            <div class="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+            <a
+              href="/admin/pending-accounts"
+              class="flex items-center gap-3 px-4 py-2 text-sm text-primary dark:text-primary-light hover:bg-primary/10 dark:hover:bg-primary/20 font-outfit transition-colors font-medium"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="9" y1="3" x2="9" y2="21"></line>
+                <line x1="9" y1="9" x2="21" y2="9"></line>
+              </svg>
+              <span>Administration</span>
+            </a>
+          </div>
+          <div class="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+          <button
+            id="logout-button"
+            class="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 font-outfit transition-colors text-left"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            <span>Log out</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 UserMenu script loaded');
+    
+    const userLoginWrapper = document.getElementById('user-login-wrapper');
+    const userLoginButton = document.getElementById('user-login-button');
+    const loginDropdown = document.getElementById('login-dropdown');
+    const loginDropdownContent = document.getElementById('login-dropdown-content');
+    const userMenuLogged = document.getElementById('user-menu-logged');
+    const userMenuWrapper = document.getElementById('user-menu-wrapper');
+    const userNameDisplay = document.getElementById('user-name-display');
+    const userGreeting = document.getElementById('user-greeting');
+    const userDropdown = document.getElementById('user-dropdown');
+    const userDropdownContent = document.getElementById('user-dropdown-content');
+    const logoutButton = document.getElementById('logout-button');
+    const adminMenuSection = document.getElementById('admin-menu-section');
+    
+    console.log('📋 Elements found:', {
+      userLoginWrapper: !!userLoginWrapper,
+      userLoginButton: !!userLoginButton,
+      loginDropdown: !!loginDropdown,
+      loginDropdownContent: !!loginDropdownContent,
+      userMenuLogged: !!userMenuLogged,
+      userMenuWrapper: !!userMenuWrapper,
+      userNameDisplay: !!userNameDisplay,
+      userGreeting: !!userGreeting,
+      userDropdown: !!userDropdown,
+      userDropdownContent: !!userDropdownContent,
+      logoutButton: !!logoutButton
+    });
+
+    // Menu hover functionality for logged in users
+    let menuTimeout: number | null = null;
+    
+    function showUserMenu() {
+      if (menuTimeout) {
+        clearTimeout(menuTimeout);
+        menuTimeout = null;
+      }
+      if (userDropdownContent) {
+        userDropdownContent.style.display = 'block';
+        userDropdownContent.classList.remove('opacity-0', 'pointer-events-none');
+        userDropdownContent.classList.add('opacity-100', 'pointer-events-auto');
+      }
+    }
+    
+    function hideUserMenu() {
+      if (menuTimeout) {
+        clearTimeout(menuTimeout);
+      }
+      menuTimeout = window.setTimeout(() => {
+        if (userDropdownContent) {
+          userDropdownContent.classList.remove('opacity-100', 'pointer-events-auto');
+          userDropdownContent.classList.add('opacity-0', 'pointer-events-none');
+          setTimeout(() => {
+            if (userDropdownContent && userDropdownContent.classList.contains('opacity-0')) {
+              userDropdownContent.style.display = 'none';
+            }
+          }, 200);
+        }
+        menuTimeout = null;
+      }, 200);
+    }
+
+    // Menu hover functionality for login menu (not logged in)
+    let loginMenuTimeout: number | null = null;
+    
+    function showLoginMenu() {
+      if (loginMenuTimeout) {
+        clearTimeout(loginMenuTimeout);
+        loginMenuTimeout = null;
+      }
+      if (loginDropdownContent) {
+        loginDropdownContent.style.display = 'block';
+        loginDropdownContent.classList.remove('opacity-0', 'pointer-events-none');
+        loginDropdownContent.classList.add('opacity-100', 'pointer-events-auto');
+      }
+    }
+    
+    function hideLoginMenu() {
+      if (loginMenuTimeout) {
+        clearTimeout(loginMenuTimeout);
+      }
+      loginMenuTimeout = window.setTimeout(() => {
+        if (loginDropdownContent) {
+          loginDropdownContent.classList.remove('opacity-100', 'pointer-events-auto');
+          loginDropdownContent.classList.add('opacity-0', 'pointer-events-none');
+          setTimeout(() => {
+            if (loginDropdownContent && loginDropdownContent.classList.contains('opacity-0')) {
+              loginDropdownContent.style.display = 'none';
+            }
+          }, 200);
+        }
+        loginMenuTimeout = null;
+      }, 200);
+    }
+
+    // Initialize menus as hidden
+    if (userDropdownContent) {
+      userDropdownContent.style.display = 'none';
+    }
+    if (loginDropdownContent) {
+      loginDropdownContent.style.display = 'none';
+    }
+
+    // Logged in user menu
+    if (userMenuWrapper && userDropdown) {
+      userMenuWrapper.addEventListener('mouseenter', showUserMenu);
+      userMenuWrapper.addEventListener('mouseleave', hideUserMenu);
+      userDropdown.addEventListener('mouseenter', showUserMenu);
+      userDropdown.addEventListener('mouseleave', hideUserMenu);
+    }
+
+    // Login menu (not logged in)
+    if (userLoginWrapper && loginDropdown) {
+      userLoginWrapper.addEventListener('mouseenter', showLoginMenu);
+      userLoginWrapper.addEventListener('mouseleave', hideLoginMenu);
+      loginDropdown.addEventListener('mouseenter', showLoginMenu);
+      loginDropdown.addEventListener('mouseleave', hideLoginMenu);
+    }
+
+    // Check admin status
+    async function checkAdminStatus(token: string) {
+      try {
+        console.log('🔐 Checking admin status...');
+        const response = await fetch('/api/admin/check-admin', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('🔐 Admin check result:', data);
+          if (data.isAdmin && adminMenuSection) {
+            adminMenuSection.classList.remove('hidden');
+            console.log('✅ Admin menu shown');
+          } else if (adminMenuSection) {
+            adminMenuSection.classList.add('hidden');
+            console.log('❌ Admin menu hidden (not admin)');
+          }
+        } else {
+          console.log('❌ Admin check failed:', response.status);
+          if (adminMenuSection) {
+            adminMenuSection.classList.add('hidden');
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error checking admin status:', error);
+        if (adminMenuSection) {
+          adminMenuSection.classList.add('hidden');
+        }
+      }
+    }
+
+    function updateUserMenu() {
+      const token = localStorage.getItem('auth_token');
+      const userStr = localStorage.getItem('user');
+      
+      console.log('🔍 UserMenu Debug:', {
+        hasToken: !!token,
+        hasUserStr: !!userStr,
+        tokenLength: token?.length || 0,
+        userStrPreview: userStr?.substring(0, 100) || 'null'
+      });
+      
+      // Nettoyer localStorage si userStr est "undefined" ou "null"
+      if (userStr === 'undefined' || userStr === 'null') {
+        console.warn('⚠️ Invalid user data found, clearing localStorage');
+        localStorage.removeItem('user');
+        if (userLoginWrapper) {
+          userLoginWrapper.classList.remove('hidden');
+        }
+        if (userMenuLogged) {
+          userMenuLogged.classList.add('hidden');
+        }
+        return;
+      }
+      
+      if (token && userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          console.log('✅ User data parsed:', user);
+          
+          const displayName = user.name || 
+                            `${user.first_name || ''} ${user.last_name || ''}`.trim() || 
+                            user.email?.split('@')[0] || 
+                            user.username ||
+                            user.user_nicename ||
+                            'User';
+          
+          console.log('👤 Display name:', displayName);
+          
+          if (userNameDisplay) {
+            userNameDisplay.textContent = displayName;
+          }
+          
+          if (userGreeting) {
+            userGreeting.classList.remove('hidden');
+            console.log('✅ Greeting shown');
+          }
+          
+          // Vérifier si l'utilisateur est admin
+          checkAdminStatus(token);
+          
+          // Hide login menu, show user menu
+          if (userLoginWrapper) {
+            userLoginWrapper.classList.add('hidden');
+            console.log('✅ Login menu hidden');
+          }
+          if (userMenuLogged) {
+            userMenuLogged.classList.remove('hidden');
+            console.log('✅ User menu shown');
+          }
+          
+          // Hide login dropdown if visible
+          if (loginDropdownContent) {
+            loginDropdownContent.style.display = 'none';
+            loginDropdownContent.classList.remove('opacity-100', 'pointer-events-auto');
+            loginDropdownContent.classList.add('opacity-0', 'pointer-events-none');
+          }
+        } catch (e) {
+          console.error('❌ Error parsing user data:', e);
+          console.log('User string:', userStr);
+          if (userLoginWrapper) {
+            userLoginWrapper.classList.remove('hidden');
+          }
+          if (userMenuLogged) {
+            userMenuLogged.classList.add('hidden');
+          }
+        }
+      } else {
+        console.log('❌ No token or user data found');
+        // Show login menu, hide user menu
+        if (userLoginWrapper) {
+          userLoginWrapper.classList.remove('hidden');
+        }
+        if (userMenuLogged) {
+          userMenuLogged.classList.add('hidden');
+        }
+        if (userDropdownContent) {
+          userDropdownContent.classList.remove('opacity-100', 'pointer-events-auto');
+          userDropdownContent.classList.add('opacity-0', 'pointer-events-none');
+          userDropdownContent.style.display = 'none';
+        }
+        if (loginDropdownContent) {
+          loginDropdownContent.classList.remove('opacity-100', 'pointer-events-auto');
+          loginDropdownContent.classList.add('opacity-0', 'pointer-events-none');
+          loginDropdownContent.style.display = 'none';
+        }
+        // Cacher le menu admin si pas connecté
+        if (adminMenuSection) {
+          adminMenuSection.classList.add('hidden');
+        }
+      }
+    }
+
+    // Logout functionality
+    if (logoutButton) {
+      logoutButton.addEventListener('click', async () => {
+        const confirmed = window.showToastConfirm 
+          ? await window.showToastConfirm({
+              message: 'Are you sure you want to log out?',
+              confirmText: 'Log out',
+              cancelText: 'Cancel',
+              type: 'warning'
+            })
+          : confirm('Are you sure you want to log out?');
+        
+        if (confirmed) {
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('user');
+          window.dispatchEvent(new Event('user-logged-out'));
+          window.location.href = '/';
+        }
+      });
+    }
+
+    // Update menu on load
+    console.log('🔄 Initial menu update');
+    updateUserMenu();
+
+    // Listen for storage changes (login/logout from other tabs)
+    window.addEventListener('storage', function(e) {
+      console.log('📦 Storage changed:', e.key);
+      updateUserMenu();
+    });
+
+    // Listen for custom events if login happens on same tab
+    window.addEventListener('user-logged-in', function() {
+      console.log('✅ User logged in event received');
+      updateUserMenu();
+    });
+    
+    window.addEventListener('user-logged-out', function() {
+      console.log('👋 User logged out event received');
+      updateUserMenu();
+    });
+    
+    // Also check periodically in case localStorage was updated directly
+    setInterval(function() {
+      const currentToken = localStorage.getItem('auth_token');
+      const currentUser = localStorage.getItem('user');
+      const wasLoggedIn = userMenuLogged && !userMenuLogged.classList.contains('hidden');
+      const shouldBeLoggedIn = !!(currentToken && currentUser);
+      
+      if (wasLoggedIn !== shouldBeLoggedIn) {
+        console.log('🔄 State mismatch detected, updating menu');
+        updateUserMenu();
+      }
+    }, 1000);
+  });
+</script>
+

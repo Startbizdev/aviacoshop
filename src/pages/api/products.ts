@@ -20,13 +20,7 @@ export const GET: APIRoute = async ({ request }) => {
     const products = await getProducts(params);
     const productsArray = Array.isArray(products) ? products : [];
     
-    // Optimiser les URLs des images pour chargement plus rapide
-    productsArray.forEach(product => {
-      if (product.images && product.images.length > 0 && product.images[0].src) {
-        const imgUrl = product.images[0].src;
-        product.images[0].src = imgUrl.replace(/\.(jpg|jpeg|png|gif|webp)/i, '-300x300.$1');
-      }
-    });
+    // Utiliser les URLs originales des images telles quelles (pas de modification)
     
     return new Response(JSON.stringify({
       products: productsArray,

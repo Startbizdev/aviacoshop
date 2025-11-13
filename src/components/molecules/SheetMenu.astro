@@ -1,6 +1,6 @@
 ---
 import ThemeToggle from './ThemeToggle.astro';
-import { ShoppingBag, User, LogIn, X, ChevronRight, RefreshCw, Info, Mail, Wrench, Helicopter, HandHelping, Package, Award, BadgeCheck, Leaf } from 'lucide-astro';
+import { ShoppingBag, User, LogIn, X, ChevronRight, RefreshCw, Info, Mail, Wrench, Helicopter, HandHelping, Package, Award, BadgeCheck, Leaf, BookOpen } from 'lucide-astro';
 ---
 
 <div 
@@ -22,7 +22,7 @@ import { ShoppingBag, User, LogIn, X, ChevronRight, RefreshCw, Info, Mail, Wrenc
         <button 
           id="close-sheet-menu-btn" 
           class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-all duration-300 flex items-center justify-center group"
-          aria-label="Fermer le menu"
+          aria-label="Close menu"
         >
           <X class="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
         </button>
@@ -156,6 +156,20 @@ import { ShoppingBag, User, LogIn, X, ChevronRight, RefreshCw, Info, Mail, Wrenc
             Company
           </h3>
           <ul class="space-y-0.5">
+            <li class="menu-item">
+              <a 
+                href="/blog"
+                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 group text-gray-900 dark:text-gray-100 no-underline"
+              >
+                <div class="w-9 h-9 bg-primary/10 dark:bg-primary/20 rounded-lg flex items-center justify-center group-hover:bg-primary/20 dark:group-hover:bg-primary/30 transition-colors flex-shrink-0">
+                  <BookOpen class="w-4.5 h-4.5 text-primary" />
+                </div>
+                <span class="font-outfit text-[15px] font-medium group-hover:text-primary transition-colors flex-1">
+                  Blog
+                </span>
+                <ChevronRight class="w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:text-primary group-hover:translate-x-1 transition-all flex-shrink-0 opacity-0 group-hover:opacity-100" />
+              </a>
+            </li>
             <li class="menu-item">
               <a 
                 href="/about"

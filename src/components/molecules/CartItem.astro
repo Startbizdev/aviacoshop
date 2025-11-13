@@ -242,10 +242,12 @@ const totalPrice = totalPriceRaw || '0';
             console.error('Response status:', response?.status);
             console.error('Response statusText:', response?.statusText);
             
-            if (action === 'remove') {
-              alert(errorData.error || `Failed to remove item. Status: ${response?.status}`);
-            } else {
-              alert(errorData.error || 'An error occurred');
+            if (window.showToast) {
+              if (action === 'remove') {
+                window.showToast(errorData.error || `Failed to remove item. Status: ${response?.status}`, 'error', 5000);
+              } else {
+                window.showToast(errorData.error || 'An error occurred', 'error', 5000);
+              }
             }
             
             // Re-enable buttons
@@ -263,7 +265,9 @@ const totalPrice = totalPriceRaw || '0';
             button.classList.remove('opacity-50');
             button.style.pointerEvents = '';
           }
-          alert('An error occurred while updating the cart');
+          if (window.showToast) {
+            window.showToast('An error occurred while updating the cart', 'error', 5000);
+          }
           
           // Re-enable buttons
           buttons.forEach(btn => {

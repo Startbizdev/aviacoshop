@@ -1,0 +1,204 @@
+---
+import Icon from '../atoms/Icon.astro';
+
+interface Props {
+  currentPath?: string;
+}
+
+const { currentPath = '' } = Astro.props;
+
+const menuItems = [
+  {
+    label: 'Pending accounts',
+    href: '/admin/pending-accounts',
+    icon: 'clock',
+    active: currentPath === '/admin/pending-accounts',
+    badge: null,
+  },
+  {
+    label: 'Search results',
+    href: '/admin/search-results',
+    icon: 'search',
+    active: currentPath === '/admin/search-results',
+    badge: null,
+  },
+  {
+    label: 'Clients',
+    href: '/admin/clients',
+    icon: 'users',
+    active: currentPath === '/admin/clients',
+    badge: null,
+  },
+];
+---
+
+<!-- Mobile Overlay -->
+<div 
+  id="sidebar-overlay"
+  class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden opacity-0 pointer-events-none transition-opacity duration-200"
+></div>
+
+<aside 
+  id="admin-sidebar"
+  class="fixed lg:static inset-y-0 left-0 z-50 w-64 lg:w-72 bg-white dark:bg-gray-900 border-r border-gray-200/80 dark:border-gray-800/80 flex flex-col h-screen transform -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-out shadow-xl lg:shadow-none"
+>
+  <!-- Logo Section - Compact -->
+  <div class="h-16 lg:h-20 px-4 lg:px-6 border-b border-gray-200/80 dark:border-gray-800/80 flex items-center justify-between shrink-0">
+    <a href="/" class="flex items-center gap-3 group flex-1 min-w-0">
+      <div class="flex-shrink-0 w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-primary/10 dark:bg-primary/20 flex items-center justify-center group-hover:bg-primary/20 dark:group-hover:bg-primary/30 transition-colors overflow-hidden p-1.5">
+        <img
+          src="/logo2aviaco.png"
+          alt="Aviaco"
+          class="w-full h-full object-contain"
+        />
+      </div>
+      <div class="min-w-0 flex-1 hidden lg:block">
+        <div class="text-sm font-semibold text-gray-900 dark:text-white truncate">Aviaco Admin</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400 truncate">Dashboard</div>
+      </div>
+    </a>
+    <!-- Mobile Close Button -->
+    <button
+      id="sidebar-close"
+      class="lg:hidden p-1.5 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-200 transition-all flex-shrink-0"
+      aria-label="Close sidebar"
+    >
+      <Icon name="close" size="sm" />
+    </button>
+  </div>
+
+  <!-- Navigation - Compact with better spacing -->
+  <nav class="flex-1 overflow-y-auto overflow-x-hidden px-2 lg:px-3 py-3 lg:py-4">
+    <div class="space-y-0.5">
+      {menuItems.map((item) => (
+        <a
+          href={item.href}
+          class={`group relative flex items-center gap-3 px-2.5 lg:px-3 py-2 lg:py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
+            item.active
+              ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-light shadow-sm'
+              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100/80 dark:hover:bg-gray-800/50'
+          }`}
+        >
+          <div class={`flex-shrink-0 w-5 h-5 flex items-center justify-center ${
+            item.active ? 'text-primary dark:text-primary-light' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200'
+          }`}>
+            <Icon name={item.icon} size="sm" />
+          </div>
+          <span class="flex-1 truncate">{item.label}</span>
+          {item.badge && (
+            <span class="flex-shrink-0 px-1.5 py-0.5 text-xs font-semibold rounded-full bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary-light">
+              {item.badge}
+            </span>
+          )}
+          {item.active && (
+            <div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full"></div>
+          )}
+        </a>
+      ))}
+    </div>
+  </nav>
+
+  <!-- Footer - Compact -->
+  <div class="px-2 lg:px-3 py-3 border-t border-gray-200/80 dark:border-gray-800/80 shrink-0">
+    <a
+      href="/my-account"
+      class="flex items-center gap-3 px-2.5 lg:px-3 py-2 lg:py-2.5 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100/80 dark:hover:bg-gray-800/50 transition-colors group"
+    >
+      <div class="flex-shrink-0 w-5 h-5 flex items-center justify-center text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200">
+        <Icon name="arrowLeft" size="sm" />
+      </div>
+      <span class="truncate">Back to account</span>
+    </a>
+  </div>
+</aside>
+
+<script is:inline>
+  // Mobile sidebar toggle - optimized and professional
+  (function() {
+    function initSidebar() {
+      const sidebar = document.getElementById('admin-sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      const closeBtn = document.getElementById('sidebar-close');
+      const menuBtn = document.getElementById('mobile-menu-btn');
+      
+      if (!sidebar || !overlay) return;
+      
+      function openSidebar() {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.remove('opacity-0', 'pointer-events-none');
+        overlay.classList.add('opacity-100', 'pointer-events-auto');
+        document.body.style.overflow = 'hidden';
+      }
+      
+      function closeSidebar() {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.remove('opacity-100', 'pointer-events-auto');
+        overlay.classList.add('opacity-0', 'pointer-events-none');
+        document.body.style.overflow = '';
+      }
+      
+      // Close button
+      if (closeBtn) {
+        closeBtn.addEventListener('click', closeSidebar);
+      }
+      
+      // Overlay click
+      overlay.addEventListener('click', closeSidebar);
+      
+      // Close on escape
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !sidebar.classList.contains('-translate-x-full')) {
+          closeSidebar();
+        }
+      });
+      
+      // Menu button click
+      if (menuBtn) {
+        menuBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openSidebar();
+        });
+      }
+      
+      // Expose toggle function globally
+      window.toggleAdminSidebar = openSidebar;
+      window.closeAdminSidebar = closeSidebar;
+    }
+    
+    // Initialize immediately if DOM is ready, otherwise wait
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initSidebar);
+    } else {
+      initSidebar();
+    }
+  })();
+</script>
+
+<style>
+  /* Custom scrollbar for sidebar */
+  #admin-sidebar nav::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  #admin-sidebar nav::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  #admin-sidebar nav::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+  }
+  
+  .dark #admin-sidebar nav::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  
+  #admin-sidebar nav::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+  }
+  
+  .dark #admin-sidebar nav::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+</style>

@@ -3,12 +3,14 @@ interface Props {
   variant?: 'default' | 'elevated' | 'outlined';
   class?: string;
   href?: string;
+  id?: string;
 }
 
 const {
   variant = 'default',
   class: className = '',
   href,
+  id,
 } = Astro.props;
 
 const baseClasses = 'rounded-lg transition-all duration-300';
@@ -22,11 +24,11 @@ const classes = `${baseClasses} ${variantClasses[variant]} ${className}`;
 ---
 
 {href ? (
-  <a href={href} class={classes}>
+  <a href={href} class={classes} id={id}>
     <slot />
   </a>
 ) : (
-  <div class={classes}>
+  <div class={classes} id={id}>
     <slot />
   </div>
 )}

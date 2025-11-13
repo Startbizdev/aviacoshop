@@ -10,7 +10,7 @@ interface Props {
     name: string;
     permalink: string;
     images?: Array<{ src: string; alt: string }>;
-    prices: {
+    prices?: {
       price: string;
       regular_price?: string;
       sale_price?: string;
@@ -23,13 +23,10 @@ interface Props {
 }
 
 const { product } = Astro.props;
-// Optimiser l'URL de l'image pour un chargement plus rapide
-let imageUrl = product.images?.[0]?.src || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5Qcm9kdWl0PC90ZXh0Pjwvc3ZnPg==';
-// Si l'URL de l'image existe et n'est pas déjà optimisée, l'optimiser
-if (imageUrl && !imageUrl.includes('data:image') && !imageUrl.includes('-300x300')) {
-  imageUrl = imageUrl.replace(/\.(jpg|jpeg|png|gif|webp)/i, '-300x300.$1');
-}
-const isOnSale = product.on_sale || (product.prices.sale_price && product.prices.sale_price !== product.prices.price);
+// Utiliser l'URL originale de l'image telle quelle (comme sur la page produit)
+// Si l'image n'existe pas, utiliser une image placeholder
+const imageUrl = product.images?.[0]?.src || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5Qcm9kdWl0PC90ZXh0Pjwvc3ZnPg==';
+const isOnSale = product.on_sale || (product.prices?.sale_price && product.prices.sale_price !== product.prices?.price);
 const isOutOfStock = product.stock_status === 'out_of_stock' || product.stock_status === 'outofstock';
 // In stock si pas out_of_stock (par défaut considéré comme en stock)
 const isInStock = !isOutOfStock;
@@ -145,18 +142,18 @@ if (!itemName && product.meta_data && Array.isArray(product.meta_data)) {
     
     <div class="flex items-center justify-between mb-2 sm:mb-4">
       <div class="flex items-center gap-2">
-        {isOnSale && product.prices.regular_price ? (
+        {isOnSale && product.prices?.regular_price ? (
           <>
-            <span class="font-outfit font-medium text-sm sm:text-base text-gray-900 dark:text-gray-100">
-              {product.prices.sale_price || product.prices.price}€
+            <span class="font-outfit font-medium text-sm sm:text-base text-gray-900 dark:text-gray-100 product-price">
+              {product.prices?.sale_price || product.prices?.price || '0'}€
             </span>
-            <span class="font-outfit text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-through">
-              {product.prices.regular_price}€
+            <span class="font-outfit text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-through product-price">
+              {product.prices?.regular_price}€
             </span>
           </>
         ) : (
-          <span class="font-outfit font-medium text-sm sm:text-base text-gray-900 dark:text-gray-100">
-            {product.prices.price}€
+          <span class="font-outfit font-medium text-sm sm:text-base text-gray-900 dark:text-gray-100 product-price">
+            {product.prices?.price || '0'}€
           </span>
         )}
       </div>
@@ -165,11 +162,11 @@ if (!itemName && product.meta_data && Array.isArray(product.meta_data)) {
     <Button
       variant="primary"
       size="md"
-      class="w-full text-xs sm:text-sm py-1.5 sm:py-2"
+      class="w-full text-xs sm:text-sm py-1.5 sm:py-2 product-add-to-cart"
       disabled={isOutOfStock}
       data-product-id={product.id}
       data-product-name={product.name}
-      data-product-price={product.prices.price}
+      data-product-price={product.prices?.price || '0'}
     >
       {isOutOfStock ? 'Out of stock' : 'Add to cart'}
     </Button>
@@ -177,88 +174,165 @@ if (!itemName && product.meta_data && Array.isArray(product.meta_data)) {
 </Card>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const buttons = document.querySelectorAll('[data-product-id]');
+  // Fonction pour vérifier l'authentification et masquer/afficher les éléments
+  function checkProductAuth() {
+    const token = localStorage.getItem('auth_token');
+    const userStr = localStorage.getItem('user');
+    const isAuthenticated = !!(token && userStr && userStr !== 'undefined' && userStr !== 'null');
     
-    buttons.forEach(button => {
-      button.addEventListener('click', async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+    // Masquer/afficher les prix
+    document.querySelectorAll('.product-price').forEach((el: Element) => {
+      (el as HTMLElement).style.display = isAuthenticated ? '' : 'none';
+    });
+    
+    // Masquer/afficher les boutons "Add to cart" et créer/supprimer les liens de connexion
+    document.querySelectorAll('.product-add-to-cart').forEach((btn: Element) => {
+      const el = btn as HTMLElement;
+      const parent = el.parentElement;
+      if (!parent) return;
+      
+      // Chercher si un lien de connexion existe déjà
+      let loginLink = parent.querySelector('.product-login-link') as HTMLElement;
+      
+      if (isAuthenticated) {
+        el.style.display = '';
+        if (loginLink) loginLink.remove();
+      } else {
+        el.style.display = 'none';
+        if (!loginLink) {
+          loginLink = document.createElement('a');
+          loginLink.href = '/login';
+          loginLink.className = 'product-login-link w-full text-xs py-1.5 px-2 inline-flex items-center justify-center gap-1.5 font-outfit font-medium text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-all duration-200 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary hover:bg-primary/5 dark:hover:bg-primary/10 bg-gray-50 dark:bg-gray-800/50 group';
+          loginLink.innerHTML = `
+            <svg class="w-4 h-4 text-primary group-hover:scale-110 transition-transform duration-200 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+            <span class="text-center leading-tight">
+              <span class="font-semibold">Sign in to view price</span>
+            </span>
+          `;
+          parent.insertBefore(loginLink, el.nextSibling);
+        } else {
+          loginLink.style.display = '';
+        }
+      }
+    });
+  }
+  
+  // Exposer la fonction globalement pour qu'elle puisse être appelée depuis d'autres scripts
+  (window as any).checkProductAuth = checkProductAuth;
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    checkProductAuth();
+    window.addEventListener('user-logged-in', checkProductAuth);
+    window.addEventListener('user-logged-out', checkProductAuth);
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'auth_token' || e.key === 'user') {
+        checkProductAuth();
+      }
+    });
+    
+    // Fonction pour attacher les event listeners aux boutons "Add to cart"
+    function attachAddToCartListeners() {
+      // Sélectionner tous les boutons qui n'ont pas encore d'event listener
+      // On utilise un attribut data pour marquer ceux qui ont déjà un listener
+      const buttons = document.querySelectorAll('[data-product-id]:not([data-listener-attached])');
+      
+      buttons.forEach(button => {
+        // Marquer le bouton comme ayant un listener attaché
+        button.setAttribute('data-listener-attached', 'true');
         
-        if (button.disabled) return;
-        
-        const productId = button.getAttribute('data-product-id');
-        const productName = button.getAttribute('data-product-name');
-        const productPrice = button.getAttribute('data-product-price');
-        
-        try {
-          button.disabled = true;
-          button.textContent = 'Adding...';
+        button.addEventListener('click', async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
           
-          const response = await fetch('/api/cart/add-item', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-              id: parseInt(productId),
-              quantity: 1,
-            }),
-          });
+          if ((button as HTMLButtonElement).disabled) return;
           
-          if (response.ok) {
-            button.textContent = '✓ Added';
-            setTimeout(() => {
-              button.textContent = 'Add to cart';
-              button.disabled = false;
-            }, 2000);
+          const productId = button.getAttribute('data-product-id');
+          const productName = button.getAttribute('data-product-name');
+          const productPrice = button.getAttribute('data-product-price');
+          
+          try {
+            (button as HTMLButtonElement).disabled = true;
+            button.textContent = 'Adding...';
             
-            // Mettre à jour le compteur du panier
-            window.dispatchEvent(new Event('cartUpdated'));
-          } else {
-            // Lire le message d'erreur de la réponse
-            let errorMessage = 'Error adding to cart';
-            try {
-              const text = await response.text();
-              try {
-                const errorData = JSON.parse(text);
-                errorMessage = errorData.error || errorMessage;
-              } catch {
-                // Si ce n'est pas du JSON, utiliser le texte directement
-                errorMessage = text.substring(0, 200) || errorMessage;
-              }
-            } catch {
-              // Ignorer si on ne peut pas lire la réponse
-            }
+            const response = await fetch('/api/cart/add-item', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              credentials: 'include',
+              body: JSON.stringify({
+                id: parseInt(productId || '0'),
+                quantity: 1,
+              }),
+            });
             
-            // Vérifier si c'est une erreur de stock
-            if (errorMessage.includes('not enough stock') || errorMessage.includes('remaining')) {
-              button.textContent = 'Out of stock';
+            if (response.ok) {
+              button.textContent = '✓ Added';
               setTimeout(() => {
                 button.textContent = 'Add to cart';
-                button.disabled = false;
-              }, 3000);
+                (button as HTMLButtonElement).disabled = false;
+              }, 2000);
               
-              // Recharger le panier pour s'assurer qu'il n'a pas été vidé
+              // Mettre à jour le compteur du panier
               window.dispatchEvent(new Event('cartUpdated'));
             } else {
-              throw new Error(errorMessage);
+              // Lire le message d'erreur de la réponse
+              let errorMessage = 'Error adding to cart';
+              try {
+                const text = await response.text();
+                try {
+                  const errorData = JSON.parse(text);
+                  errorMessage = errorData.error || errorMessage;
+                } catch {
+                  // Si ce n'est pas du JSON, utiliser le texte directement
+                  errorMessage = text.substring(0, 200) || errorMessage;
+                }
+              } catch {
+                // Ignorer si on ne peut pas lire la réponse
+              }
+              
+              // Vérifier si c'est une erreur de stock
+              if (errorMessage.includes('not enough stock') || errorMessage.includes('remaining')) {
+                button.textContent = 'Out of stock';
+                setTimeout(() => {
+                  button.textContent = 'Add to cart';
+                  (button as HTMLButtonElement).disabled = false;
+                }, 3000);
+                
+                // Recharger le panier pour s'assurer qu'il n'a pas été vidé
+                window.dispatchEvent(new Event('cartUpdated'));
+              } else {
+                throw new Error(errorMessage);
+              }
             }
+          } catch (error: any) {
+            console.error('Error adding to cart:', error);
+            const errorMessage = error?.message || 'Unknown error';
+            button.textContent = 'Error';
+            setTimeout(() => {
+              button.textContent = 'Add to cart';
+              (button as HTMLButtonElement).disabled = false;
+            }, 2000);
+            
+            // Recharger le panier pour s'assurer qu'il n'a pas été vidé
+            window.dispatchEvent(new Event('cartUpdated'));
           }
-        } catch (error: any) {
-          console.error('Error adding to cart:', error);
-          const errorMessage = error?.message || 'Unknown error';
-          button.textContent = 'Error';
-          setTimeout(() => {
-            button.textContent = 'Add to cart';
-            button.disabled = false;
-          }, 2000);
-          
-          // Recharger le panier pour s'assurer qu'il n'a pas été vidé
-          window.dispatchEvent(new Event('cartUpdated'));
-        }
+        });
       });
+    }
+    
+    // Exposer la fonction globalement
+    (window as any).attachAddToCartListeners = attachAddToCartListeners;
+    
+    // Écouter l'événement personnalisé pour les nouveaux produits ajoutés
+    window.addEventListener('products-loaded', () => {
+      checkProductAuth();
+      attachAddToCartListeners();
     });
+    
+    // Attacher les listeners initiaux
+    attachAddToCartListeners();
   });
 </script>

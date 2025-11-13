@@ -187,26 +187,30 @@ import Spinner from '../atoms/Spinner.astro';
       countElement.textContent = String(itemsCount || items.length || 0);
     }
 
-    // Update items
-    if (cartPopupItems) {
-      const emptyState = document.getElementById('cart-popup-empty');
-      
-      if (items.length === 0) {
-        if (emptyState) {
-          emptyState.classList.remove('hidden');
-        }
-        if (cartPopupFooter) {
-          cartPopupFooter.classList.add('hidden');
-        }
-        return;
+    // Handle empty cart
+    if (items.length === 0) {
+      cartPopupItems.innerHTML = `
+        <div id="cart-popup-empty" class="flex flex-col items-center justify-center py-12">
+          <div class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-3">
+            <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+          </div>
+          <p class="font-outfit font-medium text-base text-gray-900 dark:text-white mb-1">
+            Your cart is empty
+          </p>
+          <p class="font-outfit text-sm text-gray-500 dark:text-gray-400 text-center max-w-xs">
+            Add products to start shopping
+          </p>
+        </div>
+      `;
+      if (cartPopupFooter) {
+        cartPopupFooter.classList.add('hidden');
       }
+      return;
+    }
 
-      // Hide empty state
-      if (emptyState) {
-        emptyState.classList.add('hidden');
-      }
-
-      cartPopupItems.innerHTML = items
+    cartPopupItems.innerHTML = items
         .map(
           (item: any, index: number) => {
             const quantity = item.quantity || 1;
@@ -391,7 +395,9 @@ import Spinner from '../atoms/Spinner.astro';
               }
             } catch (error) {
               console.error('Error updating cart:', error);
-              alert('An error occurred. Please try again.');
+              if (window.showToast) {
+                window.showToast('An error occurred. Please try again.', 'error', 5000);
+              }
             } finally {
               // Re-enable buttons
               allButtons.forEach(btn => {
@@ -401,22 +407,21 @@ import Spinner from '../atoms/Spinner.astro';
           });
         });
 
-      // Show footer
-      if (cartPopupFooter) {
-        cartPopupFooter.classList.remove('hidden');
-      }
+    // Show footer
+    if (cartPopupFooter) {
+      cartPopupFooter.classList.remove('hidden');
+    }
 
-      // Update totals
-      const subtotalElement = document.getElementById('cart-popup-subtotal');
-      const totalElement = document.getElementById('cart-popup-total');
-      const totalPrice = formatPrice(totals.total_price || '0');
-      
-      if (subtotalElement) {
-        subtotalElement.textContent = `${totalPrice} €`;
-      }
-      if (totalElement) {
-        totalElement.textContent = `${totalPrice} €`;
-      }
+    // Update totals
+    const subtotalElement = document.getElementById('cart-popup-subtotal');
+    const totalElement = document.getElementById('cart-popup-total');
+    const totalPrice = formatPrice(totals.total_price || '0');
+    
+    if (subtotalElement) {
+      subtotalElement.textContent = `${totalPrice} €`;
+    }
+    if (totalElement) {
+      totalElement.textContent = `${totalPrice} €`;
     }
   }
 
@@ -433,11 +438,6 @@ import Spinner from '../atoms/Spinner.astro';
 
     try {
       // Show loading state
-      const emptyState = document.getElementById('cart-popup-empty');
-      if (emptyState) {
-        emptyState.classList.add('hidden');
-      }
-      
       cartPopupItems.innerHTML = `
         <div class="flex items-center justify-center py-8">
           <svg

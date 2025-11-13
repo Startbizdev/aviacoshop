@@ -44,27 +44,75 @@ export const GET: APIRoute = async ({ request }) => {
     ordersUrl.searchParams.append('orderby', 'date');
     ordersUrl.searchParams.append('order', 'desc');
     
-    const authUrl = getAuthUrl(ordersUrl.toString());
+    // Utiliser Basic Auth comme dans user.ts
+    const auth = Buffer.from(`${WC_CONSUMER_KEY}:${WC_CONSUMER_SECRET}`).toString('base64');
     
-    const ordersResponse = await fetch(authUrl, {
+    const ordersResponse = await fetch(ordersUrl.toString(), {
       headers: {
+        'Authorization': `Basic ${auth}`,
         'Content-Type': 'application/json',
       },
     });
     
+    // Si 404 ou pas de commandes, retourner une liste vide
+    if (ordersResponse.status === 404) {
+      return new Response(JSON.stringify({ 
+        orders: [],
+        pagination: {
+          page: parseInt(page, 10),
+          perPage: parseInt(perPage, 10),
+          totalPages: 0,
+          totalOrders: 0,
+        }
+      }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    
     if (!ordersResponse.ok) {
-      return new Response(JSON.stringify({ error: 'Failed to fetch orders' }), {
+      const errorText = await ordersResponse.text();
+      console.error('Error fetching orders:', {
+        status: ordersResponse.status,
+        statusText: ordersResponse.statusText,
+        error: errorText
+      });
+      
+      // Si erreur mais pas critique, retourner une liste vide plutôt qu'une erreur
+      if (ordersResponse.status >= 400 && ordersResponse.status < 500) {
+        return new Response(JSON.stringify({ 
+          orders: [],
+          pagination: {
+            page: parseInt(page, 10),
+            perPage: parseInt(perPage, 10),
+            totalPages: 0,
+            totalOrders: 0,
+          }
+        }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      
+      return new Response(JSON.stringify({ 
+        error: 'Failed to fetch orders',
+        details: errorText.substring(0, 200)
+      }), {
         status: ordersResponse.status,
         headers: { 'Content-Type': 'application/json' },
       });
     }
     
     const orders = await ordersResponse.json();
+    
+    // S'assurer que orders est un tableau
+    const ordersArray = Array.isArray(orders) ? orders : [];
+    
     const totalPages = parseInt(ordersResponse.headers.get('x-wp-totalpages') || '1', 10);
     const totalOrders = parseInt(ordersResponse.headers.get('x-wp-total') || '0', 10);
     
     return new Response(JSON.stringify({ 
-      orders,
+      orders: ordersArray,
       pagination: {
         page: parseInt(page, 10),
         perPage: parseInt(perPage, 10),
@@ -77,17 +125,22 @@ export const GET: APIRoute = async ({ request }) => {
     });
   } catch (error: any) {
     console.error('Error fetching orders:', error);
-    return new Response(JSON.stringify({ error: error.message || 'An error occurred' }), {
-      status: 500,
+    console.error('Error stack:', error.stack);
+    
+    // En cas d'erreur, retourner une liste vide plutôt qu'une erreur 500
+    return new Response(JSON.stringify({ 
+      orders: [],
+      pagination: {
+        page: 1,
+        perPage: 10,
+        totalPages: 0,
+        totalOrders: 0,
+      },
+      error: error.message || 'An error occurred'
+    }), {
+      status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
   }
 };
-
-function getAuthUrl(url: string): string {
-  const urlObj = new URL(url);
-  urlObj.username = WC_CONSUMER_KEY;
-  urlObj.password = WC_CONSUMER_SECRET;
-  return urlObj.toString();
-}
 

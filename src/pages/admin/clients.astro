@@ -1,0 +1,710 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminHeader from '../../components/molecules/AdminHeader.astro';
+import Card from '../../components/atoms/Card.astro';
+import Icon from '../../components/atoms/Icon.astro';
+import Button from '../../components/atoms/Button.astro';
+import CustomerSheet from '../../components/molecules/CustomerSheet.astro';
+import CustomerCard from '../../components/molecules/CustomerCard.astro';
+import StatsCardSkeleton from '../../components/molecules/StatsCardSkeleton.astro';
+---
+
+<AdminLayout title="Customers" description="Manage WooCommerce customers">
+  <AdminHeader
+    title="Customers"
+    description="View and manage all customers"
+    actionLabel="Refresh"
+    actionId="refresh-btn"
+    actionIcon="refresh-cw"
+  />
+  
+  <div class="p-3 sm:p-4 md:p-5 lg:p-6 space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6">
+
+    <!-- Search Bar -->
+    <Card variant="elevated" class="p-3 sm:p-4 md:p-5">
+      <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+        <div class="flex-1 relative">
+          <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
+            <Icon name="search" size="sm" />
+          </div>
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Search customer (name, email, username)..."
+            class="w-full pl-10 pr-4 py-2 sm:py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent font-outfit text-sm sm:text-base"
+          />
+        </div>
+        <button
+          id="search-btn"
+          class="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg bg-primary text-white hover:bg-primary-dark transition-all duration-200 font-outfit font-medium text-sm sm:text-base flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+        >
+          <Icon name="search" size="sm" />
+          <span>Search</span>
+        </button>
+      </div>
+    </Card>
+
+    <!-- Stats Cards -->
+    <div id="stats-container" class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-5">
+      <!-- Skeleton cards during loading -->
+      <div id="stats-skeleton" class="contents">
+        <StatsCardSkeleton />
+        <StatsCardSkeleton />
+        <StatsCardSkeleton />
+      </div>
+      
+      <!-- Real stats cards (hidden initially) -->
+      <div id="stats-real" class="contents hidden">
+        <Card variant="elevated" class="p-5 border-l-4 border-l-blue-500">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Total Customers</p>
+              <p id="total-customers" class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                <span id="total-customers-text">0</span>
+              </p>
+              <div class="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span>All customers</span>
+              </div>
+            </div>
+            <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+              <Icon name="users" size="lg" class="text-blue-600 dark:text-blue-400" />
+            </div>
+          </div>
+        </Card>
+        
+        <Card variant="elevated" class="p-5 border-l-4 border-l-green-500">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">With Orders</p>
+              <p id="customers-with-orders" class="text-3xl font-bold text-gray-900 dark:text-white mb-2">0</p>
+              <div class="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                <span>Active buyers</span>
+              </div>
+            </div>
+            <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+              <Icon name="shopping-bag" size="lg" class="text-green-600 dark:text-green-400" />
+            </div>
+          </div>
+        </Card>
+        
+        <Card variant="elevated" class="p-5 border-l-4 border-l-purple-500">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">New (30d)</p>
+              <p id="new-customers" class="text-3xl font-bold text-gray-900 dark:text-white mb-2">0</p>
+              <div class="flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Last 30 days</span>
+              </div>
+            </div>
+            <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+              <Icon name="user-plus" size="lg" class="text-purple-600 dark:text-purple-400" />
+            </div>
+          </div>
+        </Card>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading-state" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
+      <!-- Skeleton cards will be inserted here -->
+    </div>
+
+    <!-- Empty State -->
+    <div id="empty-state" class="hidden">
+      <Card variant="elevated" class="p-6 sm:p-8 md:p-10 lg:p-12">
+        <div class="flex flex-col items-center justify-center text-center">
+          <div class="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-700 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 md:mb-5 shadow-inner ring-2 ring-gray-200/50 dark:ring-gray-700/30">
+            <Icon name="users" size="xl" class="text-gray-400 dark:text-gray-500" />
+          </div>
+          <h3 id="empty-title" class="font-outfit font-semibold text-lg sm:text-xl md:text-2xl text-gray-900 dark:text-white mb-1.5 sm:mb-2 md:mb-2.5 px-4">
+            No customers found
+          </h3>
+          <p id="empty-message" class="font-outfit text-sm sm:text-base text-gray-600 dark:text-gray-400 max-w-md px-4">
+            No customers match your search.
+          </p>
+        </div>
+      </Card>
+    </div>
+
+    <!-- Customers List -->
+    <div id="customers-list" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
+      <!-- Customers will be inserted here -->
+    </div>
+
+    <!-- Pagination -->
+    <div id="pagination-container" class="hidden mt-4 sm:mt-5 md:mt-6 lg:mt-8">
+      <Card variant="elevated" class="p-3 sm:p-4 md:p-5 lg:p-6">
+        <div class="flex flex-col gap-3 sm:gap-4">
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
+            <div class="font-outfit text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400 text-center sm:text-left w-full sm:w-auto order-2 sm:order-1">
+              Showing <span id="pagination-start" class="font-semibold text-gray-900 dark:text-white">0</span>
+              to <span id="pagination-end" class="font-semibold text-gray-900 dark:text-white">0</span>
+              of <span id="pagination-total" class="font-semibold text-gray-900 dark:text-white">0</span> customers
+            </div>
+            
+            <div class="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto justify-center sm:justify-end order-1 sm:order-2">
+              <button
+                id="pagination-prev"
+                class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-outfit text-xs sm:text-sm flex items-center gap-1 sm:gap-1.5 flex-1 sm:flex-none justify-center"
+                disabled
+              >
+                <Icon name="chevron-left" size="sm" />
+                <span class="hidden sm:inline">Previous</span>
+                <span class="sm:hidden">Prev</span>
+              </button>
+              
+              <button
+                id="pagination-next"
+                class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-outfit text-xs sm:text-sm flex items-center gap-1 sm:gap-1.5 flex-1 sm:flex-none justify-center"
+                disabled
+              >
+                <span class="hidden sm:inline">Next</span>
+                <span class="sm:hidden">Next</span>
+                <Icon name="chevron-right" size="sm" />
+              </button>
+            </div>
+          </div>
+          
+          <!-- Page numbers container -->
+          <div id="pagination-numbers" class="flex items-center justify-center gap-1 sm:gap-1.5 flex-wrap pt-2 sm:pt-3 border-t border-gray-200 dark:border-gray-700">
+            <!-- Page numbers will be inserted here -->
+          </div>
+        </div>
+      </Card>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-state" class="hidden">
+      <Card variant="elevated" class="p-4 sm:p-5 md:p-6 border-l-4 border-red-500 bg-red-50/50 dark:bg-red-900/10">
+        <div class="flex items-start gap-3 sm:gap-4">
+          <div class="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+            <Icon name="alert-circle" size="lg" class="text-red-600 dark:text-red-400" />
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-outfit font-semibold text-base sm:text-lg md:text-xl text-gray-900 dark:text-white mb-1.5 sm:mb-2">
+              Loading Error
+            </h3>
+            <p id="error-message" class="font-outfit text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400 mb-3 sm:mb-4 break-words"></p>
+            <Button
+              id="retry-btn"
+              variant="primary"
+              size="sm"
+              class="flex items-center justify-center gap-1.5 sm:gap-2 w-full sm:w-auto text-xs sm:text-sm"
+            >
+              <Icon name="refresh-cw" size="sm" />
+              <span>Try Again</span>
+            </Button>
+          </div>
+        </div>
+      </Card>
+    </div>
+  </div>
+</AdminLayout>
+
+<CustomerSheet />
+
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+
+    // Check if user is admin
+    try {
+      const checkAdminResponse = await fetch('/api/admin/check-admin', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!checkAdminResponse.ok) {
+        window.location.href = '/login';
+        return;
+      }
+
+      const adminData = await checkAdminResponse.json();
+      if (!adminData.isAdmin) {
+        window.location.href = '/my-account';
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      window.location.href = '/login';
+      return;
+    }
+
+    const loadingState = document.getElementById('loading-state');
+    const emptyState = document.getElementById('empty-state');
+    const customersList = document.getElementById('customers-list');
+    const errorState = document.getElementById('error-state');
+    const errorMessage = document.getElementById('error-message');
+    const totalCustomers = document.getElementById('total-customers');
+    const refreshBtn = document.getElementById('refresh-btn');
+    const retryBtn = document.getElementById('retry-btn');
+    const paginationContainer = document.getElementById('pagination-container');
+    const paginationStart = document.getElementById('pagination-start');
+    const paginationEnd = document.getElementById('pagination-end');
+    const paginationTotal = document.getElementById('pagination-total');
+    const paginationPrev = document.getElementById('pagination-prev');
+    const paginationNext = document.getElementById('pagination-next');
+    const paginationNumbers = document.getElementById('pagination-numbers');
+    const searchInput = document.getElementById('search-input') as HTMLInputElement;
+    const searchBtn = document.getElementById('search-btn');
+
+    let customers: any[] = [];
+    let currentPage = 1;
+    let perPage = 20;
+    let pagination: any = null;
+    let currentSearch = '';
+
+    // Format date
+    function formatDate(dateString: string): string {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffTime = Math.abs(now.getTime() - date.getTime());
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) {
+        return "Today";
+      } else if (diffDays === 1) {
+        return 'Yesterday';
+      } else if (diffDays < 7) {
+        return `${diffDays} days ago`;
+      } else {
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+      }
+    }
+
+    // Load customers
+    async function loadCustomers(page: number = currentPage, search: string = currentSearch) {
+      currentPage = page;
+      currentSearch = search;
+      loadingState?.classList.remove('hidden');
+      emptyState?.classList.add('hidden');
+      customersList?.classList.add('hidden');
+      errorState?.classList.add('hidden');
+      paginationContainer?.classList.add('hidden');
+      
+      // Show stats skeleton
+      const statsSkeleton = document.getElementById('stats-skeleton');
+      const statsReal = document.getElementById('stats-real');
+      if (statsSkeleton && statsReal) {
+        statsSkeleton.classList.remove('hidden');
+        statsReal.classList.add('hidden');
+      }
+      
+      // Show skeleton cards
+      if (loadingState) {
+        loadingState.innerHTML = Array.from({ length: 8 }, () => `
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4 animate-pulse">
+            <div class="flex flex-col h-full">
+              <div class="mb-3 sm:mb-4">
+                <div class="h-4 sm:h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2 skeleton-shimmer"></div>
+                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2 skeleton-shimmer"></div>
+              </div>
+              <div class="space-y-2.5 sm:space-y-3 flex-1 mb-3 sm:mb-4">
+                <div class="flex items-start gap-2 sm:gap-2.5">
+                  <div class="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded-md flex-shrink-0 mt-0.5 skeleton-shimmer"></div>
+                  <div class="flex-1 min-w-0">
+                    <div class="h-2.5 sm:h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-1.5 skeleton-shimmer"></div>
+                    <div class="h-3 sm:h-4 bg-gray-200 dark:bg-gray-700 rounded w-full skeleton-shimmer"></div>
+                  </div>
+                </div>
+                <div class="flex items-start gap-2 sm:gap-2.5">
+                  <div class="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded-md flex-shrink-0 mt-0.5 skeleton-shimmer"></div>
+                  <div class="flex-1 min-w-0">
+                    <div class="h-2.5 sm:h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-1.5 skeleton-shimmer"></div>
+                    <div class="h-3 sm:h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 skeleton-shimmer"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-auto w-full h-8 sm:h-10 bg-gray-200 dark:bg-gray-700 rounded-lg skeleton-shimmer"></div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      try {
+        let url = `/api/admin/customers?page=${page}&per_page=${perPage}`;
+        if (search) {
+          url += `&search=${encodeURIComponent(search)}`;
+        }
+
+        const response = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.status === 403) {
+          window.location.href = '/login';
+          return;
+        }
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to load customers');
+        }
+
+        const data = await response.json();
+        customers = data.customers || [];
+        pagination = data.pagination || null;
+        const stats = data.stats || {};
+        
+        // Update stats cards - hide skeleton and show real cards
+        const statsSkeleton = document.getElementById('stats-skeleton');
+        const statsReal = document.getElementById('stats-real');
+        if (statsSkeleton && statsReal) {
+          statsSkeleton.classList.add('hidden');
+          statsReal.classList.remove('hidden');
+        }
+        
+        // Update total count
+        if (totalCustomers && pagination) {
+          const textEl = document.getElementById('total-customers-text');
+          if (textEl) {
+            textEl.textContent = pagination.totalItems.toString();
+          }
+        }
+
+        // Update customers with orders count
+        const customersWithOrdersEl = document.getElementById('customers-with-orders');
+        if (customersWithOrdersEl && stats.customersWithOrders !== undefined) {
+          customersWithOrdersEl.textContent = stats.customersWithOrders.toString();
+        }
+
+        // Calculate stats
+        updateStats(customers);
+
+        loadingState?.classList.add('hidden');
+
+        if (customers.length === 0) {
+          const emptyTitle = document.getElementById('empty-title');
+          const emptyMessage = document.getElementById('empty-message');
+          if (emptyTitle && emptyMessage) {
+            if (search) {
+              emptyTitle.textContent = 'No results';
+              emptyMessage.textContent = `No customers match "${search}"`;
+            } else {
+              emptyTitle.textContent = 'No customers';
+              emptyMessage.textContent = 'No customers found in the database.';
+            }
+          }
+          emptyState?.classList.remove('hidden');
+        } else {
+          renderCustomers();
+          renderPagination();
+          customersList?.classList.remove('hidden');
+          paginationContainer?.classList.remove('hidden');
+        }
+      } catch (error: any) {
+        console.error('Error loading customers:', error);
+        loadingState?.classList.add('hidden');
+        errorState?.classList.remove('hidden');
+        if (errorMessage) {
+          errorMessage.textContent = error.message || 'An error occurred while loading customers';
+        }
+      }
+    }
+
+    function updateStats(customers: any[]) {
+      // Count new customers (last 30 days)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const newCustomers = customers.filter(c => {
+        const registered = new Date(c.date_created);
+        return registered >= thirtyDaysAgo;
+      }).length;
+      
+      const newCustomersEl = document.getElementById('new-customers');
+      if (newCustomersEl) {
+        newCustomersEl.textContent = newCustomers.toString();
+      }
+    }
+
+    // Render customers using CustomerCard style
+    function renderCustomers() {
+      if (!customersList) return;
+
+      customersList.innerHTML = customers.map(customer => {
+        const firstName = customer.first_name || '';
+        const lastName = customer.last_name || '';
+        const fullName = `${firstName} ${lastName}`.trim() || customer.username || '-';
+        
+        return `
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group h-full flex flex-col p-3 sm:p-4 border border-gray-200 dark:border-gray-700 hover:border-primary/30" data-customer-id="${customer.id}">
+            <div class="flex flex-col h-full">
+              <!-- Header: Name and Username -->
+              <div class="mb-3 sm:mb-4">
+                <h3 class="font-outfit font-semibold text-sm sm:text-base text-gray-900 dark:text-white mb-1 group-hover:text-primary transition-colors duration-200 truncate">
+                  ${fullName}
+                </h3>
+                <p class="font-outfit text-xs text-gray-500 dark:text-gray-400 truncate">
+                  @${customer.username}
+                </p>
+              </div>
+
+              <!-- Details Grid -->
+              <div class="space-y-2.5 sm:space-y-3 flex-1 mb-3 sm:mb-4">
+                <!-- Email -->
+                <div class="flex items-start gap-2 sm:gap-2.5 group/item">
+                  <div class="w-4 h-4 flex items-center justify-center flex-shrink-0 mt-0.5 rounded-md bg-gray-50 dark:bg-gray-800/50 group-hover/item:bg-primary/10 transition-colors duration-200">
+                    <svg class="w-4 h-4 text-gray-400 dark:text-gray-500 group-hover/item:text-primary transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="font-outfit text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5 uppercase tracking-wide">
+                      Email
+                    </p>
+                    <p class="font-outfit text-xs sm:text-sm text-gray-900 dark:text-white break-all leading-relaxed">
+                      ${customer.email || '-'}
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Registration Date -->
+                <div class="flex items-start gap-2 sm:gap-2.5 group/item">
+                  <div class="w-4 h-4 flex items-center justify-center flex-shrink-0 mt-0.5 rounded-md bg-gray-50 dark:bg-gray-800/50 group-hover/item:bg-primary/10 transition-colors duration-200">
+                    <svg class="w-4 h-4 text-gray-400 dark:text-gray-500 group-hover/item:text-primary transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="font-outfit text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5 uppercase tracking-wide">
+                      Registered
+                    </p>
+                    <p class="font-outfit text-xs sm:text-sm text-gray-900 dark:text-white leading-relaxed">
+                      ${formatDate(customer.date_created)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- View Button - Always Visible -->
+              <button
+                class="mt-auto w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg bg-primary text-white hover:bg-primary-dark active:scale-[0.98] transition-all duration-200 font-outfit font-medium text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                data-customer-id="${customer.id}"
+                data-action="view"
+                aria-label="View details for ${fullName}"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <span>View Details</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Attach click listeners
+      customersList.querySelectorAll('[data-customer-id]').forEach(card => {
+        const customerId = card.getAttribute('data-customer-id');
+        if (customerId) {
+          // Card click
+          card.addEventListener('click', (e) => {
+            // Don't open if clicking the button (button has its own handler)
+            if ((e.target as HTMLElement).closest('button[data-action="view"]')) {
+              return;
+            }
+            if (window.openCustomerSheet) {
+              window.openCustomerSheet(parseInt(customerId));
+            }
+          });
+
+          // Button click
+          const button = card.querySelector('button[data-action="view"]');
+          if (button) {
+            button.addEventListener('click', (e) => {
+              e.stopPropagation();
+              if (window.openCustomerSheet) {
+                window.openCustomerSheet(parseInt(customerId));
+              }
+            });
+          }
+        }
+      });
+    }
+
+    // Render pagination
+    function renderPagination() {
+      if (!pagination || !paginationContainer) return;
+
+      const start = (pagination.page - 1) * pagination.perPage + 1;
+      const end = Math.min(start + customers.length - 1, pagination.totalItems);
+      
+      if (paginationStart) paginationStart.textContent = start.toString();
+      if (paginationEnd) paginationEnd.textContent = end.toString();
+      if (paginationTotal) paginationTotal.textContent = pagination.totalItems.toString();
+
+      if (paginationPrev) {
+        paginationPrev.disabled = !pagination.hasPrevPage;
+      }
+      if (paginationNext) {
+        paginationNext.disabled = !pagination.hasNextPage;
+      }
+
+      // Render page numbers
+      if (paginationNumbers) {
+        paginationNumbers.innerHTML = '';
+        
+        const totalPages = pagination.totalPages;
+        const current = pagination.page;
+        
+        let startPage = Math.max(1, current - 2);
+        let endPage = Math.min(totalPages, current + 2);
+        
+        if (endPage - startPage < 4) {
+          if (startPage === 1) {
+            endPage = Math.min(5, totalPages);
+          } else if (endPage === totalPages) {
+            startPage = Math.max(1, totalPages - 4);
+          }
+        }
+        
+        if (startPage > 1) {
+          const btn = createPageButton(1, current === 1);
+          paginationNumbers.appendChild(btn);
+          
+          if (startPage > 2) {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'px-1.5 sm:px-2 py-1 text-gray-500 dark:text-gray-400 font-outfit text-xs sm:text-sm';
+            ellipsis.textContent = '...';
+            paginationNumbers.appendChild(ellipsis);
+          }
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+          const btn = createPageButton(i, current === i);
+          paginationNumbers.appendChild(btn);
+        }
+        
+        if (endPage < totalPages) {
+          if (endPage < totalPages - 1) {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'px-1.5 sm:px-2 py-1 text-gray-500 dark:text-gray-400 font-outfit text-xs sm:text-sm';
+            ellipsis.textContent = '...';
+            paginationNumbers.appendChild(ellipsis);
+          }
+          
+          const btn = createPageButton(totalPages, current === totalPages);
+          paginationNumbers.appendChild(btn);
+        }
+      }
+    }
+
+    function createPageButton(pageNum: number, isActive: boolean): HTMLButtonElement {
+      const btn = document.createElement('button');
+      btn.className = `px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg font-outfit text-xs sm:text-sm transition-all duration-200 min-w-[2rem] sm:min-w-[2.5rem] ${
+        isActive
+          ? 'bg-primary text-white hover:bg-primary-dark shadow-sm'
+          : 'border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-primary/30'
+      }`;
+      btn.textContent = pageNum.toString();
+      btn.addEventListener('click', () => {
+        loadCustomers(pageNum, currentSearch);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      return btn;
+    }
+
+    // Event listeners
+    refreshBtn?.addEventListener('click', () => loadCustomers(currentPage, currentSearch));
+    retryBtn?.addEventListener('click', () => loadCustomers(currentPage, currentSearch));
+    
+    searchBtn?.addEventListener('click', () => {
+      const search = searchInput?.value.trim() || '';
+      loadCustomers(1, search);
+    });
+
+    searchInput?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const search = searchInput.value.trim() || '';
+        loadCustomers(1, search);
+      }
+    });
+    
+    if (paginationPrev) {
+      paginationPrev.addEventListener('click', () => {
+        if (pagination && pagination.hasPrevPage) {
+          loadCustomers(currentPage - 1, currentSearch);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    }
+    
+    if (paginationNext) {
+      paginationNext.addEventListener('click', () => {
+        if (pagination && pagination.hasNextPage) {
+          loadCustomers(currentPage + 1, currentSearch);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    }
+
+    // Expose reload function globally
+    window.reloadCustomersList = () => {
+      loadCustomers(currentPage, currentSearch);
+    };
+
+    // Initial load
+    loadCustomers(1);
+  });
+</script>
+
+<style>
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+  
+  .skeleton-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .skeleton-shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent
+    );
+    animation: shimmer 1.5s infinite;
+  }
+  
+  :global(.dark) .skeleton-shimmer::after {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+  }
+</style>
+

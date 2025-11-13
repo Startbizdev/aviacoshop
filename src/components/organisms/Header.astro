@@ -2,8 +2,8 @@
 import SearchBar from '../molecules/SearchBar.astro';
 import CartButton from '../molecules/CartButton.astro';
 import SheetMenu from '../molecules/SheetMenu.astro';
-import { Search, User, ShoppingBag } from 'lucide-astro';
-import Button from '../atoms/Button.astro';
+import UserMenu from '../molecules/UserMenu.astro';
+import { Search } from 'lucide-astro';
 import Image from '../atoms/Image.astro';
 
 ---
@@ -55,15 +55,8 @@ import Image from '../atoms/Image.astro';
           <Search size={22} />
         </button>
         
-        <!-- User Button -->
-        <a
-          href="/login"
-          class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
-          aria-label="Account"
-          title="Account"
-        >
-          <User size={22} />
-        </a>
+        <!-- User Menu -->
+        <UserMenu />
         
         <CartButton />
       </div>
@@ -104,6 +97,7 @@ import Image from '../atoms/Image.astro';
         }
       });
     }
+
   });
 </script>
 

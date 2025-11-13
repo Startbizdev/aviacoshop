@@ -4,40 +4,341 @@ export const prerender = false;
 import MainLayout from '../../layouts/MainLayout.astro';
 import Button from '../../components/atoms/Button.astro';
 import Card from '../../components/atoms/Card.astro';
+import { CheckCircle2, Package, MapPin, CreditCard, Calendar, Truck, Mail, Phone } from 'lucide-astro';
 
 const { id } = Astro.params;
+
+let order: any = null;
+let error: string | null = null;
+
+try {
+  const authToken = Astro.request.headers.get('Authorization')?.replace('Bearer ', '') || 
+                    (Astro.cookies.get('auth_token')?.value);
+  
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
+  }
+  
+  const response = await fetch(`${Astro.url.origin}/api/orders/${id}`, {
+    headers,
+  });
+  
+  if (response.ok) {
+    order = await response.json();
+  } else {
+    const errorData = await response.json().catch(() => ({}));
+    error = errorData.error || 'Order not found';
+  }
+} catch (err: any) {
+  console.error('Error fetching order:', err);
+  error = err.message || 'Failed to load order';
+}
+
+if (error && !order) {
+  return Astro.redirect('/my-account');
+}
 ---
 
-<MainLayout title="Order Confirmed" description="Your order has been confirmed">
-  <div class="container mx-auto px-4 py-8">
-    <Card variant="elevated" class="max-w-2xl mx-auto p-8 text-center">
-      <div class="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-        <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-        </svg>
-      </div>
-      
-      <h1 class="font-outfit font-bold text-3xl mb-4 text-gray-900 dark:text-white">
-        Order Confirmed!
-      </h1>
-      
-      <p class="font-outfit text-gray-600 dark:text-gray-400 mb-2">
-        Your order #{id} has been successfully recorded.
-      </p>
-      
-      <p class="font-outfit text-gray-600 dark:text-gray-400 mb-6">
-        You will receive a confirmation email shortly with your order details.
-      </p>
-      
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <Button href="/catalogue" variant="primary">
-          Continue Shopping
+<MainLayout title="Order Details" description="View your order details">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 max-w-6xl">
+    {order ? (
+      <>
+        <!-- Success Header -->
+        <div class="mb-6 sm:mb-8">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-12 h-12 sm:w-16 sm:h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+              <CheckCircle2 class="w-6 h-6 sm:w-8 sm:h-8 text-green-600 dark:text-green-400" />
+            </div>
+            <div>
+              <h1 class="font-outfit font-bold text-2xl sm:text-3xl lg:text-4xl text-gray-900 dark:text-white">
+                Order Confirmed!
+              </h1>
+              <p class="font-outfit text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
+                Order #{order.id} - {new Date(order.date_created).toLocaleDateString('fr-FR', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </p>
+            </div>
+          </div>
+          
+          <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-outfit font-semibold {
+            order.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
+            order.status === 'processing' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' :
+            order.status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' :
+            order.status === 'cancelled' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' :
+            'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
+          }">
+            {order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('-', ' ')}
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+          <!-- Main Content -->
+          <div class="lg:col-span-2 space-y-6 sm:space-y-8">
+            <!-- Order Items -->
+            <Card variant="elevated" class="p-5 sm:p-6 lg:p-8 shadow-lg">
+              <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+                <Package class="w-5 h-5 text-primary" />
+                <h2 class="font-outfit font-bold text-xl sm:text-2xl text-gray-900 dark:text-white">
+                  Order Items
+                </h2>
+              </div>
+              
+              <div class="space-y-4">
+                {order.line_items?.map((item: any) => {
+                  const imageUrl = item.image?.src || '/placeholder-product.jpg';
+                  const quantity = item.quantity || 1;
+                  const price = parseFloat(item.price || '0');
+                  const total = price * quantity;
+                  
+                  return (
+                    <div class="flex gap-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700">
+                      <img
+                        src={imageUrl}
+                        alt={item.name}
+                        class="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg flex-shrink-0"
+                      />
+                      <div class="flex-1 min-w-0">
+                        <h3 class="font-outfit font-semibold text-base sm:text-lg text-gray-900 dark:text-white mb-2">
+                          {item.name}
+                        </h3>
+                        {item.sku && (
+                          <p class="font-outfit text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-2">
+                            SKU: {item.sku}
+                          </p>
+                        )}
+                        <div class="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                          <span>Quantity: {quantity}</span>
+                          <span>×</span>
+                          <span>{price.toFixed(2)} €</span>
+                        </div>
+                      </div>
+                      <div class="flex-shrink-0">
+                        <div class="font-outfit font-bold text-lg sm:text-xl text-primary">
+                          {total.toFixed(2)} €
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+
+            <!-- Billing Address -->
+            {order.billing && (
+              <Card variant="elevated" class="p-5 sm:p-6 lg:p-8 shadow-lg">
+                <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+                  <MapPin class="w-5 h-5 text-primary" />
+                  <h2 class="font-outfit font-bold text-xl sm:text-2xl text-gray-900 dark:text-white">
+                    Billing Address
+                  </h2>
+                </div>
+                
+                <div class="space-y-2 font-outfit text-sm sm:text-base text-gray-700 dark:text-gray-300">
+                  <p class="font-semibold text-gray-900 dark:text-white">
+                    {order.billing.first_name} {order.billing.last_name}
+                  </p>
+                  {order.billing.company && (
+                    <p>{order.billing.company}</p>
+                  )}
+                  <p>{order.billing.address_1}</p>
+                  {order.billing.address_2 && (
+                    <p>{order.billing.address_2}</p>
+                  )}
+                  <p>
+                    {order.billing.postcode} {order.billing.city}
+                  </p>
+                  {order.billing.state && (
+                    <p>{order.billing.state}</p>
+                  )}
+                  <p>{order.billing.country}</p>
+                  {order.billing.email && (
+                    <p class="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <Mail class="w-4 h-4" />
+                      {order.billing.email}
+                    </p>
+                  )}
+                  {order.billing.phone && (
+                    <p class="flex items-center gap-2">
+                      <Phone class="w-4 h-4" />
+                      {order.billing.phone}
+                    </p>
+                  )}
+                </div>
+              </Card>
+            )}
+
+            <!-- Shipping Address -->
+            {order.shipping && (
+              <Card variant="elevated" class="p-5 sm:p-6 lg:p-8 shadow-lg">
+                <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+                  <Truck class="w-5 h-5 text-primary" />
+                  <h2 class="font-outfit font-bold text-xl sm:text-2xl text-gray-900 dark:text-white">
+                    Shipping Address
+                  </h2>
+                </div>
+                
+                <div class="space-y-2 font-outfit text-sm sm:text-base text-gray-700 dark:text-gray-300">
+                  <p class="font-semibold text-gray-900 dark:text-white">
+                    {order.shipping.first_name} {order.shipping.last_name}
+                  </p>
+                  {order.shipping.company && (
+                    <p>{order.shipping.company}</p>
+                  )}
+                  <p>{order.shipping.address_1}</p>
+                  {order.shipping.address_2 && (
+                    <p>{order.shipping.address_2}</p>
+                  )}
+                  <p>
+                    {order.shipping.postcode} {order.shipping.city}
+                  </p>
+                  {order.shipping.state && (
+                    <p>{order.shipping.state}</p>
+                  )}
+                  <p>{order.shipping.country}</p>
+                  {order.shipping_lines && order.shipping_lines.length > 0 && (
+                    <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <p class="font-semibold text-gray-900 dark:text-white mb-2">Shipping Method:</p>
+                      {order.shipping_lines.map((line: any) => (
+                        <p key={line.id}>{line.method_title}</p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </Card>
+            )}
+
+            <!-- Order Notes -->
+            {order.customer_note && (
+              <Card variant="elevated" class="p-5 sm:p-6 lg:p-8 shadow-lg">
+                <h2 class="font-outfit font-bold text-xl sm:text-2xl text-gray-900 dark:text-white mb-4">
+                  Order Notes
+                </h2>
+                <p class="font-outfit text-sm sm:text-base text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                  {order.customer_note}
+                </p>
+              </Card>
+            )}
+          </div>
+
+          <!-- Sidebar -->
+          <div class="lg:col-span-1">
+            <Card variant="elevated" class="p-5 sm:p-6 lg:p-8 shadow-lg sticky top-6 lg:top-8">
+              <h2 class="font-outfit font-bold text-xl sm:text-2xl text-gray-900 dark:text-white mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+                Order Summary
+              </h2>
+              
+              <div class="space-y-4 mb-6">
+                <div class="flex justify-between items-center font-outfit text-sm sm:text-base text-gray-600 dark:text-gray-400">
+                  <span>Subtotal</span>
+                  <span class="font-semibold text-gray-900 dark:text-white">
+                    {parseFloat(order.total || '0').toFixed(2)} {order.currency || '€'}
+                  </span>
+                </div>
+                
+                {order.shipping_total && parseFloat(order.shipping_total) > 0 && (
+                  <div class="flex justify-between items-center font-outfit text-sm sm:text-base text-gray-600 dark:text-gray-400">
+                    <span>Shipping</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">
+                      {parseFloat(order.shipping_total).toFixed(2)} {order.currency || '€'}
+                    </span>
+                  </div>
+                )}
+                
+                {order.total_tax && parseFloat(order.total_tax) > 0 && (
+                  <div class="flex justify-between items-center font-outfit text-sm sm:text-base text-gray-600 dark:text-gray-400">
+                    <span>Tax (VAT)</span>
+                    <span class="font-semibold text-gray-900 dark:text-white">
+                      {parseFloat(order.total_tax).toFixed(2)} {order.currency || '€'}
+                    </span>
+                  </div>
+                )}
+                
+                <div class="border-t-2 border-gray-300 dark:border-gray-600 pt-4 mt-4">
+                  <div class="flex justify-between items-center font-outfit font-bold text-lg sm:text-xl">
+                    <span class="text-gray-900 dark:text-white">Total</span>
+                    <span class="text-primary text-xl sm:text-2xl">
+                      {parseFloat(order.total || '0').toFixed(2)} {order.currency || '€'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Payment Method -->
+              <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex items-center gap-3 mb-4">
+                  <CreditCard class="w-5 h-5 text-primary" />
+                  <h3 class="font-outfit font-semibold text-base sm:text-lg text-gray-900 dark:text-white">
+                    Payment Method
+                  </h3>
+                </div>
+                <p class="font-outfit text-sm sm:text-base text-gray-600 dark:text-gray-400">
+                  {order.payment_method_title || order.payment_method || 'N/A'}
+                </p>
+                {order.transaction_id && (
+                  <p class="font-outfit text-xs text-gray-500 dark:text-gray-500 mt-2">
+                    Transaction ID: {order.transaction_id}
+                  </p>
+                )}
+              </div>
+
+              <!-- Order Date -->
+              <div class="pt-6 border-t border-gray-200 dark:border-gray-700 mt-6">
+                <div class="flex items-center gap-3 mb-4">
+                  <Calendar class="w-5 h-5 text-primary" />
+                  <h3 class="font-outfit font-semibold text-base sm:text-lg text-gray-900 dark:text-white">
+                    Order Date
+                  </h3>
+                </div>
+                <p class="font-outfit text-sm sm:text-base text-gray-600 dark:text-gray-400">
+                  {new Date(order.date_created).toLocaleDateString('fr-FR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
+              </div>
+
+              <!-- Actions -->
+              <div class="pt-6 border-t border-gray-200 dark:border-gray-700 mt-6 space-y-3">
+                <Button href="/my-account" variant="primary" size="lg" class="w-full">
+                  View All Orders
+                </Button>
+                <Button href="/catalogue" variant="outline" size="lg" class="w-full">
+                  Continue Shopping
+                </Button>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </>
+    ) : (
+      <Card variant="elevated" class="max-w-md mx-auto p-8 text-center shadow-lg">
+        <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </div>
+        <h1 class="font-outfit font-bold text-2xl mb-4 text-gray-900 dark:text-white">
+          Order Not Found
+        </h1>
+        <p class="font-outfit text-gray-600 dark:text-gray-400 mb-6">
+          {error || 'The order you are looking for does not exist or you do not have permission to view it.'}
+        </p>
+        <Button href="/my-account" variant="primary">
+          Go to My Account
         </Button>
-        <Button href="/" variant="outline">
-          Back to Home
-        </Button>
-      </div>
-    </Card>
+      </Card>
+    )}
   </div>
 </MainLayout>
-

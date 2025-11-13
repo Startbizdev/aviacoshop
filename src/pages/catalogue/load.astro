@@ -22,8 +22,34 @@ try {
     params.search = search;
   }
   
-  const response = await getProducts(params);
+  let response;
+  try {
+    response = await getProducts(params);
+  } catch (error: any) {
+    console.error(`[load.astro] ERREUR lors de l'appel getProducts pour la page ${page}:`, error);
+    console.error(`[load.astro] Message d'erreur:`, error?.message);
+    console.error(`[load.astro] Stack:`, error?.stack);
+    response = [];
+  }
+  
   allProducts = Array.isArray(response) ? response : [];
+  
+  // Log pour déboguer - ces logs apparaîtront dans les logs serveur Astro
+  console.log(`[load.astro] Page ${page}: ${allProducts.length} produits bruts reçus de WooCommerce`);
+  console.log(`[load.astro] Params envoyés:`, JSON.stringify(params));
+  console.log(`[load.astro] Type de réponse:`, typeof response, Array.isArray(response));
+  
+  if (allProducts.length > 0) {
+    console.log(`[load.astro] Premier produit ID: ${allProducts[0]?.id}, nom: ${allProducts[0]?.name}`);
+    console.log(`[load.astro] Dernier produit ID: ${allProducts[allProducts.length - 1]?.id}, nom: ${allProducts[allProducts.length - 1]?.name}`);
+  } else {
+    console.error(`[load.astro] ⚠️ ATTENTION: Page ${page} retourne 0 produits !`);
+    console.error(`[load.astro] Params:`, params);
+    console.error(`[load.astro] Type de réponse:`, typeof response, Array.isArray(response) ? 'Array' : 'Not Array');
+    if (response && typeof response === 'object' && !Array.isArray(response)) {
+      console.error(`[load.astro] Réponse (premiers 500 chars):`, JSON.stringify(response).substring(0, 500));
+    }
+  }
   
   // Grouper les produits par titre
   const productsByTitle = new Map<string, any>();
@@ -31,11 +57,7 @@ try {
   allProducts.forEach((product: any) => {
     const productName = (product.name || '').trim().toLowerCase();
     
-    // Optimiser l'URL de l'image
-    if (product.images && product.images.length > 0 && product.images[0].src) {
-      const imgUrl = product.images[0].src;
-      product.images[0].src = imgUrl.replace(/\.(jpg|jpeg|png|gif|webp)/i, '-300x300.$1');
-    }
+    // Utiliser l'URL originale de l'image telle quelle (pas de modification)
     
     if (!productsByTitle.has(productName)) {
       productsByTitle.set(productName, product);
@@ -63,10 +85,16 @@ try {
 }
 
 // Définir un attribut data pour indiquer s'il y a encore des produits à charger
+// Logique: Si WooCommerce retourne exactement perPageWC (100) produits, il y a probablement une page suivante
+// Si WooCommerce retourne moins de 100 produits, c'est probablement la dernière page
+// Exception: Si on reçoit 0 produits, il n'y a définitivement plus de pages
 const hasMoreProducts = allProducts.length === perPageWC;
+
+// Log pour déboguer la logique de pagination
+console.log(`[load.astro] Page ${page}: ${allProducts.length} produits bruts, ${products.length} produits uniques après déduplication, hasMore: ${hasMoreProducts}`);
 ---
 
-<div data-has-more={hasMoreProducts} data-count={products.length}>
+<div data-has-more={hasMoreProducts} data-count={allProducts.length} data-unique-count={products.length}>
 {products.map((product) => (
   <ProductCard product={product} />
 ))}

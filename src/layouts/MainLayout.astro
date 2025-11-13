@@ -3,7 +3,9 @@ import Header from '../components/organisms/Header.astro';
 import Footer from '../components/organisms/Footer.astro';
 import Announcement from '../components/molecules/Announcement.astro';
 import CartPopup from '../components/molecules/CartPopup.astro';
+import Toast from '../components/molecules/Toast.astro';
 import '../styles/global.css';
+import { STRIPE_PUBLISHABLE_KEY } from '../lib/config';
 
 export interface Props {
   title: string;
@@ -12,6 +14,8 @@ export interface Props {
 
 const { title, description } = Astro.props;
 const canonicalURL = Astro.site ? new URL(Astro.url.pathname, Astro.site) : Astro.url;
+const currentPath = Astro.url.pathname;
+const hideAnnouncement = currentPath === '/register' || currentPath === '/login' || currentPath === '/checkout';
 ---
 
 <!DOCTYPE html>
@@ -24,8 +28,7 @@ const canonicalURL = Astro.site ? new URL(Astro.url.pathname, Astro.site) : Astr
         try {
           const html = document.documentElement;
           const stored = localStorage.getItem('theme');
-          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          const theme = stored || (prefersDark ? 'dark' : 'light');
+          const theme = stored || 'light';
           
           if (theme === 'dark') {
             html.classList.add('dark');
@@ -60,15 +63,23 @@ const canonicalURL = Astro.site ? new URL(Astro.url.pathname, Astro.site) : Astr
     <meta property="twitter:description" content={description} />
     
     <meta name="generator" content={Astro.generator} />
+    
+    <!-- Stripe Configuration -->
+    {STRIPE_PUBLISHABLE_KEY && (
+      <script is:inline define:vars={{ stripeKey: STRIPE_PUBLISHABLE_KEY }}>
+        window.STRIPE_PUBLISHABLE_KEY = '{stripeKey}';
+      </script>
+    )}
   </head>
   <body class="font-outfit bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
     <Header />
-    <Announcement />
+    {!hideAnnouncement && <Announcement />}
     <main class="flex-1">
       <slot />
     </main>
     <Footer />
     <CartPopup />
+    <Toast />
     
     <script is:inline>
       (function() {

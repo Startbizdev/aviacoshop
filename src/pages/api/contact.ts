@@ -10,7 +10,7 @@ export const POST: APIRoute = async ({ request }) => {
     // Validation
     if (!name || !email || !subject || !message) {
       return new Response(JSON.stringify({ 
-        error: 'Tous les champs obligatoires doivent être remplis.' 
+        error: 'All required fields must be filled.' 
       }), {
         status: 400,
         headers: {
@@ -23,7 +23,7 @@ export const POST: APIRoute = async ({ request }) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return new Response(JSON.stringify({ 
-        error: 'Format d\'email invalide.' 
+        error: 'Invalid email format.' 
       }), {
         status: 400,
         headers: {
@@ -35,18 +35,18 @@ export const POST: APIRoute = async ({ request }) => {
     // Prepare email content
     const emailSubject = `Contact Form: ${subject}`;
     const emailBody = `
-Nouveau message depuis le formulaire de contact
+New message from contact form
 
-Nom: ${name}
+Name: ${name}
 Email: ${email}
-Téléphone: ${phone || 'Non fourni'}
-Sujet: ${subject}
+Phone: ${phone || 'Not provided'}
+Subject: ${subject}
 
 Message:
 ${message}
 
 ---
-Ce message a été envoyé depuis le formulaire de contact du site Aviaco Shop.
+This message was sent from the Aviaco Shop website contact form.
     `.trim();
     
     // Send email using a simple SMTP service or email API
@@ -72,7 +72,7 @@ Ce message a été envoyé depuis le formulaire de contact du site Aviaco Shop.
     
     return new Response(JSON.stringify({ 
       success: true,
-      message: 'Votre message a été envoyé avec succès.' 
+      message: 'Your message has been sent successfully.' 
     }), {
       status: 200,
       headers: {
@@ -82,7 +82,7 @@ Ce message a été envoyé depuis le formulaire de contact du site Aviaco Shop.
   } catch (error: any) {
     console.error('Contact form error:', error);
     return new Response(JSON.stringify({ 
-      error: error.message || 'Une erreur est survenue lors de l\'envoi du message. Veuillez réessayer plus tard.' 
+      error: error.message || 'An error occurred while sending the message. Please try again later.' 
     }), {
       status: 500,
       headers: {

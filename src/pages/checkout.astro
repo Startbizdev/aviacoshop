@@ -33,111 +33,151 @@ if (items.length === 0 && !error) {
   });
 </script>
 
+<script src="https://js.stripe.com/v3/"></script>
+
 <MainLayout title="Checkout" description="Complete your order">
-  <div class="container mx-auto px-4 py-8 max-w-6xl">
-    <h1 class="font-outfit font-bold text-3xl md:text-4xl mb-8 text-gray-900 dark:text-white">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 max-w-7xl">
+    <h1 class="font-outfit font-bold text-2xl sm:text-3xl lg:text-4xl mb-6 sm:mb-8 lg:mb-10 text-gray-900 dark:text-white">
       Checkout
     </h1>
     
-    <form id="checkout-form" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <form id="checkout-form" class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 xl:gap-10">
       <!-- Checkout Form -->
-      <div class="lg:col-span-2 space-y-6">
+      <div class="lg:col-span-2 space-y-5 sm:space-y-6 lg:space-y-8">
         <!-- Billing Address -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-          <h2 class="font-outfit font-semibold text-xl mb-6 text-gray-900 dark:text-white">
-            Billing Address
+        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 sm:p-6 lg:p-8">
+          <h2 class="font-outfit font-semibold text-lg sm:text-xl lg:text-2xl mb-5 sm:mb-6 lg:mb-8 text-gray-900 dark:text-white">
+            Billing address
           </h2>
           
-          <div class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormInput name="billing_first_name" label="First Name" required />
-              <FormInput name="billing_last_name" label="Last Name" required />
+          <div class="space-y-4 sm:space-y-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+              <FormInput name="billing_first_name" label="First name" required />
+              <FormInput name="billing_last_name" label="Last name" required />
             </div>
 
             <FormInput name="billing_company" label="Company" />
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
               <FormInput name="billing_email" label="Email" type="email" required />
               <FormInput name="billing_phone" label="Phone" type="tel" required />
             </div>
 
             <FormInput name="billing_address_1" label="Address" required />
-            <FormInput name="billing_address_2" label="Address 2" />
+            <FormInput name="billing_address_2" label="Address line 2 (optional)" />
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
               <FormInput name="billing_city" label="City" required />
-              <FormInput name="billing_postcode" label="Postcode" required />
+              <FormInput name="billing_postcode" label="Postal code" required />
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
               <FormSelect name="billing_country" label="Country" options={countries} value="FR" required />
-              <FormInput name="billing_state" label="State" />
+              <FormInput name="billing_state" label="State / province" />
             </div>
           </div>
         </div>
         
         <!-- Shipping Address -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-          <div class="flex items-center justify-between mb-6">
-            <h2 class="font-outfit font-semibold text-xl text-gray-900 dark:text-white">
-              Shipping Address
+        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 sm:p-6 lg:p-8">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4" id="shipping-header">
+            <h2 class="font-outfit font-semibold text-lg sm:text-xl lg:text-2xl text-gray-900 dark:text-white">
+              Shipping address
             </h2>
             <ToggleSwitch id="same-as-billing" label="Same as billing address" checked />
           </div>
           
-          <div id="shipping-address" class="hidden space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormInput name="shipping_first_name" label="First Name" required />
-              <FormInput name="shipping_last_name" label="Last Name" required />
+          <div id="shipping-address" class="hidden space-y-4 sm:space-y-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+              <FormInput name="shipping_first_name" label="First name" required />
+              <FormInput name="shipping_last_name" label="Last name" required />
             </div>
 
             <FormInput name="shipping_company" label="Company" />
             <FormInput name="shipping_address_1" label="Address" required />
-            <FormInput name="shipping_address_2" label="Address 2" />
+            <FormInput name="shipping_address_2" label="Address line 2 (optional)" />
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
               <FormInput name="shipping_city" label="City" required />
-              <FormInput name="shipping_postcode" label="Postcode" required />
+              <FormInput name="shipping_postcode" label="Postal code" required />
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
               <FormSelect name="shipping_country" label="Country" options={countries} value="FR" required />
-              <FormInput name="shipping_state" label="State" />
+              <FormInput name="shipping_state" label="State / province" />
             </div>
           </div>
         </div>
 
         <!-- Shipping Methods -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-          <h2 class="font-outfit font-semibold text-xl mb-4 text-gray-900 dark:text-white">
-            Shipping Method
+        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 sm:p-6 lg:p-8">
+          <h2 class="font-outfit font-semibold text-lg sm:text-xl lg:text-2xl mb-5 sm:mb-6 text-gray-900 dark:text-white">
+            Shipping method
           </h2>
-          <div id="shipping-methods" class="space-y-3">
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-              Enter your shipping address to see available shipping methods
+          <div id="shipping-methods" class="space-y-3 sm:space-y-4">
+            <p class="text-sm sm:text-base text-gray-500 dark:text-gray-400 leading-relaxed">
+              Please enter your shipping address above to see available shipping methods
             </p>
           </div>
         </div>
           
         <!-- Payment Method -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-          <h2 class="font-outfit font-semibold text-xl mb-4 text-gray-900 dark:text-white">
-            Payment Method
+        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 sm:p-6 lg:p-8">
+          <h2 class="font-outfit font-semibold text-lg sm:text-xl lg:text-2xl mb-5 sm:mb-6 text-gray-900 dark:text-white">
+            Payment method
           </h2>
           
-          <div class="space-y-3">
-            <label class="flex items-center gap-3 p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:border-primary transition-all">
+          <div class="space-y-3 sm:space-y-4">
+            <!-- Stripe Payment -->
+            <label class="group flex items-start gap-4 p-4 sm:p-5 border-2 border-primary rounded-xl cursor-pointer hover:border-primary/80 hover:shadow-md transition-all duration-200 bg-primary/5 dark:bg-primary/10">
+              <input
+                type="radio"
+                name="payment_method"
+                value="stripe"
+                checked
+                id="payment-method-stripe"
+                class="mt-1 w-5 h-5 text-primary focus:ring-2 focus:ring-primary focus:ring-offset-2 cursor-pointer"
+              />
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-3 mb-2">
+                  <svg class="w-6 h-6 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                  <div class="font-outfit font-semibold text-base sm:text-lg text-gray-900 dark:text-white">
+                    Credit or Debit Card
+                  </div>
+                </div>
+                <div class="font-outfit text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed pl-9 mb-4">
+                  Pay securely with your credit or debit card via Stripe.
+                </div>
+                <!-- Stripe Elements Container -->
+                <div id="stripe-card-element" class="pl-9 mt-4">
+                  <!-- Stripe Elements will be mounted here -->
+                </div>
+                <div id="stripe-card-errors" class="pl-9 mt-3 text-sm text-red-600 dark:text-red-400" role="alert"></div>
+              </div>
+            </label>
+
+            <!-- Bank Transfer Payment -->
+            <label class="group flex items-start gap-4 p-4 sm:p-5 border-2 border-gray-200 dark:border-gray-700 rounded-xl cursor-pointer hover:border-primary hover:shadow-md transition-all duration-200 bg-gray-50/50 dark:bg-gray-900/30">
               <input
                 type="radio"
                 name="payment_method"
                 value="bacs"
-                checked
-                class="w-4 h-4 text-primary focus:ring-2 focus:ring-primary"
+                id="payment-method-bacs"
+                class="mt-1 w-5 h-5 text-primary focus:ring-2 focus:ring-primary focus:ring-offset-2 cursor-pointer"
               />
-              <div class="flex-1">
-                <div class="font-outfit font-medium text-gray-900 dark:text-white">Bank Transfer</div>
-                <div class="font-outfit text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Make your payment directly into our bank account
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-3 mb-2">
+                  <svg class="w-6 h-6 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                  <div class="font-outfit font-semibold text-base sm:text-lg text-gray-900 dark:text-white">
+                    Bank transfer
+                  </div>
+                </div>
+                <div class="font-outfit text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed pl-9">
+                  Make your payment directly into our bank account. Please use your order ID as the payment reference.
                 </div>
               </div>
             </label>
@@ -145,48 +185,64 @@ if (items.length === 0 && !error) {
         </div>
 
         <!-- Order Notes -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-          <h2 class="font-outfit font-semibold text-xl mb-4 text-gray-900 dark:text-white">
-            Order Notes
+        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 sm:p-6 lg:p-8">
+          <h2 class="font-outfit font-semibold text-lg sm:text-xl lg:text-2xl mb-5 sm:mb-6 text-gray-900 dark:text-white">
+            Order notes
           </h2>
           <FormTextarea 
             name="order_comments" 
-            label="Notes" 
-            placeholder="Notes about your order, e.g. special delivery instructions"
+            label="Additional notes" 
+            placeholder="Add any special delivery instructions or notes about your order..."
+            rows={4}
           />
         </div>
       </div>
       
       <!-- Order Summary -->
       <div class="lg:col-span-1">
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 sticky top-24">
-          <h2 class="font-outfit font-semibold text-xl mb-6 text-gray-900 dark:text-white">
-            Order Summary
+        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 sm:p-6 lg:p-8 sticky top-20 lg:top-24">
+          <h2 class="font-outfit font-semibold text-lg sm:text-xl lg:text-2xl mb-5 sm:mb-6 lg:mb-8 text-gray-900 dark:text-white">
+            Order summary
           </h2>
           
-          <div class="space-y-3 mb-6 max-h-80 overflow-y-auto pr-1">
+          <div class="space-y-3 sm:space-y-4 mb-6 sm:mb-8 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
             {items.map((item: any) => {
               const imageUrl = item.images?.[0]?.src || '/placeholder-product.jpg';
-              const unitPrice = item.prices?.price || item.price || '0';
-              const totalPrice = item.prices?.total || item.total || '0';
+              const quantity = item.quantity || 1;
+              
+              // Get unit price
+              const unitPriceRaw = item.prices?.price || item.price || item.prices?.unit_price || '0';
+              const unitPrice = unitPriceRaw.toString().replace(/[€\s,]/g, '').trim() || '0';
+              
+              // Calculate total price: use prices.total if available and valid, otherwise calculate unitPrice * quantity
+              let totalPriceRaw = item.prices?.total || item.total || item.prices?.line_total || '0';
+              // If total is 0 or invalid, calculate it
+              if (!totalPriceRaw || totalPriceRaw === '0' || parseFloat(String(totalPriceRaw).replace(/[€\s,]/g, '').replace(',', '.')) === 0) {
+                const unitPriceNum = parseFloat(unitPrice.replace(',', '.')) || 0;
+                totalPriceRaw = (unitPriceNum * quantity).toString();
+              } else {
+                // Clean existing total price
+                totalPriceRaw = totalPriceRaw.toString().replace(/[€\s,]/g, '').trim();
+              }
+              const totalPrice = totalPriceRaw || '0';
               
               return (
-                <div class="flex gap-3 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div class="flex gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-sm transition-shadow">
                   <img
                     src={imageUrl}
                     alt={item.name}
-                    class="w-16 h-16 object-cover rounded-md flex-shrink-0"
+                    class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg flex-shrink-0"
                   />
                   <div class="flex-1 min-w-0">
-                    <h3 class="font-outfit font-medium text-sm text-gray-900 dark:text-white mb-1 line-clamp-2">
+                    <h3 class="font-outfit font-medium text-sm sm:text-base text-gray-900 dark:text-white mb-2 line-clamp-2 leading-snug">
                       {item.name}
                     </h3>
-                    <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                    <div class="flex items-center gap-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-2">
                       <span>{unitPrice} €</span>
                       <span>×</span>
-                      <span>{item.quantity}</span>
+                      <span>{quantity}</span>
                     </div>
-                    <div class="font-outfit font-semibold text-sm text-primary mt-1">
+                    <div class="font-outfit font-semibold text-sm sm:text-base text-primary">
                       {totalPrice} €
                     </div>
                   </div>
@@ -195,28 +251,28 @@ if (items.length === 0 && !error) {
             })}
           </div>
           
-          <div class="border-t-2 border-gray-200 dark:border-gray-700 pt-4 space-y-3">
-            <div class="flex justify-between font-outfit text-sm text-gray-600 dark:text-gray-400">
+          <div class="border-t-2 border-gray-200 dark:border-gray-700 pt-4 sm:pt-5 space-y-3 sm:space-y-4">
+            <div class="flex justify-between items-center font-outfit text-sm sm:text-base text-gray-600 dark:text-gray-400">
               <span>Subtotal</span>
               <span id="order-subtotal" class="font-semibold text-gray-900 dark:text-white">{totals.total_items || '0'} €</span>
             </div>
             
-            <div class="flex justify-between font-outfit text-sm text-gray-600 dark:text-gray-400">
+            <div class="flex justify-between items-center font-outfit text-sm sm:text-base text-gray-600 dark:text-gray-400">
               <span>Shipping</span>
-              <span id="order-shipping" class="font-semibold text-gray-900 dark:text-white">
+              <span id="order-shipping" class="font-semibold text-gray-900 dark:text-white text-right">
                 {totals.total_shipping && totals.total_shipping !== '0' ? `${totals.total_shipping} €` : 'Calculated at next step'}
               </span>
             </div>
             
-            <div id="order-tax-row" class={`flex justify-between font-outfit text-sm text-gray-600 dark:text-gray-400 ${totals.total_tax && totals.total_tax !== '0' ? '' : 'hidden'}`}>
-              <span>Tax (VAT)</span>
+            <div id="order-tax-row" class={`flex justify-between items-center font-outfit text-sm sm:text-base text-gray-600 dark:text-gray-400 ${totals.total_tax && totals.total_tax !== '0' ? '' : 'hidden'}`}>
+              <span>Tax (Vat)</span>
               <span id="order-tax" class="font-semibold text-gray-900 dark:text-white">{totals.total_tax || '0'} €</span>
             </div>
             
-            <div class="border-t-2 border-gray-200 dark:border-gray-700 pt-3 mt-3">
-              <div class="flex justify-between font-outfit font-bold text-lg">
+            <div class="border-t-2 border-gray-300 dark:border-gray-600 pt-4 sm:pt-5 mt-4 sm:mt-5">
+              <div class="flex justify-between items-center font-outfit font-bold text-lg sm:text-xl">
                 <span class="text-gray-900 dark:text-white">Total</span>
-                <span id="order-total" class="text-primary text-xl">{totals.total_price || '0'} €</span>
+                <span id="order-total" class="text-primary text-xl sm:text-2xl">{totals.total_price || '0'} €</span>
               </div>
             </div>
           </div>
@@ -225,15 +281,35 @@ if (items.length === 0 && !error) {
             type="submit"
             variant="primary"
             size="lg"
-            class="w-full mt-6 text-center"
+            class="w-full mt-6 sm:mt-8 text-center text-base sm:text-lg py-3 sm:py-4"
           >
-            <span id="submit-text">Confirm Order</span>
+            <span id="submit-text">Confirm order</span>
           </Button>
         </div>
       </div>
     </form>
   </div>
 </MainLayout>
+
+<style>
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 3px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+  }
+  .dark .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+  }
+</style>
 
 <script>
   document.addEventListener('DOMContentLoaded', async () => {
@@ -242,14 +318,273 @@ if (items.length === 0 && !error) {
     const shippingMethodsContainer = document.getElementById('shipping-methods') as HTMLElement;
     let loadingShipping = false;
     
+    // Stripe initialization
+    let stripe: any = null;
+    let elements: any = null;
+    let cardElement: any = null;
+    let paymentIntentClientSecret: string | null = null;
+    
+    // Initialize Stripe
+    async function initializeStripe() {
+      try {
+        // Wait for Stripe to be loaded
+        if (typeof (window as any).Stripe === 'undefined') {
+          // Wait for Stripe script to load
+          await new Promise((resolve) => {
+            const checkStripe = setInterval(() => {
+              if (typeof (window as any).Stripe !== 'undefined') {
+                clearInterval(checkStripe);
+                resolve(true);
+              }
+            }, 100);
+            
+            // Timeout after 5 seconds
+            setTimeout(() => {
+              clearInterval(checkStripe);
+              resolve(false);
+            }, 5000);
+          });
+        }
+        
+        // Get Stripe publishable key from window
+        const stripePublishableKey = (window as any).STRIPE_PUBLISHABLE_KEY;
+        
+        if (!stripePublishableKey) {
+          console.warn('Stripe publishable key not found. Stripe payment will not be available.');
+          // Hide Stripe payment option if key is not available
+          const stripePaymentOption = document.getElementById('payment-method-stripe');
+          if (stripePaymentOption) {
+            (stripePaymentOption.closest('label') as HTMLElement)?.style.setProperty('display', 'none');
+          }
+          return;
+        }
+        
+        if (typeof (window as any).Stripe === 'undefined') {
+          throw new Error('Stripe library not loaded');
+        }
+        
+        stripe = (window as any).Stripe(stripePublishableKey);
+        
+        // Create payment intent
+        const response = await fetch('/api/stripe/create-payment-intent', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            email: (document.getElementById('billing_email') as HTMLInputElement)?.value || '',
+          }),
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          paymentIntentClientSecret = data.clientSecret;
+          
+          // Create Elements
+          elements = stripe.elements({
+            appearance: {
+              theme: document.documentElement.classList.contains('dark') ? 'night' : 'stripe',
+              variables: {
+                colorPrimary: '#0413a5',
+                colorBackground: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                colorText: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827',
+                colorDanger: '#ef4444',
+                fontFamily: 'Manrope, system-ui, sans-serif',
+                spacingUnit: '4px',
+                borderRadius: '8px',
+              },
+            },
+          });
+          
+          // Create card element
+          const cardElementContainer = document.getElementById('stripe-card-element');
+          if (cardElementContainer) {
+            cardElement = elements.create('card', {
+              style: {
+                base: {
+                  fontSize: '16px',
+                  color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827',
+                  '::placeholder': {
+                    color: document.documentElement.classList.contains('dark') ? '#9ca3af' : '#6b7280',
+                  },
+                },
+                invalid: {
+                  color: '#ef4444',
+                },
+              },
+            });
+            cardElement.mount('#stripe-card-element');
+            
+            // Handle real-time validation errors
+            cardElement.on('change', (event: any) => {
+              const displayError = document.getElementById('stripe-card-errors');
+              if (displayError) {
+                if (event.error) {
+                  displayError.textContent = event.error.message;
+                  displayError.classList.remove('hidden');
+                } else {
+                  displayError.textContent = '';
+                  displayError.classList.add('hidden');
+                }
+              }
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error initializing Stripe:', error);
+      }
+    }
+    
+    // Toggle Stripe Elements visibility based on payment method
+    function toggleStripeElements() {
+      const stripePaymentMethod = document.getElementById('payment-method-stripe') as HTMLInputElement;
+      const stripeCardElement = document.getElementById('stripe-card-element');
+      const stripeCardErrors = document.getElementById('stripe-card-errors');
+      
+      if (stripePaymentMethod?.checked) {
+        if (stripeCardElement) stripeCardElement.style.display = 'block';
+        if (stripeCardErrors) stripeCardErrors.style.display = 'block';
+        if (!cardElement) {
+          initializeStripe();
+        }
+      } else {
+        if (stripeCardElement) stripeCardElement.style.display = 'none';
+        if (stripeCardErrors) stripeCardErrors.style.display = 'none';
+      }
+    }
+    
+    // Initialize Stripe on page load if Stripe is selected by default
+    const stripePaymentMethod = document.getElementById('payment-method-stripe') as HTMLInputElement;
+    if (stripePaymentMethod?.checked) {
+      // Wait a bit for the page to fully load
+      setTimeout(() => {
+        toggleStripeElements();
+      }, 500);
+    }
+    
+    // Listen to payment method changes
+    document.getElementById('payment-method-stripe')?.addEventListener('change', toggleStripeElements);
+    document.getElementById('payment-method-bacs')?.addEventListener('change', toggleStripeElements);
+    
+    // Load and prefill user data if logged in
+    async function loadUserData() {
+      const token = localStorage.getItem('auth_token');
+      if (!token) return;
+      
+      try {
+        const response = await fetch('/api/my-account/user', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          const user = data.user;
+          
+          if (user) {
+            // Prefill billing address
+            if (user.billing) {
+              const billing = user.billing;
+              const setField = (id: string, value: string) => {
+                const field = document.getElementById(id) as HTMLInputElement | HTMLSelectElement;
+                if (field && value) {
+                  field.value = value;
+                  // Trigger change event to update shipping methods if needed
+                  field.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+              };
+              
+              setField('billing_first_name', billing.first_name || '');
+              setField('billing_last_name', billing.last_name || '');
+              setField('billing_company', billing.company || '');
+              setField('billing_email', billing.email || user.email || '');
+              setField('billing_phone', billing.phone || '');
+              setField('billing_address_1', billing.address_1 || '');
+              setField('billing_address_2', billing.address_2 || '');
+              setField('billing_city', billing.city || '');
+              setField('billing_postcode', billing.postcode || '');
+              setField('billing_country', billing.country || 'FR');
+              setField('billing_state', billing.state || '');
+            } else {
+              // Fallback to user basic info
+              const setField = (id: string, value: string) => {
+                const field = document.getElementById(id) as HTMLInputElement | HTMLSelectElement;
+                if (field && value) {
+                  field.value = value;
+                }
+              };
+              
+              if (user.first_name) setField('billing_first_name', user.first_name);
+              if (user.last_name) setField('billing_last_name', user.last_name);
+              if (user.email) setField('billing_email', user.email);
+              if (user.name) {
+                const nameParts = user.name.split(' ');
+                if (nameParts.length > 0 && !user.first_name) setField('billing_first_name', nameParts[0]);
+                if (nameParts.length > 1 && !user.last_name) setField('billing_last_name', nameParts.slice(1).join(' '));
+              }
+            }
+            
+            // Prefill shipping address if different from billing
+            if (user.shipping) {
+              const shipping = user.shipping;
+              const setField = (id: string, value: string) => {
+                const field = document.getElementById(id) as HTMLInputElement | HTMLSelectElement;
+                if (field && value) {
+                  field.value = value;
+                }
+              };
+              
+              setField('shipping_first_name', shipping.first_name || '');
+              setField('shipping_last_name', shipping.last_name || '');
+              setField('shipping_company', shipping.company || '');
+              setField('shipping_address_1', shipping.address_1 || '');
+              setField('shipping_address_2', shipping.address_2 || '');
+              setField('shipping_city', shipping.city || '');
+              setField('shipping_postcode', shipping.postcode || '');
+              setField('shipping_country', shipping.country || 'FR');
+              setField('shipping_state', shipping.state || '');
+            }
+            
+            // Auto-load shipping methods if address is complete (will be called after loadShippingMethods is defined)
+            if (typeof loadShippingMethods === 'function') {
+              setTimeout(() => {
+                loadShippingMethods();
+              }, 500);
+            } else {
+              // Store flag to load shipping methods after function is defined
+              (window as any).shouldLoadShippingMethods = true;
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      }
+    }
+    
     // Toggle shipping address visibility
     if (sameAsBilling && shippingAddress) {
-      sameAsBilling.addEventListener('change', () => {
+      const shippingHeader = document.getElementById('shipping-header');
+      const updateShippingAddressVisibility = () => {
         if (sameAsBilling.checked) {
           shippingAddress.classList.add('hidden');
+          if (shippingHeader) {
+            shippingHeader.classList.remove('mb-5', 'sm:mb-6', 'lg:mb-8');
+          }
         } else {
           shippingAddress.classList.remove('hidden');
+          if (shippingHeader) {
+            shippingHeader.classList.add('mb-5', 'sm:mb-6', 'lg:mb-8');
+          }
         }
+      };
+      
+      // Set initial state
+      updateShippingAddressVisibility();
+      
+      sameAsBilling.addEventListener('change', () => {
+        updateShippingAddressVisibility();
         // Reload shipping methods when toggle changes
         loadShippingMethods();
       });
@@ -279,23 +614,23 @@ if (items.length === 0 && !error) {
 
       // Validate required fields
       if (!country) {
-        shippingMethodsContainer.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">Please select a country</p>';
+        shippingMethodsContainer.innerHTML = '<p class="text-sm sm:text-base text-gray-500 dark:text-gray-400 leading-relaxed p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">Please select a country to see available shipping methods.</p>';
         return;
       }
       
       if (!postcode || postcode.trim().length < 3) {
-        shippingMethodsContainer.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">Please enter a valid postcode</p>';
+        shippingMethodsContainer.innerHTML = '<p class="text-sm sm:text-base text-gray-500 dark:text-gray-400 leading-relaxed p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">Please enter a valid postal code to calculate shipping options.</p>';
         return;
       }
       
       if (!city || city.trim().length < 2) {
-        shippingMethodsContainer.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">Please enter a city</p>';
+        shippingMethodsContainer.innerHTML = '<p class="text-sm sm:text-base text-gray-500 dark:text-gray-400 leading-relaxed p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">Please enter a city name to see available shipping methods.</p>';
         return;
       }
 
       try {
         loadingShipping = true;
-        shippingMethodsContainer.innerHTML = '<div class="flex items-center justify-center py-8"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>';
+        shippingMethodsContainer.innerHTML = '<div class="flex flex-col items-center justify-center py-8 sm:py-12"><div class="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-primary mb-4"></div><p class="text-sm sm:text-base text-gray-500 dark:text-gray-400">Calculating shipping options...</p></div>';
         
         console.log('Loading shipping methods with:', { country, postcode: postcode.trim(), city: city.trim(), state });
         
@@ -320,27 +655,53 @@ if (items.length === 0 && !error) {
           console.log('Shipping methods received:', methods);
           
           if (methods.length === 0) {
-            shippingMethodsContainer.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">No shipping methods available for this address</p>';
+            shippingMethodsContainer.innerHTML = '<p class="text-sm sm:text-base text-gray-500 dark:text-gray-400 leading-relaxed p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl border border-yellow-200 dark:border-yellow-800">No shipping methods available for this address. Please check your address details or contact us for assistance.</p>';
             return;
           }
 
-          shippingMethodsContainer.innerHTML = methods.map((method: any, index: number) => `
-            <label class="flex items-center gap-3 p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:border-primary transition-all">
-              <input
-                type="radio"
-                name="shipping_method"
-                value="${method.id}"
-                data-rate-id="${method.id}"
-                ${index === 0 ? 'checked' : ''}
-                class="w-4 h-4 text-primary focus:ring-2 focus:ring-primary shipping-method-radio"
-              />
-              <div class="flex-1">
-                <div class="font-outfit font-medium text-gray-900 dark:text-white">${method.name}</div>
-                ${method.description ? `<div class="font-outfit text-xs text-gray-500 dark:text-gray-400 mt-1">${method.description}</div>` : ''}
-              </div>
-              <div class="font-outfit font-semibold text-primary">${method.price || '0'} €</div>
-            </label>
-          `).join('');
+          shippingMethodsContainer.innerHTML = methods.map((method: any, index: number) => {
+            // Determine icon based on method name
+            let iconSvg = '';
+            const methodNameLower = method.name?.toLowerCase() || '';
+            if (methodNameLower.includes('express') || methodNameLower.includes('priority')) {
+              iconSvg = `<svg class="w-6 h-6 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>`;
+            } else if (methodNameLower.includes('standard') || methodNameLower.includes('regular')) {
+              iconSvg = `<svg class="w-6 h-6 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+              </svg>`;
+            } else {
+              iconSvg = `<svg class="w-6 h-6 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>`;
+            }
+            
+            return `
+              <label class="group flex items-start gap-4 p-4 sm:p-5 border-2 border-gray-200 dark:border-gray-700 rounded-xl cursor-pointer hover:border-primary hover:shadow-md transition-all duration-200 bg-gray-50/50 dark:bg-gray-900/30 ${index === 0 ? 'border-primary bg-primary/5 dark:bg-primary/10' : ''}">
+                <input
+                  type="radio"
+                  name="shipping_method"
+                  value="${method.id}"
+                  data-rate-id="${method.id}"
+                  ${index === 0 ? 'checked' : ''}
+                  class="mt-1 w-5 h-5 text-primary focus:ring-2 focus:ring-primary focus:ring-offset-2 cursor-pointer shipping-method-radio"
+                />
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-3 mb-2">
+                    ${iconSvg}
+                    <div class="font-outfit font-semibold text-base sm:text-lg text-gray-900 dark:text-white">
+                      ${method.name || 'Shipping method'}
+                    </div>
+                  </div>
+                  ${method.description ? `<div class="font-outfit text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed pl-9">${method.description}</div>` : ''}
+                </div>
+                <div class="font-outfit font-bold text-lg sm:text-xl text-primary flex-shrink-0">
+                  ${method.price || '0'} €
+                </div>
+              </label>
+            `;
+          }).join('');
 
           // Update shipping method when radio changes
           document.querySelectorAll('.shipping-method-radio').forEach((radio: any) => {
@@ -366,19 +727,30 @@ if (items.length === 0 && !error) {
             errorMessage = errorData.error;
           }
           
+          // Message spécial pour les timeouts
+          if (response.status === 504 || errorMessage.includes('timeout') || errorMessage.includes('Timeout')) {
+            errorMessage = 'The shipping calculation is taking too long. This may be due to DHL API delays. Please try again in a moment.';
+          }
+          
           shippingMethodsContainer.innerHTML = `
-            <div class="text-sm text-red-500 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-              <p class="font-medium mb-1">Unable to load shipping methods</p>
-              <p class="text-xs">${errorMessage}</p>
+            <div class="text-sm sm:text-base text-red-600 dark:text-red-400 p-4 sm:p-5 bg-red-50 dark:bg-red-900/20 rounded-xl border-2 border-red-200 dark:border-red-800">
+              <p class="font-semibold mb-2 text-base sm:text-lg">Unable to load shipping methods</p>
+              <p class="text-sm sm:text-base leading-relaxed mb-3">${errorMessage}</p>
+              ${response.status === 504 ? '<button onclick="loadShippingMethods()" class="mt-3 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors">Retry</button>' : ''}
             </div>
           `;
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error loading shipping methods:', error);
+        let errorMessage = 'Please check your internet connection and try again';
+        if (error.message && (error.message.includes('timeout') || error.message.includes('Timeout'))) {
+          errorMessage = 'The shipping calculation is taking too long. This may be due to DHL API delays. Please try again in a moment.';
+        }
         shippingMethodsContainer.innerHTML = `
-          <div class="text-sm text-red-500 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-            <p class="font-medium mb-1">Connection error</p>
-            <p class="text-xs">Please check your internet connection and try again</p>
+          <div class="text-sm sm:text-base text-red-600 dark:text-red-400 p-4 sm:p-5 bg-red-50 dark:bg-red-900/20 rounded-xl border-2 border-red-200 dark:border-red-800">
+            <p class="font-semibold mb-2 text-base sm:text-lg">Connection error</p>
+            <p class="text-sm sm:text-base leading-relaxed mb-3">${errorMessage}</p>
+            <button onclick="loadShippingMethods()" class="mt-3 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors">Retry</button>
           </div>
         `;
       } finally {
@@ -465,6 +837,20 @@ if (items.length === 0 && !error) {
     
     // Don't auto-load on page load - wait for user to enter address
     
+    // Exposer la fonction globalement pour le bouton Retry
+    (window as any).loadShippingMethods = loadShippingMethods;
+    
+    // Load user data on page load (after all functions are defined)
+    loadUserData();
+    
+    // Auto-load shipping methods if user data was loaded and address is complete
+    if ((window as any).shouldLoadShippingMethods) {
+      setTimeout(() => {
+        loadShippingMethods();
+        (window as any).shouldLoadShippingMethods = false;
+      }, 1000);
+    }
+    
     // Form submission
     const form = document.getElementById('checkout-form') as HTMLFormElement;
     
@@ -477,7 +863,7 @@ if (items.length === 0 && !error) {
           billing_address: {},
           shipping_address: {},
           payment_method: formData.get('payment_method') || 'bacs',
-          payment_method_title: 'Bank Transfer',
+          payment_method_title: 'Bank transfer',
           order_comments: formData.get('order_comments') || '',
         };
         
@@ -519,10 +905,11 @@ if (items.length === 0 && !error) {
           data.shipping_method_title = shippingLabel || selectedShipping.value;
         }
         
+        const paymentMethod = formData.get('payment_method') || 'bacs';
+        const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+        const submitText = document.getElementById('submit-text');
+        
         try {
-          const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
-          const submitText = document.getElementById('submit-text');
-          
           if (submitButton) {
             submitButton.disabled = true;
           }
@@ -530,41 +917,108 @@ if (items.length === 0 && !error) {
             submitText.textContent = 'Processing...';
           }
           
-          const response = await fetch('/api/checkout', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify(data),
-          });
-          
-          if (response.ok) {
-            const order = await response.json();
-            window.location.href = `/commande/${order.id}`;
-          } else {
-            const error = await response.json();
-            alert('Error placing order: ' + (error.error || error.message || 'Unknown error'));
-            
-            if (submitButton) {
-              submitButton.disabled = false;
+          // Handle Stripe payment
+          if (paymentMethod === 'stripe') {
+            if (!stripe || !cardElement || !paymentIntentClientSecret) {
+              // Initialize Stripe if not already done
+              await initializeStripe();
+              if (!stripe || !cardElement || !paymentIntentClientSecret) {
+                throw new Error('Stripe not initialized. Please refresh the page.');
+              }
             }
-            if (submitText) {
-              submitText.textContent = 'Confirm Order';
+            
+            // Confirm payment with Stripe
+            const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(
+              paymentIntentClientSecret,
+              {
+                payment_method: {
+                  card: cardElement,
+                  billing_details: {
+                    name: `${data.billing_address.first_name} ${data.billing_address.last_name}`,
+                    email: data.billing_address.email,
+                    phone: data.billing_address.phone,
+                    address: {
+                      line1: data.billing_address.address_1,
+                      line2: data.billing_address.address_2 || undefined,
+                      city: data.billing_address.city,
+                      postal_code: data.billing_address.postcode,
+                      state: data.billing_address.state || undefined,
+                      country: data.billing_address.country,
+                    },
+                  },
+                },
+              }
+            );
+            
+            if (stripeError) {
+              const displayError = document.getElementById('stripe-card-errors');
+              if (displayError) {
+                displayError.textContent = stripeError.message || 'Payment failed';
+                displayError.classList.remove('hidden');
+              }
+              throw new Error(stripeError.message || 'Payment failed');
+            }
+            
+            if (paymentIntent && paymentIntent.status === 'succeeded') {
+              // Create order with Stripe payment
+              const confirmResponse = await fetch('/api/stripe/confirm-payment', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                  paymentIntentId: paymentIntent.id,
+                  billing_address: data.billing_address,
+                  shipping_address: data.shipping_address,
+                  shipping_method: data.shipping_method,
+                  shipping_method_title: data.shipping_method_title,
+                  order_comments: data.order_comments,
+                }),
+              });
+              
+              if (confirmResponse.ok) {
+                const order = await confirmResponse.json();
+                window.location.href = `/commande/${order.id}`;
+              } else {
+                const error = await confirmResponse.json();
+                throw new Error(error.error || 'Failed to create order');
+              }
+            } else {
+              throw new Error('Payment not completed');
+            }
+          } else {
+            // Handle bank transfer
+            data.payment_method_title = 'Bank transfer';
+            
+            const response = await fetch('/api/checkout', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              credentials: 'include',
+              body: JSON.stringify(data),
+            });
+            
+            if (response.ok) {
+              const order = await response.json();
+              window.location.href = `/commande/${order.id}`;
+            } else {
+              const error = await response.json();
+              throw new Error(error.error || error.message || 'Unknown error');
             }
           }
-        } catch (error) {
-          console.error('Error creating order:', error);
-          alert('Error placing order. Please try again.');
-          
-          const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
-          const submitText = document.getElementById('submit-text');
+        } catch (error: any) {
+          console.error('Error processing order:', error);
+          if (window.showToast) {
+            window.showToast('Error processing order: ' + (error.message || 'Please try again.'), 'error', 6000);
+          }
           
           if (submitButton) {
             submitButton.disabled = false;
           }
           if (submitText) {
-            submitText.textContent = 'Confirm Order';
+            submitText.textContent = 'Confirm order';
           }
         }
       });

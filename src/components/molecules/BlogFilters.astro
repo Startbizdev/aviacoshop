@@ -1,0 +1,228 @@
+---
+import Badge from '../atoms/Badge.astro';
+import { Search } from 'lucide-astro';
+
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  count: number;
+}
+
+interface Props {
+  categories: Category[];
+  selectedCategory?: string;
+  searchQuery?: string;
+}
+
+const { categories, selectedCategory = 'all', searchQuery = '' } = Astro.props;
+---
+
+<div class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
+  <div class="container mx-auto px-4 py-6">
+    <!-- Search bar -->
+    <div class="mb-6">
+      <div class="relative max-w-2xl mx-auto">
+        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <Search class="w-5 h-5 text-gray-400" />
+        </div>
+        <input
+          type="text"
+          id="blog-search"
+          placeholder="Search articles..."
+          value={searchQuery}
+          class="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary dark:focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 font-outfit"
+        />
+      </div>
+    </div>
+    
+    <!-- Category filters -->
+    <div class="flex flex-wrap items-center gap-2 justify-center">
+      <!-- "All" button -->
+      <button
+        class={`blog-category-filter font-outfit px-4 py-2 rounded-lg transition-all duration-300 text-sm font-medium border-2 ${
+          selectedCategory === 'all' 
+            ? 'bg-primary text-white border-primary shadow-lg shadow-primary/30' 
+            : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-primary hover:text-primary dark:hover:border-primary dark:hover:text-primary'
+        }`}
+        data-category="all"
+      >
+        All Categories
+      </button>
+      
+      <!-- Category buttons -->
+      {categories.map((category) => (
+        <button
+          class={`blog-category-filter font-outfit px-4 py-2 rounded-lg transition-all duration-300 text-sm font-medium border-2 ${
+            selectedCategory === category.slug 
+              ? 'bg-primary text-white border-primary shadow-lg shadow-primary/30' 
+              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-primary hover:text-primary dark:hover:border-primary dark:hover:text-primary'
+          }`}
+          data-category={category.slug}
+          data-category-id={category.id}
+        >
+          {category.name}
+          <span class={`ml-1.5 px-1.5 py-0.5 rounded text-xs font-medium ${
+            selectedCategory === category.slug 
+              ? 'bg-white/30 text-white' 
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+          }`}>
+            {category.count}
+          </span>
+        </button>
+      ))}
+    </div>
+    
+    <!-- Loading indicator -->
+    <div id="loading-indicator" class="hidden mt-4 text-center">
+      <div class="inline-flex items-center gap-2 text-primary font-outfit text-sm">
+        <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>Loading...</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Filter management
+  let currentCategory = 'all';
+  let currentSearch = '';
+  let searchTimeout: number;
+  
+  // Function to load posts
+  async function loadPosts(category: string = 'all', search: string = '', page: number = 1) {
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const postsGrid = document.getElementById('blog-posts-grid');
+    const paginationContainer = document.getElementById('pagination-container');
+    
+    if (!postsGrid) return;
+    
+    // Show loader
+    if (loadingIndicator) loadingIndicator.classList.remove('hidden');
+    
+    try {
+      // Build API URL
+      const params = new URLSearchParams({
+        page: page.toString(),
+        per_page: '12',
+      });
+      
+      if (category !== 'all') {
+        // Find category ID
+        const categoryButton = document.querySelector(`[data-category="${category}"]`) as HTMLElement;
+        const categoryId = categoryButton?.dataset.categoryId;
+        if (categoryId) {
+          params.append('category', categoryId);
+        }
+      }
+      
+      if (search) {
+        params.append('search', search);
+      }
+      
+      const response = await fetch(`/api/blog/posts?${params.toString()}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch posts');
+      }
+      
+      const data = await response.json();
+      
+      // Update grid
+      if (data.posts && data.posts.length > 0) {
+        // Redirect to page with filters (for proper SSR rendering)
+        const url = new URL(window.location.href);
+        if (category !== 'all') {
+          url.searchParams.set('category', category);
+        } else {
+          url.searchParams.delete('category');
+        }
+        if (search) {
+          url.searchParams.set('search', search);
+        } else {
+          url.searchParams.delete('search');
+        }
+        if (page > 1) {
+          url.searchParams.set('page', page.toString());
+        } else {
+          url.searchParams.delete('page');
+        }
+        
+        window.location.href = url.toString();
+      } else {
+        // No results
+        postsGrid.innerHTML = `
+          <div class="col-span-full text-center py-12">
+            <div class="text-gray-400 dark:text-gray-600 mb-4">
+              <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 class="font-outfit font-semibold text-lg text-gray-900 dark:text-white mb-2">
+              No articles found
+            </h3>
+            <p class="font-outfit text-gray-600 dark:text-gray-400">
+              Try modifying your search filters
+            </p>
+          </div>
+        `;
+        
+        if (paginationContainer) {
+          paginationContainer.innerHTML = '';
+        }
+      }
+    } catch (error) {
+      console.error('Error loading posts:', error);
+      postsGrid.innerHTML = `
+        <div class="col-span-full text-center py-12">
+          <div class="text-red-400 dark:text-red-600 mb-4">
+            <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 class="font-outfit font-semibold text-lg text-gray-900 dark:text-white mb-2">
+            Loading error
+          </h3>
+          <p class="font-outfit text-gray-600 dark:text-gray-400">
+            An error occurred while loading articles
+          </p>
+        </div>
+      `;
+    } finally {
+      // Hide loader
+      if (loadingIndicator) loadingIndicator.classList.add('hidden');
+    }
+  }
+  
+  // Listen for category filter clicks
+  document.addEventListener('DOMContentLoaded', () => {
+    const categoryFilters = document.querySelectorAll('.blog-category-filter');
+    const searchInput = document.getElementById('blog-search') as HTMLInputElement;
+    
+    categoryFilters.forEach(filter => {
+      filter.addEventListener('click', () => {
+        const category = (filter as HTMLElement).dataset.category || 'all';
+        currentCategory = category;
+        loadPosts(category, currentSearch);
+      });
+    });
+    
+    // Listen for search (with debounce)
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        const search = (e.target as HTMLInputElement).value;
+        currentSearch = search;
+        
+        // 500ms debounce
+        clearTimeout(searchTimeout);
+        searchTimeout = window.setTimeout(() => {
+          loadPosts(currentCategory, search);
+        }, 500);
+      });
+    }
+  });
+</script>
+

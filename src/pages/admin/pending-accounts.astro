@@ -1,0 +1,902 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminHeader from '../../components/molecules/AdminHeader.astro';
+import Card from '../../components/atoms/Card.astro';
+import Icon from '../../components/atoms/Icon.astro';
+import Button from '../../components/atoms/Button.astro';
+import StatsCardSkeleton from '../../components/molecules/StatsCardSkeleton.astro';
+import { WC_API_URL } from '../../lib/config';
+
+// Check if user is admin - verification done on client side
+---
+
+<AdminLayout title="Pending accounts" description="Manage pending account approvals">
+  <AdminHeader
+    title="Pending accounts"
+    description="Review and approve customer account registrations"
+    actionLabel="Refresh"
+    actionId="refresh-btn"
+    actionIcon="refresh-cw"
+  />
+  
+  <div class="p-3 sm:p-4 md:p-5 lg:p-6 space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6">
+
+    <!-- Filter Tabs -->
+    <Card variant="elevated" class="p-3 sm:p-4 md:p-5">
+      <div class="flex flex-col gap-3 sm:gap-4">
+        <span class="font-outfit text-xs sm:text-sm md:text-base font-medium text-gray-700 dark:text-gray-300">Filter by status:</span>
+        <div class="flex flex-wrap items-center gap-2 sm:gap-2.5">
+          <button
+            id="filter-pending"
+            data-status="pending"
+            class="filter-tab px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg font-outfit text-xs sm:text-sm md:text-base font-medium transition-all duration-200 flex items-center gap-1.5 sm:gap-2 bg-primary text-white shadow-sm hover:shadow-md flex-1 sm:flex-none min-w-0"
+          >
+            <Icon name="clock" size="sm" />
+            <span class="truncate">Pending</span>
+            <span id="filter-pending-count" class="ml-auto sm:ml-0.5 sm:ml-1 px-1.5 sm:px-2 py-0.5 bg-white/20 rounded-full text-[10px] sm:text-xs font-semibold flex-shrink-0">0</span>
+          </button>
+          <button
+            id="filter-approved"
+            data-status="approved"
+            class="filter-tab px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg font-outfit text-xs sm:text-sm md:text-base font-medium transition-all duration-200 flex items-center gap-1.5 sm:gap-2 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 flex-1 sm:flex-none min-w-0"
+          >
+            <Icon name="check-circle" size="sm" />
+            <span class="truncate">Approved</span>
+            <span id="filter-approved-count" class="ml-auto sm:ml-0.5 sm:ml-1 px-1.5 sm:px-2 py-0.5 bg-gray-200 dark:bg-gray-700 rounded-full text-[10px] sm:text-xs font-semibold flex-shrink-0">0</span>
+          </button>
+          <button
+            id="filter-rejected"
+            data-status="rejected"
+            class="filter-tab px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg font-outfit text-xs sm:text-sm md:text-base font-medium transition-all duration-200 flex items-center gap-1.5 sm:gap-2 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 flex-1 sm:flex-none min-w-0"
+          >
+            <Icon name="x-circle" size="sm" />
+            <span class="truncate">Rejected</span>
+            <span id="filter-rejected-count" class="ml-auto sm:ml-0.5 sm:ml-1 px-1.5 sm:px-2 py-0.5 bg-gray-200 dark:bg-gray-700 rounded-full text-[10px] sm:text-xs font-semibold flex-shrink-0">0</span>
+          </button>
+        </div>
+      </div>
+    </Card>
+
+    <!-- Stats Cards -->
+    <div id="stats-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5">
+      <!-- Skeleton cards during loading -->
+      <div id="stats-skeleton" class="contents">
+        <StatsCardSkeleton />
+        <StatsCardSkeleton />
+        <StatsCardSkeleton />
+      </div>
+      
+      <!-- Real stats cards (hidden initially) -->
+      <div id="stats-real" class="contents hidden">
+        <Card variant="elevated" class="p-5 border-l-4 border-l-yellow-500">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Total Pending</p>
+              <p id="total-count" class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                <span id="total-count-text">0</span>
+              </p>
+              <div class="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Awaiting review</span>
+              </div>
+            </div>
+            <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg flex items-center justify-center">
+              <Icon name="clock" size="lg" class="text-yellow-600 dark:text-yellow-400" />
+            </div>
+          </div>
+        </Card>
+        
+        <Card variant="elevated" class="p-5 border-l-4 border-l-green-500">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Approved Today</p>
+              <p id="approved-today" class="text-3xl font-bold text-gray-900 dark:text-white mb-2">0</p>
+              <div class="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Last 24h</span>
+              </div>
+            </div>
+            <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+              <Icon name="check-circle" size="lg" class="text-green-600 dark:text-green-400" />
+            </div>
+          </div>
+        </Card>
+        
+        <Card variant="elevated" class="p-5 border-l-4 border-l-red-500">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Rejected Today</p>
+              <p id="rejected-today" class="text-3xl font-bold text-gray-900 dark:text-white mb-2">0</p>
+              <div class="flex items-center gap-1 text-xs text-red-600 dark:text-red-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Last 24h</span>
+              </div>
+            </div>
+            <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+              <Icon name="x-circle" size="lg" class="text-red-600 dark:text-red-400" />
+            </div>
+          </div>
+        </Card>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading-state" class="space-y-3 sm:space-y-4 md:space-y-5">
+      <!-- Skeleton cards will be inserted here -->
+    </div>
+
+    <!-- Empty State -->
+    <div id="empty-state" class="hidden">
+      <Card variant="elevated" class="p-6 sm:p-8 md:p-10 lg:p-12">
+        <div class="flex flex-col items-center justify-center text-center">
+          <div class="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-gradient-to-br from-green-100 to-green-50 dark:from-green-900/20 dark:to-green-800/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 md:mb-5 shadow-inner ring-2 ring-green-200/50 dark:ring-green-800/30">
+            <Icon name="check-circle" size="xl" class="text-green-600 dark:text-green-400" />
+          </div>
+          <h3 id="empty-title" class="font-outfit font-semibold text-lg sm:text-xl md:text-2xl text-gray-900 dark:text-white mb-1.5 sm:mb-2 md:mb-2.5 px-4">
+            No accounts found
+          </h3>
+          <p id="empty-message" class="font-outfit text-sm sm:text-base text-gray-600 dark:text-gray-400 max-w-md px-4">
+            No accounts match the current filter.
+          </p>
+        </div>
+      </Card>
+    </div>
+
+    <!-- Accounts List -->
+    <div id="accounts-list" class="hidden space-y-2 sm:space-y-2.5">
+      <!-- Accounts will be inserted here -->
+    </div>
+
+    <!-- Pagination -->
+    <div id="pagination-container" class="hidden mt-4 sm:mt-5 md:mt-6 lg:mt-8">
+      <Card variant="elevated" class="p-3 sm:p-4 md:p-5 lg:p-6">
+        <div class="flex flex-col gap-3 sm:gap-4">
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
+            <div class="font-outfit text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400 text-center sm:text-left w-full sm:w-auto order-2 sm:order-1">
+              Showing <span id="pagination-start" class="font-semibold text-gray-900 dark:text-white">0</span>
+              to <span id="pagination-end" class="font-semibold text-gray-900 dark:text-white">0</span>
+              of <span id="pagination-total" class="font-semibold text-gray-900 dark:text-white">0</span> accounts
+            </div>
+            
+            <div class="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto justify-center sm:justify-end order-1 sm:order-2">
+              <button
+                id="pagination-prev"
+                class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-outfit text-xs sm:text-sm flex items-center gap-1 sm:gap-1.5 flex-1 sm:flex-none justify-center"
+                disabled
+              >
+                <Icon name="chevron-left" size="sm" />
+                <span class="hidden sm:inline">Previous</span>
+                <span class="sm:hidden">Prev</span>
+              </button>
+              
+              <button
+                id="pagination-next"
+                class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-outfit text-xs sm:text-sm flex items-center gap-1 sm:gap-1.5 flex-1 sm:flex-none justify-center"
+                disabled
+              >
+                <span class="hidden sm:inline">Next</span>
+                <span class="sm:hidden">Next</span>
+                <Icon name="chevron-right" size="sm" />
+              </button>
+            </div>
+          </div>
+          
+          <!-- Page numbers container -->
+          <div id="pagination-numbers" class="flex items-center justify-center gap-1 sm:gap-1.5 flex-wrap pt-2 sm:pt-3 border-t border-gray-200 dark:border-gray-700">
+            <!-- Page numbers will be inserted here -->
+          </div>
+        </div>
+      </Card>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-state" class="hidden">
+      <Card variant="elevated" class="p-4 sm:p-5 md:p-6 border-l-4 border-red-500 bg-red-50/50 dark:bg-red-900/10">
+        <div class="flex items-start gap-3 sm:gap-4">
+          <div class="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+            <Icon name="alert-circle" size="lg" class="text-red-600 dark:text-red-400" />
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-outfit font-semibold text-base sm:text-lg md:text-xl text-gray-900 dark:text-white mb-1.5 sm:mb-2">
+              Error loading accounts
+            </h3>
+            <p id="error-message" class="font-outfit text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400 mb-3 sm:mb-4 break-words"></p>
+            <Button
+              id="retry-btn"
+              variant="primary"
+              size="sm"
+              class="flex items-center justify-center gap-1.5 sm:gap-2 w-full sm:w-auto text-xs sm:text-sm"
+            >
+              <Icon name="refresh-cw" size="sm" />
+              <span>Try again</span>
+            </Button>
+          </div>
+        </div>
+      </Card>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+
+    // Check if user is admin
+    try {
+      const checkAdminResponse = await fetch('/api/admin/check-admin', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!checkAdminResponse.ok) {
+        window.location.href = '/login';
+        return;
+      }
+
+      const adminData = await checkAdminResponse.json();
+      if (!adminData.isAdmin) {
+        window.location.href = '/my-account';
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      window.location.href = '/login';
+      return;
+    }
+
+    const loadingState = document.getElementById('loading-state');
+    const emptyState = document.getElementById('empty-state');
+    const accountsList = document.getElementById('accounts-list');
+    const errorState = document.getElementById('error-state');
+    const errorMessage = document.getElementById('error-message');
+    const totalCount = document.getElementById('total-count');
+    const refreshBtn = document.getElementById('refresh-btn');
+    const retryBtn = document.getElementById('retry-btn');
+    const paginationContainer = document.getElementById('pagination-container');
+    const paginationStart = document.getElementById('pagination-start');
+    const paginationEnd = document.getElementById('pagination-end');
+    const paginationTotal = document.getElementById('pagination-total');
+    const paginationPrev = document.getElementById('pagination-prev');
+    const paginationNext = document.getElementById('pagination-next');
+    const paginationNumbers = document.getElementById('pagination-numbers');
+
+    let accounts: any[] = [];
+    let approvedToday = 0;
+    let rejectedToday = 0;
+    let currentPage = 1;
+    let perPage = 20;
+    let pagination: any = null;
+    let currentStatus = 'pending'; // pending, approved, rejected
+    let stats: any = { pending: 0, approved: 0, rejected: 0 };
+
+    // Format date
+    function formatDate(dateString: string): string {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffTime = Math.abs(now.getTime() - date.getTime());
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) {
+        return 'Today';
+      } else if (diffDays === 1) {
+        return 'Yesterday';
+      } else if (diffDays < 7) {
+        return `${diffDays} days ago`;
+      } else {
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+      }
+    }
+
+    // Load accounts with status filter
+    async function loadPendingAccounts(page: number = currentPage, status: string = currentStatus) {
+      currentPage = page;
+      currentStatus = status;
+      loadingState?.classList.remove('hidden');
+      emptyState?.classList.add('hidden');
+      accountsList?.classList.add('hidden');
+      errorState?.classList.add('hidden');
+      paginationContainer?.classList.add('hidden');
+      
+      // Show stats skeleton
+      const statsSkeleton = document.getElementById('stats-skeleton');
+      const statsReal = document.getElementById('stats-real');
+      if (statsSkeleton && statsReal) {
+        statsSkeleton.classList.remove('hidden');
+        statsReal.classList.add('hidden');
+      }
+      
+      // Show skeleton cards
+      if (loadingState) {
+        loadingState.innerHTML = Array.from({ length: 5 }, () => `
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 animate-pulse">
+            <div class="flex items-start gap-3 sm:gap-4">
+              <div class="w-10 h-10 sm:w-11 sm:h-11 bg-gray-200 dark:bg-gray-700 rounded-full flex-shrink-0 skeleton-shimmer"></div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between gap-3 mb-2">
+                  <div class="flex-1 min-w-0">
+                    <div class="h-4 sm:h-5 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mb-1.5 skeleton-shimmer"></div>
+                    <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full skeleton-shimmer"></div>
+                  </div>
+                  <div class="flex items-center gap-2 flex-shrink-0">
+                    <div class="h-7 w-16 bg-gray-200 dark:bg-gray-700 rounded-lg skeleton-shimmer"></div>
+                    <div class="h-7 w-14 bg-gray-200 dark:bg-gray-700 rounded-lg skeleton-shimmer"></div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-4 pt-1.5 border-t border-gray-100 dark:border-gray-700/50">
+                  <div class="h-3 w-24 bg-gray-200 dark:bg-gray-700 rounded skeleton-shimmer"></div>
+                  <div class="h-3 w-32 bg-gray-200 dark:bg-gray-700 rounded skeleton-shimmer"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      try {
+        const response = await fetch(`/api/admin/pending-accounts?page=${page}&per_page=${perPage}&status=${status}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.status === 403) {
+          window.location.href = '/login';
+          return;
+        }
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to load accounts');
+        }
+
+        const data = await response.json();
+        accounts = data.customers || [];
+        pagination = data.pagination || null;
+        stats = data.stats || { pending: 0, approved: 0, rejected: 0, approvedToday: 0, rejectedToday: 0 };
+        
+        // Update stats cards - hide skeleton and show real cards
+        const statsSkeleton = document.getElementById('stats-skeleton');
+        const statsReal = document.getElementById('stats-real');
+        if (statsSkeleton && statsReal) {
+          statsSkeleton.classList.add('hidden');
+          statsReal.classList.remove('hidden');
+        }
+        
+        // Update total count
+        if (totalCount && pagination) {
+          const textEl = document.getElementById('total-count-text');
+          if (textEl) {
+            textEl.textContent = pagination.totalItems.toString();
+          }
+        }
+
+        // Update today's stats from API
+        approvedToday = stats.approvedToday || 0;
+        rejectedToday = stats.rejectedToday || 0;
+        const approvedTodayEl = document.getElementById('approved-today');
+        const rejectedTodayEl = document.getElementById('rejected-today');
+        if (approvedTodayEl) approvedTodayEl.textContent = approvedToday.toString();
+        if (rejectedTodayEl) rejectedTodayEl.textContent = rejectedToday.toString();
+        
+        // Update filter counts
+        const pendingCountEl = document.getElementById('filter-pending-count');
+        const approvedCountEl = document.getElementById('filter-approved-count');
+        const rejectedCountEl = document.getElementById('filter-rejected-count');
+        if (pendingCountEl) pendingCountEl.textContent = stats.pending?.toString() || '0';
+        if (approvedCountEl) approvedCountEl.textContent = stats.approved?.toString() || '0';
+        if (rejectedCountEl) rejectedCountEl.textContent = stats.rejected?.toString() || '0';
+        
+        // Update active filter tab
+        updateFilterTabs(status);
+
+        loadingState?.classList.add('hidden');
+
+        if (accounts.length === 0) {
+          const emptyTitle = document.getElementById('empty-title');
+          const emptyMessage = document.getElementById('empty-message');
+          if (emptyTitle && emptyMessage) {
+            if (status === 'pending') {
+              emptyTitle.textContent = 'No pending accounts';
+              emptyMessage.textContent = 'All accounts have been reviewed.';
+            } else if (status === 'approved') {
+              emptyTitle.textContent = 'No approved accounts';
+              emptyMessage.textContent = 'No accounts have been approved yet.';
+            } else if (status === 'rejected') {
+              emptyTitle.textContent = 'No rejected accounts';
+              emptyMessage.textContent = 'No accounts have been rejected.';
+            }
+          }
+          emptyState?.classList.remove('hidden');
+        } else {
+          renderAccounts();
+          renderPagination();
+          accountsList?.classList.remove('hidden');
+          paginationContainer?.classList.remove('hidden');
+        }
+      } catch (error: any) {
+        console.error('Error loading accounts:', error);
+        loadingState?.classList.add('hidden');
+        errorState?.classList.remove('hidden');
+        if (errorMessage) {
+          errorMessage.textContent = error.message || 'An error occurred while loading accounts';
+        }
+      }
+    }
+
+    // Render accounts
+    function renderAccounts() {
+      if (!accountsList) return;
+
+      accountsList.innerHTML = accounts.map(account => `
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+          <div class="flex items-start gap-3 sm:gap-4">
+            <!-- Avatar -->
+            <div class="w-10 h-10 sm:w-11 sm:h-11 bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/30 dark:to-primary/20 rounded-full flex items-center justify-center flex-shrink-0 ring-1 ring-primary/10">
+              <span class="font-outfit font-bold text-primary text-sm sm:text-base">
+                ${(account.firstName?.[0] || account.username[0] || 'U').toUpperCase()}
+              </span>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between gap-3 mb-2">
+                <div class="flex-1 min-w-0">
+                  <h3 class="font-outfit font-semibold text-sm sm:text-base text-gray-900 dark:text-white truncate mb-0.5">
+                    ${account.firstName || ''} ${account.lastName || ''}${!account.firstName && !account.lastName ? account.username : ''}
+                  </h3>
+                  <div class="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                    <span class="truncate">@${account.username}</span>
+                    <span class="text-gray-400 dark:text-gray-500">•</span>
+                    <span class="truncate">${account.email}</span>
+                  </div>
+                </div>
+                
+                <!-- Status Badge / Actions -->
+                <div class="flex items-center gap-2 flex-shrink-0">
+                  ${account.status === 'pending' ? `
+                    <button
+                      data-action="approve"
+                      data-id="${account.id}"
+                      class="font-outfit font-medium px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs rounded-lg bg-primary text-white hover:bg-primary-dark transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 flex items-center justify-center gap-1.5 shadow-sm hover:shadow"
+                    >
+                      <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      <span class="hidden sm:inline">Approve</span>
+                    </button>
+                    <button
+                      data-action="reject"
+                      data-id="${account.id}"
+                      class="font-outfit font-medium px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs rounded-lg border border-red-300 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/20 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 flex items-center justify-center gap-1.5"
+                    >
+                      <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                      <span class="hidden sm:inline">Reject</span>
+                    </button>
+                  ` : account.status === 'rejected' ? `
+                    <button
+                      data-action="approve"
+                      data-id="${account.id}"
+                      class="font-outfit font-medium px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs rounded-lg bg-primary text-white hover:bg-primary-dark transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 flex items-center justify-center gap-1.5 shadow-sm hover:shadow"
+                    >
+                      <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      <span class="hidden sm:inline">Re-approve</span>
+                    </button>
+                    <span class="px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs rounded-lg bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-outfit font-medium flex items-center justify-center gap-1.5">
+                      <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span class="hidden sm:inline">Rejected</span>
+                    </span>
+                  ` : account.status === 'approved' ? `
+                    <span class="px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs rounded-lg bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400 font-outfit font-medium flex items-center justify-center gap-1.5">
+                      <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span class="hidden sm:inline">Approved</span>
+                    </span>
+                  ` : ''}
+                </div>
+              </div>
+              
+              <!-- Details Rows -->
+              <div class="flex flex-col gap-2 text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-100 dark:border-gray-700/50">
+                <div class="flex items-center gap-4 flex-wrap">
+                  <div class="flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span>${formatDate(account.dateCreated)}</span>
+                  </div>
+                  ${account.billing?.phone ? `
+                    <div class="flex items-center gap-1.5">
+                      <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                      <span>${account.billing.phone}</span>
+                    </div>
+                  ` : ''}
+                  ${account.billing?.company ? `
+                    <div class="flex items-center gap-1.5 truncate">
+                      <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                      <span class="truncate">${account.billing.company}</span>
+                    </div>
+                  ` : ''}
+                </div>
+                ${account.billing?.address_1 || account.billing?.city ? `
+                  <div class="flex items-start gap-1.5">
+                    <svg class="w-3.5 h-3.5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span class="text-left leading-relaxed">
+                      ${account.billing.address_1 || ''}${account.billing.address_2 ? ', ' + account.billing.address_2 : ''}${account.billing.city ? ', ' + account.billing.city : ''}${account.billing.postcode ? ' ' + account.billing.postcode : ''}${account.billing.country ? ', ' + account.billing.country : ''}
+                    </span>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      // Attach event listeners
+      accountsList.querySelectorAll('[data-action]').forEach(btn => {
+        btn.addEventListener('click', handleAction);
+      });
+    }
+
+    // Handle approve/reject
+    async function handleAction(e: Event) {
+      const button = e.currentTarget as HTMLButtonElement;
+      const action = button.getAttribute('data-action');
+      const accountId = button.getAttribute('data-id');
+      
+      if (!action || !accountId) return;
+
+      const status = action === 'approve' ? 'approved' : 'rejected';
+      const actionText = action === 'approve' ? 'approving' : 'rejecting';
+
+      // Disable button
+      button.disabled = true;
+      const originalContent = button.innerHTML;
+      const actionTextEn = action === 'approve' ? 'Approving' : 'Rejecting';
+      button.innerHTML = `
+        <span class="inline-flex items-center gap-2">
+          <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>${actionTextEn}...</span>
+        </span>
+      `;
+
+      try {
+        const response = await fetch('/api/admin/update-account-status', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            customerId: parseInt(accountId),
+            status: status,
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || `Failed to ${action} account`);
+        }
+
+        // Show success message
+        if (window.showToast) {
+          window.showToast(
+            `Account ${action === 'approve' ? 'approved' : 'rejected'} successfully`,
+            'success',
+            3000
+          );
+        }
+
+        // Update stats immediately without full reload
+        if (action === 'approve') {
+          approvedToday++;
+          const approvedTodayEl = document.getElementById('approved-today');
+          if (approvedTodayEl) approvedTodayEl.textContent = approvedToday.toString();
+        } else {
+          rejectedToday++;
+          const rejectedTodayEl = document.getElementById('rejected-today');
+          if (rejectedTodayEl) rejectedTodayEl.textContent = rejectedToday.toString();
+        }
+
+        // Remove the account card from the list (it changed status)
+        const accountCard = button.closest('[class*="bg-white"], [class*="dark:bg-gray-800"]');
+        if (accountCard && accountCard.parentElement) {
+          accountCard.style.transition = 'opacity 0.3s, transform 0.3s';
+          accountCard.style.opacity = '0';
+          accountCard.style.transform = 'translateX(-20px)';
+          setTimeout(() => {
+            accountCard.remove();
+            
+            // Update accounts array
+            accounts = accounts.filter(acc => acc.id !== parseInt(accountId));
+            
+            // Check if list is empty now
+            if (accountsList && accountsList.children.length === 0) {
+              accountsList.classList.add('hidden');
+              paginationContainer?.classList.add('hidden');
+              emptyState?.classList.remove('hidden');
+            }
+            
+            // Refresh stats from API in background (without showing spinner)
+            refreshStatsOnly();
+          }, 300);
+        } else {
+          // Fallback: reload if we can't find the card
+          await loadPendingAccounts(currentPage, currentStatus);
+        }
+      } catch (error: any) {
+        console.error(`Error ${action}ing account:`, error);
+        
+        // Restore button
+        button.disabled = false;
+        button.innerHTML = originalContent;
+
+        // Show error
+        if (window.showToast) {
+          window.showToast(
+            error.message || `Failed to ${action} account`,
+            'error',
+            5000
+          );
+        }
+      }
+    }
+
+    // Render pagination
+    function renderPagination() {
+      if (!pagination || !paginationContainer) return;
+
+      // Update pagination info
+      const start = (pagination.page - 1) * pagination.perPage + 1;
+      const end = Math.min(start + accounts.length - 1, pagination.totalItems);
+      
+      if (paginationStart) paginationStart.textContent = start.toString();
+      if (paginationEnd) paginationEnd.textContent = end.toString();
+      if (paginationTotal) paginationTotal.textContent = pagination.totalItems.toString();
+
+      // Update prev/next buttons
+      if (paginationPrev) {
+        paginationPrev.disabled = !pagination.hasPrevPage;
+      }
+      if (paginationNext) {
+        paginationNext.disabled = !pagination.hasNextPage;
+      }
+
+      // Render page numbers
+      if (paginationNumbers) {
+        paginationNumbers.innerHTML = '';
+        
+        const totalPages = pagination.totalPages;
+        const current = pagination.page;
+        
+        // Calculate which page numbers to show
+        let startPage = Math.max(1, current - 2);
+        let endPage = Math.min(totalPages, current + 2);
+        
+        // Adjust if we're near the start or end
+        if (endPage - startPage < 4) {
+          if (startPage === 1) {
+            endPage = Math.min(5, totalPages);
+          } else if (endPage === totalPages) {
+            startPage = Math.max(1, totalPages - 4);
+          }
+        }
+        
+        // First page
+        if (startPage > 1) {
+          const btn = createPageButton(1, current === 1);
+          paginationNumbers.appendChild(btn);
+          
+          if (startPage > 2) {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'px-1.5 sm:px-2 py-1 text-gray-500 dark:text-gray-400 font-outfit text-xs sm:text-sm';
+            ellipsis.textContent = '...';
+            paginationNumbers.appendChild(ellipsis);
+          }
+        }
+        
+        // Page numbers
+        for (let i = startPage; i <= endPage; i++) {
+          const btn = createPageButton(i, current === i);
+          paginationNumbers.appendChild(btn);
+        }
+        
+        // Last page
+        if (endPage < totalPages) {
+          if (endPage < totalPages - 1) {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'px-1.5 sm:px-2 py-1 text-gray-500 dark:text-gray-400 font-outfit text-xs sm:text-sm';
+            ellipsis.textContent = '...';
+            paginationNumbers.appendChild(ellipsis);
+          }
+          
+          const btn = createPageButton(totalPages, current === totalPages);
+          paginationNumbers.appendChild(btn);
+        }
+      }
+    }
+
+    // Create page button
+    function createPageButton(pageNum: number, isActive: boolean): HTMLButtonElement {
+      const btn = document.createElement('button');
+      btn.className = `px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg font-outfit text-xs sm:text-sm transition-all duration-200 min-w-[2rem] sm:min-w-[2.5rem] ${
+        isActive
+          ? 'bg-primary text-white hover:bg-primary-dark shadow-sm'
+          : 'border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-primary/30'
+      }`;
+      btn.textContent = pageNum.toString();
+      btn.addEventListener('click', () => {
+        loadPendingAccounts(pageNum, currentStatus);
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      return btn;
+    }
+
+    // Refresh stats only without reloading the list
+    async function refreshStatsOnly() {
+      try {
+        const response = await fetch(`/api/admin/pending-accounts?page=1&per_page=1&status=${currentStatus}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const newStats = data.stats || { pending: 0, approved: 0, rejected: 0, approvedToday: 0, rejectedToday: 0 };
+          
+          // Update today's stats
+          approvedToday = newStats.approvedToday || 0;
+          rejectedToday = newStats.rejectedToday || 0;
+          const approvedTodayEl = document.getElementById('approved-today');
+          const rejectedTodayEl = document.getElementById('rejected-today');
+          if (approvedTodayEl) approvedTodayEl.textContent = approvedToday.toString();
+          if (rejectedTodayEl) rejectedTodayEl.textContent = rejectedToday.toString();
+          
+          // Update filter counts
+          const pendingCountEl = document.getElementById('filter-pending-count');
+          const approvedCountEl = document.getElementById('filter-approved-count');
+          const rejectedCountEl = document.getElementById('filter-rejected-count');
+          if (pendingCountEl) pendingCountEl.textContent = newStats.pending?.toString() || '0';
+          if (approvedCountEl) approvedCountEl.textContent = newStats.approved?.toString() || '0';
+          if (rejectedCountEl) rejectedCountEl.textContent = newStats.rejected?.toString() || '0';
+        }
+      } catch (error) {
+        console.error('Error refreshing stats:', error);
+      }
+    }
+
+    // Update filter tabs UI
+    function updateFilterTabs(activeStatus: string) {
+      const tabs = document.querySelectorAll('.filter-tab');
+      tabs.forEach(tab => {
+        const status = tab.getAttribute('data-status');
+        if (status === activeStatus) {
+          tab.classList.remove('border-2', 'border-gray-300', 'dark:border-gray-600', 'text-gray-700', 'dark:text-gray-300', 'hover:bg-gray-50', 'dark:hover:bg-gray-800');
+          tab.classList.add('bg-primary', 'text-white', 'shadow-sm');
+        } else {
+          tab.classList.remove('bg-primary', 'text-white', 'shadow-sm');
+          tab.classList.add('border-2', 'border-gray-300', 'dark:border-gray-600', 'text-gray-700', 'dark:text-gray-300', 'hover:bg-gray-50', 'dark:hover:bg-gray-800');
+        }
+      });
+    }
+
+    // Filter tab event listeners
+    const filterPending = document.getElementById('filter-pending');
+    const filterApproved = document.getElementById('filter-approved');
+    const filterRejected = document.getElementById('filter-rejected');
+    
+    filterPending?.addEventListener('click', () => {
+      loadPendingAccounts(1, 'pending');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    
+    filterApproved?.addEventListener('click', () => {
+      loadPendingAccounts(1, 'approved');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    
+    filterRejected?.addEventListener('click', () => {
+      loadPendingAccounts(1, 'rejected');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // Event listeners
+    refreshBtn?.addEventListener('click', () => loadPendingAccounts(currentPage, currentStatus));
+    retryBtn?.addEventListener('click', () => loadPendingAccounts(currentPage, currentStatus));
+    
+    if (paginationPrev) {
+      paginationPrev.addEventListener('click', () => {
+        if (pagination && pagination.hasPrevPage) {
+          loadPendingAccounts(currentPage - 1, currentStatus);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    }
+    
+    if (paginationNext) {
+      paginationNext.addEventListener('click', () => {
+        if (pagination && pagination.hasNextPage) {
+          loadPendingAccounts(currentPage + 1, currentStatus);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    }
+
+    // Initial load
+    loadPendingAccounts(1);
+  });
+</script>
+
+<style>
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+  
+  .skeleton-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .skeleton-shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent
+    );
+    animation: shimmer 1.5s infinite;
+  }
+  
+  :global(.dark) .skeleton-shimmer::after {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+  }
+</style>
+

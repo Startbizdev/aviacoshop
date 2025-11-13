@@ -220,15 +220,15 @@ const isInStock = !isOutOfStock; // Par défaut en stock si non défini
         <div class="mb-4 sm:mb-6">
           {product.prices?.sale_price && product.prices.sale_price !== product.prices.price ? (
             <div class="flex items-center gap-3 sm:gap-4">
-              <span class="font-outfit font-bold text-2xl sm:text-3xl text-primary">
+              <span class="font-outfit font-bold text-2xl sm:text-3xl text-primary product-price">
                 {product.prices.sale_price} €
               </span>
-              <span class="font-outfit text-lg sm:text-xl text-gray-500 dark:text-gray-400 line-through">
+              <span class="font-outfit text-lg sm:text-xl text-gray-500 dark:text-gray-400 line-through product-price">
                 {product.prices.regular_price} €
               </span>
             </div>
           ) : (
-            <span class="font-outfit font-bold text-2xl sm:text-3xl text-primary">
+            <span class="font-outfit font-bold text-2xl sm:text-3xl text-primary product-price">
               {product.prices?.price || '0'} €
             </span>
           )}
@@ -307,7 +307,7 @@ const isInStock = !isOutOfStock; // Par défaut en stock si non défini
                         </span>
                       ))}
                     </div>
-                    <span class="font-outfit font-bold text-primary">
+                    <span class="font-outfit font-bold text-primary product-price">
                       {variation.prices?.price || product.prices?.price} €
                     </span>
                   </div>
@@ -322,7 +322,7 @@ const isInStock = !isOutOfStock; // Par défaut en stock si non défini
           <Button
             variant="primary"
             size="lg"
-            class="w-full"
+            class="w-full product-add-to-cart"
             data-product-id={product.id}
             data-product-name={product.name}
             data-product-price={product.prices?.price || '0'}
@@ -383,6 +383,60 @@ const isInStock = !isOutOfStock; // Par défaut en stock si non défini
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    // Vérifier l'authentification et masquer/afficher les éléments
+    function checkAuth() {
+      const token = localStorage.getItem('auth_token');
+      const userStr = localStorage.getItem('user');
+      const isAuthenticated = !!(token && userStr && userStr !== 'undefined' && userStr !== 'null');
+      
+      // Masquer/afficher les prix
+      document.querySelectorAll('.product-price').forEach((el: Element) => {
+        (el as HTMLElement).style.display = isAuthenticated ? '' : 'none';
+      });
+      
+      // Masquer/afficher les boutons "Add to cart" et créer/supprimer les liens de connexion
+      document.querySelectorAll('.product-add-to-cart').forEach((btn: Element) => {
+        const el = btn as HTMLElement;
+        const parent = el.parentElement;
+        if (!parent) return;
+        
+        // Chercher si un lien de connexion existe déjà
+        let loginLink = parent.querySelector('.product-login-link') as HTMLElement;
+        
+        if (isAuthenticated) {
+          el.style.display = '';
+          if (loginLink) loginLink.remove();
+        } else {
+          el.style.display = 'none';
+          if (!loginLink) {
+            loginLink = document.createElement('a');
+            loginLink.href = '/login';
+            loginLink.className = 'product-login-link w-full text-base py-3.5 px-4 inline-flex items-center justify-center gap-2 font-outfit font-medium text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-all duration-200 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary hover:bg-primary/5 dark:hover:bg-primary/10 bg-gray-50 dark:bg-gray-800/50 group';
+            loginLink.innerHTML = `
+              <svg class="w-5 h-5 text-primary group-hover:scale-110 transition-transform duration-200 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+              </svg>
+              <span class="text-center leading-tight">
+                <span class="font-semibold">Sign in to view price</span>
+              </span>
+            `;
+            parent.insertBefore(loginLink, el.nextSibling);
+          } else {
+            loginLink.style.display = '';
+          }
+        }
+      });
+    }
+    
+    checkAuth();
+    window.addEventListener('user-logged-in', checkAuth);
+    window.addEventListener('user-logged-out', checkAuth);
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'auth_token' || e.key === 'user') {
+        checkAuth();
+      }
+    });
+    
     // Hide skeleton and show content
     const skeleton = document.getElementById('product-skeleton');
     const content = document.getElementById('product-content');
@@ -648,10 +702,12 @@ const isInStock = !isOutOfStock; // Par défaut en stock si non défini
               }, 3000);
               
               // Message d'erreur plus spécifique selon le type d'erreur
-              if (errorMessage.includes('not enough stock') || errorMessage.includes('remaining')) {
-                alert('Not enough stock available. Please reduce the quantity or check your cart.');
-              } else {
-                alert('This product is not available for purchase. It may be out of stock or require a variation selection.');
+              if (window.showToast) {
+                if (errorMessage.includes('not enough stock') || errorMessage.includes('remaining')) {
+                  window.showToast('Insufficient stock available. Please reduce the quantity or check your cart.', 'warning', 6000);
+                } else {
+                  window.showToast('This product is not available for purchase. It may be out of stock or require a variation selection.', 'warning', 6000);
+                }
               }
               
               // Recharger le panier pour s'assurer qu'il n'a pas été vidé
@@ -670,8 +726,8 @@ const isInStock = !isOutOfStock; // Par défaut en stock si non défini
           }, 2000);
           
           // Afficher l'erreur à l'utilisateur
-          if (!errorMessage.includes('not available')) {
-            alert(`Error: ${errorMessage}`);
+          if (!errorMessage.includes('not available') && window.showToast) {
+            window.showToast(`Erreur : ${errorMessage}`, 'error', 6000);
           }
           
           // Recharger le panier pour s'assurer qu'il n'a pas été vidé

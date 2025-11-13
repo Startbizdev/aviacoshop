@@ -299,27 +299,34 @@ import Button from '../components/atoms/Button.astro';
           const result = await response.json();
           
           if (response.ok) {
-            // Show success message
-            successMessage.classList.remove('hidden');
+            // Show success toast
+            if (window.showToast) {
+              window.showToast('Thank you! Your message has been sent successfully. We will respond as soon as possible.', 'success', 6000);
+            } else {
+              successMessage.classList.remove('hidden');
+              successMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
             form.reset();
-            
-            // Scroll to success message
-            successMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
           } else {
-            // Show error message
-            errorText.textContent = result.error || 'An error occurred. Please try again later.';
-            errorMessage.classList.remove('hidden');
-            
-            // Scroll to error message
-            errorMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            // Show error toast
+            const errorMsg = result.error || 'An error occurred. Please try again later.';
+            if (window.showToast) {
+              window.showToast(errorMsg, 'error', 6000);
+            } else {
+              errorText.textContent = errorMsg;
+              errorMessage.classList.remove('hidden');
+              errorMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
           }
         } catch (error) {
-          // Show error message
-          errorText.textContent = 'Network error. Please check your connection and try again.';
-          errorMessage.classList.remove('hidden');
-          
-          // Scroll to error message
-          errorMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          // Show error toast
+          if (window.showToast) {
+            window.showToast('Network error. Please check your connection and try again.', 'error', 6000);
+          } else {
+            errorText.textContent = 'Network error. Please check your connection and try again.';
+            errorMessage.classList.remove('hidden');
+            errorMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
         } finally {
           // Re-enable submit button
           submitBtn.disabled = false;

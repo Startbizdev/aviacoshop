@@ -14,8 +14,8 @@ export const GET: APIRoute = async ({ request }) => {
     
     const token = authHeader.replace('Bearer ', '');
     
-    // Récupérer l'ID utilisateur via JWT
-    const userUrl = `${WC_API_URL}/wp-json/wp/v2/users/me`;
+    // Récupérer l'ID utilisateur via JWT avec context=edit pour obtenir les rôles
+    const userUrl = `${WC_API_URL}/wp-json/wp/v2/users/me?context=edit`;
     
     const userResponse = await fetch(userUrl, {
       headers: {
@@ -55,10 +55,15 @@ export const GET: APIRoute = async ({ request }) => {
     
     const customerData = await customerResponse.json();
     
+    // Récupérer le statut du compte depuis meta_data
+    const accountStatusMeta = customerData.meta_data?.find((meta: any) => meta.key === 'account_status');
+    const accountStatus = accountStatusMeta?.value || 'pending';
+    
     // Fusionner les données
     const user = {
       ...userData,
       ...customerData,
+      account_status: accountStatus,
     };
     
     return new Response(JSON.stringify({ user }), {

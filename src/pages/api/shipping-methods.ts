@@ -38,26 +38,58 @@ export const POST: APIRoute = async ({ request }) => {
     
     console.log('POST /api/shipping-methods - Calling getShippingMethods with:', shippingAddress);
     const methods = await getShippingMethods(shippingAddress, cookie);
-    console.log('POST /api/shipping-methods - Received methods:', methods);
+    console.log('POST /api/shipping-methods - Received methods:', JSON.stringify(methods, null, 2));
     
+    // Log détaillé pour déboguer DHL
+    if (Array.isArray(methods)) {
+      methods.forEach((method: any, index: number) => {
+        console.log(`Method ${index}:`, {
+          id: method.rate_id || method.id,
+          name: method.name || method.label,
+          cost: method.cost,
+          price: method.price,
+          total: method.total,
+          rate_cost: method.rate_cost,
+        });
+      });
+    }
+    
+    // Helper function to format price correctly
+    const formatPrice = (price: any): string => {
+      if (!price && price !== 0) return '0';
+      const priceStr = String(price);
+      // Remove currency symbols and spaces, keep numbers and decimal point
+      const cleaned = priceStr.replace(/[€\s,]/g, '').trim();
+      // Convert to number and back to string to handle decimals properly
+      const num = parseFloat(cleaned);
+      if (isNaN(num)) return '0';
+      // Format with 2 decimals for shipping prices
+      return num.toFixed(2);
+    };
+
     // Format methods for frontend
     const formattedMethods = Array.isArray(methods) ? methods.flatMap((packageMethods: any) => {
       // Handle WooCommerce shipping packages structure
       if (packageMethods.shipping_rates && Array.isArray(packageMethods.shipping_rates)) {
-        return packageMethods.shipping_rates.map((method: any) => ({
-          id: method.rate_id || method.id,
-          name: method.name || method.label,
-          description: method.description || '',
-          price: method.price || method.cost || '0',
-          selected: method.selected || false,
-        }));
+        return packageMethods.shipping_rates.map((method: any) => {
+          // Extraire le prix depuis différentes propriétés possibles
+          const rawPrice = method.price || method.cost || method.total || method.rate_cost || '0';
+          return {
+            id: method.rate_id || method.id,
+            name: method.name || method.label,
+            description: method.description || '',
+            price: formatPrice(rawPrice),
+            selected: method.selected || false,
+          };
+        });
       }
       // Handle direct shipping rates
+      const rawPrice = packageMethods.price || packageMethods.cost || packageMethods.total || packageMethods.rate_cost || '0';
       return {
         id: packageMethods.rate_id || packageMethods.id,
         name: packageMethods.name || packageMethods.label,
         description: packageMethods.description || '',
-        price: packageMethods.price || packageMethods.cost || '0',
+        price: formatPrice(rawPrice),
         selected: packageMethods.selected || false,
       };
     }) : [];

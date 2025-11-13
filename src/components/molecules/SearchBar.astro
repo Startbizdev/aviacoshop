@@ -56,8 +56,10 @@ import Spinner from '../atoms/Spinner.astro';
 
 <script>
   let searchTimeout: NodeJS.Timeout;
+  let logTimeout: NodeJS.Timeout;
   let currentIndex = -1;
   let suggestions: any[] = [];
+  let lastQuery = '';
   
   const searchInput = document.getElementById('search-input') as HTMLInputElement;
   const suggestionsContainer = document.getElementById('search-suggestions') as HTMLElement;
@@ -161,14 +163,51 @@ import Spinner from '../atoms/Spinner.astro';
     suggestionsContainer.classList.remove('hidden');
   }
 
+  // Function to log search without results
+  async function logSearchWithoutResults(query: string) {
+    // Annuler le timeout précédent si l'utilisateur continue à taper
+    clearTimeout(logTimeout);
+    
+    // Attendre 2.5 secondes après la dernière frappe avant d'enregistrer
+    logTimeout = setTimeout(async () => {
+      try {
+        // Récupérer le token si l'utilisateur est connecté
+        const token = localStorage.getItem('auth_token');
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+        
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        await fetch('/api/search-log', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            query,
+            results_count: 0,
+          }),
+        });
+      } catch (error) {
+        // Silencieux - on ne veut pas perturber l'expérience utilisateur
+        console.debug('Failed to log search:', error);
+      }
+    }, 2500); // 2.5 secondes de délai
+  }
+
   // Function to perform search
   async function performSearch(query: string) {
     if (query.length < 2) {
       suggestionsContainer.classList.add('hidden');
       searchLoading.classList.add('hidden');
       searchIcon.classList.remove('hidden');
+      clearTimeout(logTimeout);
+      lastQuery = '';
       return;
     }
+    
+    lastQuery = query;
     
     // Show spinner and hide search icon during search
     searchLoading.classList.remove('hidden');
@@ -183,6 +222,14 @@ import Spinner from '../atoms/Spinner.astro';
       
       const products = await response.json();
       displaySuggestions(products, query);
+      
+      // Si aucun résultat, programmer l'enregistrement après délai
+      if (products.length === 0 && query.length >= 2) {
+        logSearchWithoutResults(query);
+      } else {
+        // Annuler l'enregistrement si des résultats sont trouvés
+        clearTimeout(logTimeout);
+      }
     } catch (error) {
       console.error('Error searching products:', error);
       suggestionsList.innerHTML = `

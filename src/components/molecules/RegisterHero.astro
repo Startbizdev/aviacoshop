@@ -1,0 +1,120 @@
+---
+interface Props {
+  class?: string;
+  backgroundImage?: string;
+}
+
+const { 
+  class: className = '',
+  backgroundImage = '/copter/1.jpg'
+} = Astro.props;
+---
+
+<div class={`register-hero relative w-full h-full min-h-[500px] sm:min-h-[600px] lg:min-h-0 lg:h-full flex flex-col justify-center ${className}`} style={`background-image: url('${backgroundImage}');`}>
+  <!-- Overlay gradient for better text readability -->
+  <div class="absolute inset-0 bg-gradient-to-br from-black/40 via-black/30 to-black/40"></div>
+  
+  <!-- Content -->
+  <div class="relative z-10 px-6 sm:px-8 md:px-10 lg:px-12 py-8 sm:py-10 md:py-12 h-full flex flex-col justify-center">
+    <div class="text-center mb-8 lg:mb-10">
+      <h1 class="font-outfit font-bold text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-3 text-white leading-tight drop-shadow-lg">
+        Create your B2B account
+      </h1>
+      
+      <p class="font-outfit text-base sm:text-lg md:text-xl text-white/90 mb-8 lg:mb-10 max-w-2xl mx-auto drop-shadow-md">
+        Get early access to new spare parts, exclusive pricing, and fast delivery
+      </p>
+    </div>
+
+    <!-- Benefits Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-3xl mx-auto w-full">
+    <!-- Benefit 1: Early Access -->
+    <div class="flex items-start gap-2.5 p-3 sm:p-3.5 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 transition-all duration-300 hover:bg-white/15 hover:border-white/30 hover:shadow-lg">
+      <div class="flex-shrink-0 w-8 h-8 bg-white rounded-md flex items-center justify-center shadow-sm">
+        <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+        </svg>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h3 class="font-outfit font-semibold text-sm text-white mb-0.5 drop-shadow-sm leading-tight">
+          Early access
+        </h3>
+        <p class="font-outfit text-xs text-white/85 drop-shadow-sm leading-snug">
+          Be the first to discover new spare parts
+        </p>
+      </div>
+    </div>
+
+    <!-- Benefit 2: Exclusive Pricing -->
+    <div class="flex items-start gap-2.5 p-3 sm:p-3.5 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 transition-all duration-300 hover:bg-white/15 hover:border-white/30 hover:shadow-lg">
+      <div class="flex-shrink-0 w-8 h-8 bg-white rounded-md flex items-center justify-center shadow-sm">
+        <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h3 class="font-outfit font-semibold text-sm text-white mb-0.5 drop-shadow-sm leading-tight">
+          Exclusive pricing
+        </h3>
+        <p class="font-outfit text-xs text-white/85 drop-shadow-sm leading-snug">
+          Access competitive B2B rates
+        </p>
+      </div>
+    </div>
+
+    <!-- Benefit 3: Fast Delivery -->
+    <div class="flex items-start gap-2.5 p-3 sm:p-3.5 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 transition-all duration-300 hover:bg-white/15 hover:border-white/30 hover:shadow-lg">
+      <div class="flex-shrink-0 w-8 h-8 bg-white rounded-md flex items-center justify-center shadow-sm">
+        <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+        </svg>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h3 class="font-outfit font-semibold text-sm text-white mb-0.5 drop-shadow-sm leading-tight">
+          Fast delivery
+        </h3>
+        <p class="font-outfit text-xs text-white/85 drop-shadow-sm leading-snug">
+          Quick shipping for urgent needs
+        </p>
+      </div>
+    </div>
+
+    <!-- Benefit 4: B2B Account -->
+    <div class="flex items-start gap-2.5 p-3 sm:p-3.5 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 transition-all duration-300 hover:bg-white/15 hover:border-white/30 hover:shadow-lg">
+      <div class="flex-shrink-0 w-8 h-8 bg-white rounded-md flex items-center justify-center shadow-sm">
+        <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h3 class="font-outfit font-semibold text-sm text-white mb-0.5 drop-shadow-sm leading-tight">
+          B2B account
+        </h3>
+        <p class="font-outfit text-xs text-white/85 drop-shadow-sm leading-snug">
+          Professional business solutions
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .register-hero {
+    animation: fadeInUp 0.6s ease-out;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+

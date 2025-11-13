@@ -1,0 +1,479 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import BlogCard from '../../components/molecules/BlogCard.astro';
+import Badge from '../../components/atoms/Badge.astro';
+import Button from '../../components/atoms/Button.astro';
+import { WC_API_URL } from '../../lib/config';
+import { Calendar, User, Clock, ArrowLeft, Share2 } from 'lucide-astro';
+
+const { slug } = Astro.params;
+
+// Récupérer l'article
+let post: any = null;
+let relatedPosts: any[] = [];
+
+try {
+  // Récupérer l'article par slug
+  const response = await fetch(`${WC_API_URL}/wp-json/wp/v2/posts?slug=${slug}&_embed=true`);
+  
+  if (response.ok) {
+    const posts = await response.json();
+    if (posts.length > 0) {
+      post = posts[0];
+      
+      // Récupérer les articles similaires (même catégorie)
+      if (post.categories && post.categories.length > 0) {
+        const relatedResponse = await fetch(
+          `${WC_API_URL}/wp-json/wp/v2/posts?categories=${post.categories[0]}&exclude=${post.id}&per_page=3&_embed=true`
+        );
+        if (relatedResponse.ok) {
+          relatedPosts = await relatedResponse.json();
+        }
+      }
+    }
+  }
+} catch (error) {
+  console.error('[Blog] Error fetching post:', error);
+}
+
+// Si l'article n'existe pas, retourner 404
+if (!post) {
+  return Astro.redirect('/404');
+}
+
+// Extraire les données
+const featuredMedia = post._embedded?.['wp:featuredmedia']?.[0];
+const imageUrl = featuredMedia?.source_url;
+const imageAlt = featuredMedia?.alt_text || post.title.rendered;
+const categories = post._embedded?.['wp:term']?.[0] || [];
+const author = post._embedded?.author?.[0];
+
+// Format date
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  }).format(date);
+};
+
+// Calculate reading time (approximately 200 words per minute)
+const calculateReadTime = (content: string) => {
+  const text = content.replace(/<[^>]*>/g, '');
+  const words = text.split(/\s+/).length;
+  const minutes = Math.ceil(words / 200);
+  return `${minutes} min read`;
+};
+
+const readTime = calculateReadTime(post.content.rendered);
+---
+
+<MainLayout 
+  title={`${post.title.rendered} | Blog Aviaco`} 
+  description={post.excerpt.rendered.replace(/<[^>]*>/g, '').substring(0, 160)}
+>
+  <!-- Bouton retour -->
+  <div class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+    <div class="container mx-auto px-4 py-4">
+      <a 
+        href="/blog" 
+        class="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-primary transition-colors font-outfit"
+      >
+        <ArrowLeft class="w-4 h-4" />
+        <span>Back to blog</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Article Header -->
+  <article class="bg-white dark:bg-gray-900">
+    <!-- Image à la une -->
+    {imageUrl && (
+      <div class="relative w-full h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden bg-gray-900">
+        <img 
+          src={imageUrl} 
+          alt={imageAlt}
+          class="w-full h-full object-cover"
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
+        
+        <!-- Title overlay on image -->
+        <div class="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-12">
+          <div class="container mx-auto max-w-4xl">
+            <!-- Catégories -->
+            {categories.length > 0 && (
+              <div class="flex flex-wrap gap-2 mb-4">
+                {categories.map((category: any) => (
+                  <Badge 
+                    variant="primary" 
+                    size="sm"
+                    class="backdrop-blur-sm bg-primary/90"
+                  >
+                    {category.name}
+                  </Badge>
+                ))}
+              </div>
+            )}
+            
+            <!-- Titre -->
+            <h1 class="font-outfit font-bold text-3xl md:text-4xl lg:text-5xl text-white mb-6 leading-tight">
+              {post.title.rendered}
+            </h1>
+            
+            <!-- Meta -->
+            <div class="flex flex-wrap items-center gap-4 text-white/90 text-sm">
+              {author && (
+                <div class="flex items-center gap-2">
+                  {author.avatar_urls?.['96'] && (
+                    <img 
+                      src={author.avatar_urls['96']} 
+                      alt={author.name}
+                      class="w-10 h-10 rounded-full object-cover border-2 border-white/20"
+                    />
+                  )}
+                  <div>
+                    <div class="font-outfit font-medium">{author.name}</div>
+                  </div>
+                </div>
+              )}
+              
+              <span class="text-white/40">•</span>
+              
+              <div class="flex items-center gap-1.5">
+                <Calendar class="w-4 h-4" />
+                <span class="font-outfit">{formatDate(post.date)}</span>
+              </div>
+              
+              <span class="text-white/40">•</span>
+              
+              <div class="flex items-center gap-1.5">
+                <Clock class="w-4 h-4" />
+                <span class="font-outfit">{readTime}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+    
+    <!-- Si pas d'image, afficher le header classique -->
+    {!imageUrl && (
+      <div class="bg-gradient-to-br from-primary via-primary-dark to-primary-light text-white py-12 md:py-16">
+        <div class="container mx-auto px-4 max-w-4xl">
+          <!-- Catégories -->
+          {categories.length > 0 && (
+            <div class="flex flex-wrap gap-2 mb-4">
+              {categories.map((category: any) => (
+                <Badge 
+                  variant="primary" 
+                  size="sm"
+                  class="backdrop-blur-sm bg-white/20"
+                >
+                  {category.name}
+                </Badge>
+              ))}
+            </div>
+          )}
+          
+          <!-- Titre -->
+          <h1 class="font-outfit font-bold text-3xl md:text-4xl lg:text-5xl mb-6 leading-tight">
+            {post.title.rendered}
+          </h1>
+          
+          <!-- Meta -->
+          <div class="flex flex-wrap items-center gap-4 text-white/90 text-sm">
+            {author && (
+              <div class="flex items-center gap-2">
+                {author.avatar_urls?.['96'] && (
+                  <img 
+                    src={author.avatar_urls['96']} 
+                    alt={author.name}
+                    class="w-10 h-10 rounded-full object-cover border-2 border-white/20"
+                  />
+                )}
+                <div>
+                  <div class="font-outfit font-medium">{author.name}</div>
+                </div>
+              </div>
+            )}
+            
+            <span class="text-white/40">•</span>
+            
+            <div class="flex items-center gap-1.5">
+              <Calendar class="w-4 h-4" />
+              <span class="font-outfit">{formatDate(post.date)}</span>
+            </div>
+            
+            <span class="text-white/40">•</span>
+            
+            <div class="flex items-center gap-1.5">
+              <Clock class="w-4 h-4" />
+              <span class="font-outfit">{readTime}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+    
+    <!-- Contenu -->
+    <div class="bg-gray-50 dark:bg-gray-900 py-12 md:py-16">
+      <div class="container mx-auto px-4">
+        <div class="max-w-4xl mx-auto">
+          <!-- Boutons de partage -->
+          <div class="flex items-center justify-end gap-2 mb-8 pb-8 border-b border-gray-200 dark:border-gray-800">
+            <span class="font-outfit text-sm text-gray-600 dark:text-gray-400 mr-2">Share:</span>
+            <button
+              onclick={`window.open('https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(Astro.url.href)}', '_blank', 'width=600,height=400')`}
+              class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300 shadow-md hover:shadow-lg"
+              aria-label="Share on LinkedIn"
+            >
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+              </svg>
+            </button>
+            <button
+              onclick={`window.open('https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(Astro.url.href)}', '_blank', 'width=600,height=400')`}
+              class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-all duration-300 shadow-md hover:shadow-lg"
+              aria-label="Share on Facebook"
+            >
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+            </button>
+            <button
+              onclick={`window.open('https://twitter.com/intent/tweet?url=${encodeURIComponent(Astro.url.href)}&text=${encodeURIComponent(post.title.rendered)}', '_blank', 'width=600,height=400')`}
+              class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-800 hover:bg-gray-900 text-white transition-all duration-300 shadow-md hover:shadow-lg"
+              aria-label="Share on X (Twitter)"
+            >
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              </svg>
+            </button>
+          </div>
+          
+          <!-- Article content -->
+          <div 
+            class="prose prose-lg dark:prose-invert max-w-none
+              prose-headings:font-outfit prose-headings:font-bold
+              prose-h2:text-3xl prose-h2:mt-12 prose-h2:mb-6 prose-h2:text-gray-900 dark:prose-h2:text-white
+              prose-h3:text-2xl prose-h3:mt-8 prose-h3:mb-4 prose-h3:text-gray-900 dark:prose-h3:text-white
+              prose-p:font-outfit prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-p:leading-relaxed prose-p:mb-6
+              prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+              prose-strong:text-gray-900 dark:prose-strong:text-white prose-strong:font-semibold
+              prose-ul:my-6 prose-li:my-2
+              prose-img:rounded-xl prose-img:shadow-lg prose-img:my-8
+              prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:text-gray-700 dark:prose-blockquote:text-gray-300
+              prose-code:text-primary prose-code:bg-primary/10 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:font-mono prose-code:text-sm prose-code:before:content-none prose-code:after:content-none
+              prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:rounded-xl prose-pre:shadow-lg"
+            set:html={post.content.rendered}
+          />
+        </div>
+      </div>
+    </div>
+    
+    <!-- Articles similaires -->
+    {relatedPosts.length > 0 && (
+      <section class="bg-white dark:bg-gray-800 py-12 md:py-16 border-t border-gray-200 dark:border-gray-700">
+        <div class="container mx-auto px-4">
+          <div class="max-w-6xl mx-auto">
+            <h2 class="font-outfit font-bold text-2xl md:text-3xl text-gray-900 dark:text-white mb-8 text-center">
+              Related articles
+            </h2>
+            <div class="related-posts-grid grid grid-cols-1 gap-6 md:gap-8">
+              {relatedPosts.map((relatedPost) => (
+                <BlogCard post={relatedPost} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    )}
+    
+    <!-- CTA -->
+    <section class="bg-gradient-to-br from-primary via-primary-dark to-primary-light text-white py-12 md:py-16">
+      <div class="container mx-auto px-4 text-center">
+        <div class="max-w-2xl mx-auto">
+          <h2 class="font-outfit font-bold text-2xl md:text-3xl mb-4">
+            Discover our shop
+          </h2>
+          <p class="font-outfit text-lg text-white/90 mb-8">
+            Find all spare parts and equipment for your helicopter
+          </p>
+          <Button 
+            href="/catalogue" 
+            variant="secondary"
+            size="lg"
+            class="inline-flex items-center gap-2 bg-white text-primary hover:bg-gray-100"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+            View catalog
+          </Button>
+        </div>
+      </div>
+    </section>
+  </article>
+</MainLayout>
+
+<style>
+  /* Related posts grid */
+  .related-posts-grid {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+  
+  @media (width >= 768px) {
+    .related-posts-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  
+  /* Styles pour le contenu WordPress */
+  :global(.prose) {
+    font-family: 'Outfit', sans-serif;
+    color: rgb(55 65 75);
+    line-height: 1.75;
+  }
+  
+  .dark :global(.prose) {
+    color: rgb(209 213 219);
+  }
+  
+  /* Paragraphes */
+  :global(.prose p) {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+    font-size: 1.125em;
+    line-height: 1.75;
+  }
+  
+  /* Titres H2 */
+  :global(.prose h2) {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+    margin-top: 2em;
+    margin-bottom: 1em;
+    color: rgb(17 24 39);
+  }
+  
+  .dark :global(.prose h2) {
+    color: rgb(255 255 255);
+  }
+  
+  /* Titres H3 */
+  :global(.prose h3) {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    line-height: 2rem;
+    margin-top: 1.5em;
+    margin-bottom: 0.75em;
+    color: rgb(17 24 39);
+  }
+  
+  .dark :global(.prose h3) {
+    color: rgb(255 255 255);
+  }
+  
+  /* Listes */
+  :global(.prose ul) {
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+    padding-left: 1.625em;
+    list-style-type: disc;
+  }
+  
+  :global(.prose li) {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    padding-left: 0.375em;
+  }
+  
+  /* Texte en gras */
+  :global(.prose strong) {
+    font-weight: 600;
+    color: rgb(17 24 39);
+  }
+  
+  .dark :global(.prose strong) {
+    color: rgb(255 255 255);
+  }
+  
+  /* Images */
+  :global(.prose img) {
+    width: 100%;
+    margin-top: 2em;
+    margin-bottom: 2em;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+  
+  /* Galeries WordPress */
+  :global(.prose .wp-block-gallery) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 2em;
+    margin-bottom: 2em;
+  }
+  
+  @media (width >= 768px) {
+    :global(.prose .wp-block-gallery) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  
+  /* Vidéos embed */
+  :global(.prose iframe) {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  /* Tableaux */
+  :global(.prose table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  :global(.prose th) {
+    background-color: rgb(243 244 246);
+    font-weight: 600;
+    text-align: left;
+    padding: 0.75rem;
+    border: 1px solid rgb(229 231 235);
+  }
+  
+  .dark :global(.prose th) {
+    background-color: rgb(31 41 55);
+    border-color: rgb(55 65 81);
+  }
+  
+  :global(.prose td) {
+    padding: 0.75rem;
+    border: 1px solid rgb(229 231 235);
+  }
+  
+  .dark :global(.prose td) {
+    border-color: rgb(55 65 81);
+  }
+  
+  /* Liens */
+  :global(.prose a) {
+    color: rgb(4 19 165);
+    text-decoration: none;
+  }
+  
+  :global(.prose a:hover) {
+    text-decoration: underline;
+  }
+</style>
+

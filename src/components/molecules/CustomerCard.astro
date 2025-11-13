@@ -1,0 +1,134 @@
+---
+import Card from '../atoms/Card.astro';
+import Icon from '../atoms/Icon.astro';
+
+interface Props {
+  customer: {
+    id: number;
+    first_name?: string;
+    last_name?: string;
+    username: string;
+    email: string;
+    date_created: string;
+  };
+}
+
+const { customer } = Astro.props;
+
+const firstName = customer.first_name || '';
+const lastName = customer.last_name || '';
+const fullName = `${firstName} ${lastName}`.trim() || customer.username || '-';
+
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - date.getTime());
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) {
+    return "Today";
+  } else if (diffDays === 1) {
+    return 'Yesterday';
+  } else if (diffDays < 7) {
+    return `${diffDays} days ago`;
+  } else {
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+}
+---
+
+<Card 
+  variant="elevated" 
+  class="p-3 sm:p-4 hover:shadow-xl transition-all duration-300 cursor-pointer group h-full flex flex-col border border-gray-200 dark:border-gray-700 hover:border-primary/30"
+  data-customer-id={customer.id}
+>
+  <div class="flex flex-col h-full">
+    <!-- Header: Name and Username -->
+    <div class="mb-3 sm:mb-4">
+      <h3 class="font-outfit font-semibold text-sm sm:text-base text-gray-900 dark:text-white mb-1 group-hover:text-primary transition-colors duration-200 truncate">
+        {fullName}
+      </h3>
+      <p class="font-outfit text-xs text-gray-500 dark:text-gray-400 truncate">
+        @{customer.username}
+      </p>
+    </div>
+
+    <!-- Details Grid -->
+    <div class="space-y-2.5 sm:space-y-3 flex-1 mb-3 sm:mb-4">
+      <!-- Email -->
+      <div class="flex items-start gap-2 sm:gap-2.5 group/item">
+        <div class="w-4 h-4 flex items-center justify-center flex-shrink-0 mt-0.5 rounded-md bg-gray-50 dark:bg-gray-800/50 group-hover/item:bg-primary/10 transition-colors duration-200">
+          <Icon name="mail" size="sm" class="text-gray-400 dark:text-gray-500 group-hover/item:text-primary transition-colors duration-200" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="font-outfit text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5 uppercase tracking-wide">
+            Email
+          </p>
+          <p class="font-outfit text-xs sm:text-sm text-gray-900 dark:text-white break-all leading-relaxed">
+            {customer.email || '-'}
+          </p>
+        </div>
+      </div>
+
+      <!-- Registration Date -->
+      <div class="flex items-start gap-2 sm:gap-2.5 group/item">
+        <div class="w-4 h-4 flex items-center justify-center flex-shrink-0 mt-0.5 rounded-md bg-gray-50 dark:bg-gray-800/50 group-hover/item:bg-primary/10 transition-colors duration-200">
+          <Icon name="calendar" size="sm" class="text-gray-400 dark:text-gray-500 group-hover/item:text-primary transition-colors duration-200" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="font-outfit text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5 uppercase tracking-wide">
+            Registered
+          </p>
+          <p class="font-outfit text-xs sm:text-sm text-gray-900 dark:text-white leading-relaxed">
+            {formatDate(customer.date_created)}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- View Button - Always Visible -->
+    <button
+      class="mt-auto w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg bg-primary text-white hover:bg-primary-dark active:scale-[0.98] transition-all duration-200 font-outfit font-medium text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+      data-customer-id={customer.id}
+      data-action="view"
+      aria-label={`View details for ${fullName}`}
+    >
+      <Icon name="eye" size="sm" />
+      <span>View Details</span>
+    </button>
+  </div>
+</Card>
+
+<script>
+  // Attach click listeners when card is rendered
+  document.addEventListener('DOMContentLoaded', () => {
+    const cards = document.querySelectorAll('[data-customer-id]');
+    cards.forEach(card => {
+      const customerId = card.getAttribute('data-customer-id');
+      if (customerId) {
+        // Card click
+        card.addEventListener('click', (e) => {
+          // Don't open if clicking the button (button has its own handler)
+          if ((e.target as HTMLElement).closest('button[data-action="view"]')) {
+            return;
+          }
+          if (window.openCustomerSheet) {
+            window.openCustomerSheet(parseInt(customerId));
+          }
+        });
+
+        // Button click
+        const button = card.querySelector('button[data-action="view"]');
+        if (button) {
+          button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (window.openCustomerSheet) {
+              window.openCustomerSheet(parseInt(customerId));
+            }
+          });
+        }
+      }
+    });
+  });
+</script>
+

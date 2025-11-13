@@ -1,0 +1,158 @@
+---
+import Button from '../atoms/Button.astro';
+
+interface Props {
+  /**
+   * Le contenu à afficher uniquement pour les utilisateurs connectés
+   */
+  children?: any;
+  /**
+   * Variante d'affichage : 'replace' remplace le contenu par le message de connexion, 'hide' cache simplement
+   */
+  variant?: 'replace' | 'hide';
+  /**
+   * Message personnalisé à afficher
+   */
+  message?: string;
+  /**
+   * Classe CSS personnalisée pour le conteneur
+   */
+  class?: string;
+}
+
+const {
+  variant = 'replace',
+  message,
+  class: className = '',
+} = Astro.props;
+
+// Générer un ID unique pour ce composant
+const gateId = `auth-gate-${Math.random().toString(36).substr(2, 9)}`;
+---
+
+<div 
+  id={gateId}
+  class={`auth-gate ${className}`}
+  data-variant={variant}
+>
+  <!-- Contenu protégé (sera caché pour les non-connectés) -->
+  <div class="auth-gate-content" data-authenticated="false">
+    <slot />
+  </div>
+  
+  <!-- Message pour les non-connectés (sera caché pour les connectés) -->
+  <div class="auth-gate-message hidden" data-unauthenticated="true">
+    {variant === 'replace' && (
+      <!-- Message simple pour remplacer le bouton -->
+      <a 
+        href="/login"
+        class="inline-flex items-center justify-center gap-2 w-full px-4 py-2 text-xs sm:text-sm font-outfit font-medium text-primary hover:text-primary-dark transition-colors border border-primary/30 rounded-lg hover:bg-primary/5"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+        <span>{message || "Connectez-vous pour voir le prix"}</span>
+      </a>
+    )}
+  </div>
+</div>
+
+<script define:vars={{ gateId }}>
+  (function() {
+    const gateElement = document.getElementById(gateId);
+    if (!gateElement) return;
+    
+    const contentElement = gateElement.querySelector('.auth-gate-content') as HTMLElement;
+    const messageElement = gateElement.querySelector('.auth-gate-message') as HTMLElement;
+    const variant = gateElement.getAttribute('data-variant') || 'replace';
+    
+    function checkAuth() {
+      const token = localStorage.getItem('auth_token');
+      const userStr = localStorage.getItem('user');
+      
+      // Vérifier si l'utilisateur est authentifié
+      const isAuthenticated = !!(token && userStr && userStr !== 'undefined' && userStr !== 'null');
+      
+      if (isAuthenticated) {
+        // Utilisateur connecté : afficher le contenu, cacher le message
+        if (contentElement) {
+          contentElement.setAttribute('data-authenticated', 'true');
+          contentElement.classList.remove('hidden');
+          contentElement.style.display = '';
+        }
+        if (messageElement) {
+          messageElement.setAttribute('data-unauthenticated', 'false');
+          messageElement.classList.add('hidden');
+        }
+      } else {
+        // Utilisateur non connecté : cacher le contenu, afficher le message
+        if (contentElement) {
+          contentElement.setAttribute('data-authenticated', 'false');
+          if (variant === 'replace') {
+            contentElement.classList.add('hidden');
+          } else {
+            contentElement.style.display = 'none';
+          }
+        }
+        if (messageElement && variant === 'replace') {
+          messageElement.setAttribute('data-unauthenticated', 'true');
+          messageElement.classList.remove('hidden');
+        }
+      }
+    }
+    
+    // Vérifier l'authentification au chargement
+    // Utiliser requestAnimationFrame pour s'assurer que le DOM est prêt
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', checkAuth);
+    } else {
+      // DOM déjà chargé
+      setTimeout(checkAuth, 0);
+    }
+    
+    // Écouter les événements de connexion/déconnexion
+    window.addEventListener('user-logged-in', checkAuth);
+    window.addEventListener('user-logged-out', checkAuth);
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'auth_token' || e.key === 'user') {
+        checkAuth();
+      }
+    });
+    
+    // Vérifier périodiquement (pour gérer les cas où localStorage change depuis un autre onglet)
+    // Utiliser un intervalle plus long pour éviter les performances
+    const intervalId = setInterval(() => {
+      if (!document.contains(gateElement)) {
+        clearInterval(intervalId);
+        return;
+      }
+      checkAuth();
+    }, 2000);
+  })();
+</script>
+
+<style>
+  .auth-gate-content[data-authenticated="false"] {
+    display: none !important;
+  }
+  
+  .auth-gate-message {
+    animation: fadeIn 0.4s ease-in-out;
+  }
+  
+  .auth-gate-message.hidden {
+    display: none;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+
