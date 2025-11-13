@@ -149,6 +149,28 @@ export async function getProducts(params?: Record<string, string>) {
                   sale_price: product.sale_price,
                 };
               }
+              
+              // L'API Store retourne les prix en centimes, il faut les convertir en euros
+              if (product.prices && product.prices.currency_minor_unit) {
+                const divisor = Math.pow(10, product.prices.currency_minor_unit);
+                if (product.prices.price) {
+                  const priceInCents = parseInt(product.prices.price, 10);
+                  product.prices.price = (priceInCents / divisor).toFixed(product.prices.currency_minor_unit);
+                  // Mettre à jour aussi product.price pour compatibilité
+                  product.price = product.prices.price;
+                }
+                if (product.prices.regular_price) {
+                  const regularPriceInCents = parseInt(product.prices.regular_price, 10);
+                  product.prices.regular_price = (regularPriceInCents / divisor).toFixed(product.prices.currency_minor_unit);
+                  product.regular_price = product.prices.regular_price;
+                }
+                if (product.prices.sale_price) {
+                  const salePriceInCents = parseInt(product.prices.sale_price, 10);
+                  product.prices.sale_price = (salePriceInCents / divisor).toFixed(product.prices.currency_minor_unit);
+                  product.sale_price = product.prices.sale_price;
+                }
+              }
+              
               return product;
             });
           } else if (Array.isArray(products) && products.length === 0) {
@@ -265,6 +287,26 @@ export async function getProduct(id: string | number) {
         regular_price: product.regular_price,
         sale_price: product.sale_price,
       };
+    }
+    
+    // L'API Store retourne les prix en centimes, il faut les convertir en euros
+    if (product.prices && product.prices.currency_minor_unit) {
+      const divisor = Math.pow(10, product.prices.currency_minor_unit);
+      if (product.prices.price) {
+        const priceInCents = parseInt(product.prices.price, 10);
+        product.prices.price = (priceInCents / divisor).toFixed(product.prices.currency_minor_unit);
+        product.price = product.prices.price;
+      }
+      if (product.prices.regular_price) {
+        const regularPriceInCents = parseInt(product.prices.regular_price, 10);
+        product.prices.regular_price = (regularPriceInCents / divisor).toFixed(product.prices.currency_minor_unit);
+        product.regular_price = product.prices.regular_price;
+      }
+      if (product.prices.sale_price) {
+        const salePriceInCents = parseInt(product.prices.sale_price, 10);
+        product.prices.sale_price = (salePriceInCents / divisor).toFixed(product.prices.currency_minor_unit);
+        product.sale_price = product.prices.sale_price;
+      }
     }
     
     // Normaliser les attributs pour une structure cohérente
