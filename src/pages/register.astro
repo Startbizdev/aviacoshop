@@ -98,11 +98,11 @@ if (shouldRedirect && redirectUrl) {
 ---
 
 <MainLayout title="Register" description="Create your account">
-  <div class="min-h-screen w-full">
-    <div class="grid grid-cols-1 lg:grid-cols-2 h-screen lg:h-auto lg:min-h-screen items-stretch">
+  <div class="w-full">
+    <div class="grid grid-cols-1 lg:grid-cols-2 lg:min-h-screen items-stretch">
       <!-- Left Column: Registration Form -->
-      <div class="order-2 lg:order-1 flex items-center justify-center bg-white">
-        <div class="w-full p-6 sm:p-8 md:p-10 lg:p-12 flex flex-col items-center justify-center">
+      <div class="order-2 lg:order-1 flex items-start lg:items-center justify-center bg-white">
+        <div class="w-full p-4 sm:p-6 md:p-8 lg:p-12 flex flex-col items-center lg:justify-center py-6 sm:py-8 lg:py-0">
           <h2 class="font-outfit font-semibold text-xl sm:text-2xl text-gray-900 mb-2 w-full max-w-lg text-left">
             Create your account
           </h2>
@@ -330,7 +330,7 @@ if (shouldRedirect && redirectUrl) {
       </div>
       
       <!-- Right Column: Marketing Hero Section -->
-      <div class="order-1 lg:order-2 flex items-stretch">
+      <div class="order-1 lg:order-2 flex items-stretch min-h-[400px] lg:min-h-0">
         <RegisterHero class="w-full h-full" backgroundImage="/copter/1.jpg" />
       </div>
     </div>
