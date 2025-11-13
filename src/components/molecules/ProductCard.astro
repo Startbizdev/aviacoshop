@@ -23,7 +23,12 @@ interface Props {
 }
 
 const { product } = Astro.props;
-const imageUrl = product.images?.[0]?.src || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5Qcm9kdWl0PC90ZXh0Pjwvc3ZnPg==';
+// Optimiser l'URL de l'image pour un chargement plus rapide
+let imageUrl = product.images?.[0]?.src || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5Qcm9kdWl0PC90ZXh0Pjwvc3ZnPg==';
+// Si l'URL de l'image existe et n'est pas déjà optimisée, l'optimiser
+if (imageUrl && !imageUrl.includes('data:image') && !imageUrl.includes('-300x300')) {
+  imageUrl = imageUrl.replace(/\.(jpg|jpeg|png|gif|webp)/i, '-300x300.$1');
+}
 const isOnSale = product.on_sale || (product.prices.sale_price && product.prices.sale_price !== product.prices.price);
 const isOutOfStock = product.stock_status === 'out_of_stock' || product.stock_status === 'outofstock';
 // In stock si pas out_of_stock (par défaut considéré comme en stock)

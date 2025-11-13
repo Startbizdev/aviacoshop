@@ -68,6 +68,13 @@ import { User, Package, Settings, LogOut, Calendar, MapPin, Phone, Mail, Edit2, 
                 <Settings class="w-5 h-5" />
                 <span>Profile</span>
               </button>
+              <button
+                id="nav-addresses"
+                class="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-outfit font-medium transition-colors"
+              >
+                <MapPin class="w-5 h-5" />
+                <span>Addresses</span>
+              </button>
             </nav>
             
             <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
@@ -98,6 +105,312 @@ import { User, Package, Settings, LogOut, Calendar, MapPin, Phone, Mail, Edit2, 
               </div>
               
               <div id="orders-pagination" class="mt-6 flex justify-center gap-2 hidden"></div>
+            </Card>
+          </div>
+
+          <!-- Addresses Section -->
+          <div id="addresses-section" class="hidden space-y-6">
+            <Card variant="elevated" class="p-6">
+              <div class="flex items-center justify-between mb-6">
+                <h2 class="font-outfit font-bold text-2xl text-gray-900 dark:text-white">
+                  Billing Address
+                </h2>
+                <button
+                  id="edit-billing-btn"
+                  class="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-outfit font-medium transition-colors"
+                >
+                  <Edit2 class="w-4 h-4" />
+                  <span>Edit</span>
+                </button>
+              </div>
+              
+              <form id="billing-form" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block font-outfit font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
+                      First Name
+                    </label>
+                    <Input
+                      type="text"
+                      id="billing-first-name"
+                      name="billing_first_name"
+                      class="w-full"
+                      disabled
+                    />
+                  </div>
+                  <div>
+                    <label class="block font-outfit font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
+                      Last Name
+                    </label>
+                    <Input
+                      type="text"
+                      id="billing-last-name"
+                      name="billing_last_name"
+                      class="w-full"
+                      disabled
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label class="block font-outfit font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
+                    Company
+                  </label>
+                  <Input
+                    type="text"
+                    id="billing-company"
+                    name="billing_company"
+                    class="w-full"
+                    disabled
+                  />
+                </div>
+                
+                <div>
+                  <label class="block font-outfit font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
+                    Address Line 1
+                  </label>
+                  <Input
+                    type="text"
+                    id="billing-address-1"
+                    name="billing_address_1"
+                    class="w-full"
+                    disabled
+                  />
+                </div>
+                
+                <div>
+                  <label class="block font-outfit font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
+                    Address Line 2
+                  </label>
+                  <Input
+                    type="text"
+                    id="billing-address-2"
+                    name="billing_address_2"
+                    class="w-full"
+                    disabled
+                  />
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label class="block font-outfit font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
+                      City
+                    </label>
+                    <Input
+                      type="text"
+                      id="billing-city"
+                      name="billing_city"
+                      class="w-full"
+                      disabled
+                    />
+                  </div>
+                  <div>
+                    <label class="block font-outfit font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
+                      Postcode
+                    </label>
+                    <Input
+                      type="text"
+                      id="billing-postcode"
+                      name="billing_postcode"
+                      class="w-full"
+                      disabled
+                    />
+                  </div>
+                  <div>
+                    <label class="block font-outfit font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
+                      Country
+                    </label>
+                    <Input
+                      type="text"
+                      id="billing-country"
+                      name="billing_country"
+                      class="w-full"
+                      disabled
+                    />
+                  </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block font-outfit font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
+                      Email
+                    </label>
+                    <Input
+                      type="email"
+                      id="billing-email"
+                      name="billing_email"
+                      class="w-full"
+                      disabled
+                    />
+                  </div>
+                  <div>
+                    <label class="block font-outfit font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
+                      Phone
+                    </label>
+                    <Input
+                      type="tel"
+                      id="billing-phone"
+                      name="billing_phone"
+                      class="w-full"
+                      disabled
+                    />
+                  </div>
+                </div>
+                
+                <div class="flex gap-3 pt-4 hidden" id="billing-form-actions">
+                  <Button type="submit" variant="primary" size="md">
+                    <Save class="w-4 h-4 mr-2" />
+                    Save Changes
+                  </Button>
+                  <Button
+                    type="button"
+                    id="cancel-billing-btn"
+                    variant="outline"
+                    size="md"
+                  >
+                    <X class="w-4 h-4 mr-2" />
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </Card>
+            
+            <Card variant="elevated" class="p-6">
+              <div class="flex items-center justify-between mb-6">
+                <h2 class="font-outfit font-bold text-2xl text-gray-900 dark:text-white">
+                  Shipping Address
+                </h2>
+                <button
+                  id="edit-shipping-btn"
+                  class="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-outfit font-medium transition-colors"
+                >
+                  <Edit2 class="w-4 h-4" />
+                  <span>Edit</span>
+                </button>
+              </div>
+              
+              <form id="shipping-form" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block font-outfit font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
+                      First Name
+                    </label>
+                    <Input
+                      type="text"
+                      id="shipping-first-name"
+                      name="shipping_first_name"
+                      class="w-full"
+                      disabled
+                    />
+                  </div>
+                  <div>
+                    <label class="block font-outfit font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
+                      Last Name
+                    </label>
+                    <Input
+                      type="text"
+                      id="shipping-last-name"
+                      name="shipping_last_name"
+                      class="w-full"
+                      disabled
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label class="block font-outfit font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
+                    Company
+                  </label>
+                  <Input
+                    type="text"
+                    id="shipping-company"
+                    name="shipping_company"
+                    class="w-full"
+                    disabled
+                  />
+                </div>
+                
+                <div>
+                  <label class="block font-outfit font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
+                    Address Line 1
+                  </label>
+                  <Input
+                    type="text"
+                    id="shipping-address-1"
+                    name="shipping_address_1"
+                    class="w-full"
+                    disabled
+                  />
+                </div>
+                
+                <div>
+                  <label class="block font-outfit font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
+                    Address Line 2
+                  </label>
+                  <Input
+                    type="text"
+                    id="shipping-address-2"
+                    name="shipping_address_2"
+                    class="w-full"
+                    disabled
+                  />
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label class="block font-outfit font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
+                      City
+                    </label>
+                    <Input
+                      type="text"
+                      id="shipping-city"
+                      name="shipping_city"
+                      class="w-full"
+                      disabled
+                    />
+                  </div>
+                  <div>
+                    <label class="block font-outfit font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
+                      Postcode
+                    </label>
+                    <Input
+                      type="text"
+                      id="shipping-postcode"
+                      name="shipping_postcode"
+                      class="w-full"
+                      disabled
+                    />
+                  </div>
+                  <div>
+                    <label class="block font-outfit font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
+                      Country
+                    </label>
+                    <Input
+                      type="text"
+                      id="shipping-country"
+                      name="shipping_country"
+                      class="w-full"
+                      disabled
+                    />
+                  </div>
+                </div>
+                
+                <div class="flex gap-3 pt-4 hidden" id="shipping-form-actions">
+                  <Button type="submit" variant="primary" size="md">
+                    <Save class="w-4 h-4 mr-2" />
+                    Save Changes
+                  </Button>
+                  <Button
+                    type="button"
+                    id="cancel-shipping-btn"
+                    variant="outline"
+                    size="md"
+                  >
+                    <X class="w-4 h-4 mr-2" />
+                    Cancel
+                  </Button>
+                </div>
+              </form>
             </Card>
           </div>
 
@@ -222,30 +535,41 @@ import { User, Package, Settings, LogOut, Calendar, MapPin, Phone, Mail, Edit2, 
     showSection('profile');
   });
 
+  document.getElementById('nav-addresses')?.addEventListener('click', () => {
+    showSection('addresses');
+  });
+
   function showSection(section: string) {
     const ordersSection = document.getElementById('orders-section');
     const profileSection = document.getElementById('profile-section');
+    const addressesSection = document.getElementById('addresses-section');
     const navOrders = document.getElementById('nav-orders');
     const navProfile = document.getElementById('nav-profile');
+    const navAddresses = document.getElementById('nav-addresses');
+    
+    const inactiveClass = 'w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-outfit font-medium transition-colors';
+    const activeClass = 'w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-primary/10 dark:bg-primary/20 text-primary font-outfit font-medium transition-colors';
 
+    // Hide all sections
+    if (ordersSection) ordersSection.classList.add('hidden');
+    if (profileSection) profileSection.classList.add('hidden');
+    if (addressesSection) addressesSection.classList.add('hidden');
+    
+    // Reset all nav buttons
+    if (navOrders) navOrders.className = inactiveClass;
+    if (navProfile) navProfile.className = inactiveClass;
+    if (navAddresses) navAddresses.className = inactiveClass;
+    
+    // Show selected section
     if (section === 'orders') {
       if (ordersSection) ordersSection.classList.remove('hidden');
-      if (profileSection) profileSection.classList.add('hidden');
-      if (navOrders) {
-        navOrders.className = 'w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-primary/10 dark:bg-primary/20 text-primary font-outfit font-medium transition-colors';
-      }
-      if (navProfile) {
-        navProfile.className = 'w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-outfit font-medium transition-colors';
-      }
-    } else {
-      if (ordersSection) ordersSection.classList.add('hidden');
+      if (navOrders) navOrders.className = activeClass;
+    } else if (section === 'profile') {
       if (profileSection) profileSection.classList.remove('hidden');
-      if (navOrders) {
-        navOrders.className = 'w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-outfit font-medium transition-colors';
-      }
-      if (navProfile) {
-        navProfile.className = 'w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-primary/10 dark:bg-primary/20 text-primary font-outfit font-medium transition-colors';
-      }
+      if (navProfile) navProfile.className = activeClass;
+    } else if (section === 'addresses') {
+      if (addressesSection) addressesSection.classList.remove('hidden');
+      if (navAddresses) navAddresses.className = activeClass;
     }
   }
 
@@ -290,6 +614,32 @@ import { User, Package, Settings, LogOut, Calendar, MapPin, Phone, Mail, Edit2, 
     if (lastName) lastName.value = user.last_name || '';
     if (email) email.value = user.email || '';
     if (phone) phone.value = user.phone || '';
+    
+    // Billing address
+    if (user.billing) {
+      (document.getElementById('billing-first-name') as HTMLInputElement).value = user.billing.first_name || '';
+      (document.getElementById('billing-last-name') as HTMLInputElement).value = user.billing.last_name || '';
+      (document.getElementById('billing-company') as HTMLInputElement).value = user.billing.company || '';
+      (document.getElementById('billing-address-1') as HTMLInputElement).value = user.billing.address_1 || '';
+      (document.getElementById('billing-address-2') as HTMLInputElement).value = user.billing.address_2 || '';
+      (document.getElementById('billing-city') as HTMLInputElement).value = user.billing.city || '';
+      (document.getElementById('billing-postcode') as HTMLInputElement).value = user.billing.postcode || '';
+      (document.getElementById('billing-country') as HTMLInputElement).value = user.billing.country || '';
+      (document.getElementById('billing-email') as HTMLInputElement).value = user.billing.email || '';
+      (document.getElementById('billing-phone') as HTMLInputElement).value = user.billing.phone || '';
+    }
+    
+    // Shipping address
+    if (user.shipping) {
+      (document.getElementById('shipping-first-name') as HTMLInputElement).value = user.shipping.first_name || '';
+      (document.getElementById('shipping-last-name') as HTMLInputElement).value = user.shipping.last_name || '';
+      (document.getElementById('shipping-company') as HTMLInputElement).value = user.shipping.company || '';
+      (document.getElementById('shipping-address-1') as HTMLInputElement).value = user.shipping.address_1 || '';
+      (document.getElementById('shipping-address-2') as HTMLInputElement).value = user.shipping.address_2 || '';
+      (document.getElementById('shipping-city') as HTMLInputElement).value = user.shipping.city || '';
+      (document.getElementById('shipping-postcode') as HTMLInputElement).value = user.shipping.postcode || '';
+      (document.getElementById('shipping-country') as HTMLInputElement).value = user.shipping.country || '';
+    }
   }
 
   // Load orders
@@ -488,6 +838,164 @@ import { User, Package, Settings, LogOut, Calendar, MapPin, Phone, Mail, Edit2, 
     } catch (error) {
       console.error('Error updating profile:', error);
       alert('An error occurred while updating your profile');
+    }
+  });
+
+  // Address editing - Billing
+  let isEditingBilling = false;
+  const editBillingBtn = document.getElementById('edit-billing-btn');
+  const cancelBillingBtn = document.getElementById('cancel-billing-btn');
+  const billingForm = document.getElementById('billing-form') as HTMLFormElement;
+  const billingFormActions = document.getElementById('billing-form-actions');
+  const billingInputs = ['billing-first-name', 'billing-last-name', 'billing-company', 'billing-address-1', 'billing-address-2', 'billing-city', 'billing-postcode', 'billing-country', 'billing-email', 'billing-phone'];
+
+  editBillingBtn?.addEventListener('click', () => {
+    isEditingBilling = true;
+    billingInputs.forEach(id => {
+      const input = document.getElementById(id) as HTMLInputElement;
+      if (input) input.disabled = false;
+    });
+    if (billingFormActions) billingFormActions.classList.remove('hidden');
+    if (editBillingBtn) editBillingBtn.classList.add('hidden');
+  });
+
+  cancelBillingBtn?.addEventListener('click', () => {
+    isEditingBilling = false;
+    if (currentUser) displayUserData(currentUser);
+    billingInputs.forEach(id => {
+      const input = document.getElementById(id) as HTMLInputElement;
+      if (input) input.disabled = true;
+    });
+    if (billingFormActions) billingFormActions.classList.add('hidden');
+    if (editBillingBtn) editBillingBtn.classList.remove('hidden');
+  });
+
+  billingForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = {
+      billing: {
+        first_name: (document.getElementById('billing-first-name') as HTMLInputElement).value,
+        last_name: (document.getElementById('billing-last-name') as HTMLInputElement).value,
+        company: (document.getElementById('billing-company') as HTMLInputElement).value,
+        address_1: (document.getElementById('billing-address-1') as HTMLInputElement).value,
+        address_2: (document.getElementById('billing-address-2') as HTMLInputElement).value,
+        city: (document.getElementById('billing-city') as HTMLInputElement).value,
+        postcode: (document.getElementById('billing-postcode') as HTMLInputElement).value,
+        country: (document.getElementById('billing-country') as HTMLInputElement).value,
+        email: (document.getElementById('billing-email') as HTMLInputElement).value,
+        phone: (document.getElementById('billing-phone') as HTMLInputElement).value,
+      }
+    };
+
+    try {
+      const response = await fetch('/api/my-account/update-address', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        currentUser = data.user;
+        displayUserData(data.user);
+        isEditingBilling = false;
+        billingInputs.forEach(id => {
+          const input = document.getElementById(id) as HTMLInputElement;
+          if (input) input.disabled = true;
+        });
+        if (billingFormActions) billingFormActions.classList.add('hidden');
+        if (editBillingBtn) editBillingBtn.classList.remove('hidden');
+        
+        alert('Billing address updated successfully!');
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to update billing address');
+      }
+    } catch (error) {
+      console.error('Error updating billing address:', error);
+      alert('An error occurred while updating your billing address');
+    }
+  });
+
+  // Address editing - Shipping
+  let isEditingShipping = false;
+  const editShippingBtn = document.getElementById('edit-shipping-btn');
+  const cancelShippingBtn = document.getElementById('cancel-shipping-btn');
+  const shippingForm = document.getElementById('shipping-form') as HTMLFormElement;
+  const shippingFormActions = document.getElementById('shipping-form-actions');
+  const shippingInputs = ['shipping-first-name', 'shipping-last-name', 'shipping-company', 'shipping-address-1', 'shipping-address-2', 'shipping-city', 'shipping-postcode', 'shipping-country'];
+
+  editShippingBtn?.addEventListener('click', () => {
+    isEditingShipping = true;
+    shippingInputs.forEach(id => {
+      const input = document.getElementById(id) as HTMLInputElement;
+      if (input) input.disabled = false;
+    });
+    if (shippingFormActions) shippingFormActions.classList.remove('hidden');
+    if (editShippingBtn) editShippingBtn.classList.add('hidden');
+  });
+
+  cancelShippingBtn?.addEventListener('click', () => {
+    isEditingShipping = false;
+    if (currentUser) displayUserData(currentUser);
+    shippingInputs.forEach(id => {
+      const input = document.getElementById(id) as HTMLInputElement;
+      if (input) input.disabled = true;
+    });
+    if (shippingFormActions) shippingFormActions.classList.add('hidden');
+    if (editShippingBtn) editShippingBtn.classList.remove('hidden');
+  });
+
+  shippingForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = {
+      shipping: {
+        first_name: (document.getElementById('shipping-first-name') as HTMLInputElement).value,
+        last_name: (document.getElementById('shipping-last-name') as HTMLInputElement).value,
+        company: (document.getElementById('shipping-company') as HTMLInputElement).value,
+        address_1: (document.getElementById('shipping-address-1') as HTMLInputElement).value,
+        address_2: (document.getElementById('shipping-address-2') as HTMLInputElement).value,
+        city: (document.getElementById('shipping-city') as HTMLInputElement).value,
+        postcode: (document.getElementById('shipping-postcode') as HTMLInputElement).value,
+        country: (document.getElementById('shipping-country') as HTMLInputElement).value,
+      }
+    };
+
+    try {
+      const response = await fetch('/api/my-account/update-address', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        currentUser = data.user;
+        displayUserData(data.user);
+        isEditingShipping = false;
+        shippingInputs.forEach(id => {
+          const input = document.getElementById(id) as HTMLInputElement;
+          if (input) input.disabled = true;
+        });
+        if (shippingFormActions) shippingFormActions.classList.add('hidden');
+        if (editShippingBtn) editShippingBtn.classList.remove('hidden');
+        
+        alert('Shipping address updated successfully!');
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to update shipping address');
+      }
+    } catch (error) {
+      console.error('Error updating shipping address:', error);
+      alert('An error occurred while updating your shipping address');
     }
   });
 

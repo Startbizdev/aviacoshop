@@ -1,0 +1,74 @@
+---
+import ProductCard from '../../components/molecules/ProductCard.astro';
+import { getProducts } from '../../lib/wc-api';
+
+const url = Astro.url;
+const searchParams = url.searchParams;
+const page = parseInt(searchParams.get('page') || '2');
+const search = searchParams.get('search') || '';
+const perPageWC = 100;
+const displayPerPage = 20;
+
+let products = [];
+let allProducts = [];
+
+try {
+  const params: Record<string, string> = {
+    per_page: perPageWC.toString(),
+    page: page.toString(),
+  };
+  
+  if (search) {
+    params.search = search;
+  }
+  
+  const response = await getProducts(params);
+  allProducts = Array.isArray(response) ? response : [];
+  
+  // Grouper les produits par titre
+  const productsByTitle = new Map<string, any>();
+  
+  allProducts.forEach((product: any) => {
+    const productName = (product.name || '').trim().toLowerCase();
+    
+    // Optimiser l'URL de l'image
+    if (product.images && product.images.length > 0 && product.images[0].src) {
+      const imgUrl = product.images[0].src;
+      product.images[0].src = imgUrl.replace(/\.(jpg|jpeg|png|gif|webp)/i, '-300x300.$1');
+    }
+    
+    if (!productsByTitle.has(productName)) {
+      productsByTitle.set(productName, product);
+    } else {
+      const existingProduct = productsByTitle.get(productName);
+      const existingIsOutOfStock = existingProduct.stock_status === 'out_of_stock' || existingProduct.stock_status === 'outofstock';
+      const currentIsOutOfStock = product.stock_status === 'out_of_stock' || product.stock_status === 'outofstock';
+      
+      if (existingIsOutOfStock && !currentIsOutOfStock) {
+        productsByTitle.set(productName, product);
+      } else if (!existingIsOutOfStock && currentIsOutOfStock) {
+        // Garder l'existant
+      } else if (product.id < existingProduct.id) {
+        productsByTitle.set(productName, product);
+      }
+    }
+  });
+  
+  products = Array.from(productsByTitle.values())
+    .sort((a: any, b: any) => a.id - b.id);
+  // Ne pas limiter ici - on retourne tous les produits uniques de cette page
+} catch (error) {
+  console.error('Error fetching products:', error);
+  products = [];
+}
+
+// Définir un attribut data pour indiquer s'il y a encore des produits à charger
+const hasMoreProducts = allProducts.length === perPageWC;
+---
+
+<div data-has-more={hasMoreProducts} data-count={products.length}>
+{products.map((product) => (
+  <ProductCard product={product} />
+))}
+</div>
+

@@ -1,0 +1,246 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import Input from '../components/atoms/Input.astro';
+import Button from '../components/atoms/Button.astro';
+import Spinner from '../components/atoms/Spinner.astro';
+import Card from '../components/atoms/Card.astro';
+import Icon from '../components/atoms/Icon.astro';
+
+---
+
+<MainLayout title="Register" description="Create your account">
+  <div class="container mx-auto px-4 py-16">
+    <div class="max-w-md mx-auto">
+      <Card variant="elevated" class="p-8">
+        <div class="text-center mb-8">
+          <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Icon name="user-plus" size="lg" class="text-primary" />
+          </div>
+          <h1 class="font-outfit font-bold text-3xl mb-2 text-gray-900 dark:text-white">
+            Create Account
+          </h1>
+          <p class="font-outfit text-gray-600 dark:text-gray-400">
+            Sign up to start shopping
+          </p>
+        </div>
+        
+        <form id="register-form" class="space-y-6">
+          <div>
+            <Input
+              type="text"
+              name="username"
+              id="username"
+              label="Username"
+              placeholder="Choose a username"
+              required
+              autocomplete="username"
+            />
+          </div>
+          
+          <div>
+            <Input
+              type="email"
+              name="email"
+              id="email"
+              label="Email"
+              placeholder="Enter your email"
+              required
+              autocomplete="email"
+            />
+          </div>
+          
+          <div>
+            <Input
+              type="password"
+              name="password"
+              id="password"
+              label="Password"
+              placeholder="Choose a password"
+              required
+              autocomplete="new-password"
+            />
+          </div>
+          
+          <div>
+            <Input
+              type="password"
+              name="confirm_password"
+              id="confirm_password"
+              label="Confirm Password"
+              placeholder="Confirm your password"
+              required
+              autocomplete="new-password"
+            />
+          </div>
+          
+          <div id="error-message" class="hidden">
+            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+              <p class="font-outfit text-sm text-red-600 dark:text-red-400" id="error-text"></p>
+            </div>
+          </div>
+          
+          <div id="success-message" class="hidden">
+            <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+              <p class="font-outfit text-sm text-green-600 dark:text-green-400" id="success-text"></p>
+            </div>
+          </div>
+          
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            class="w-full"
+            id="submit-button"
+          >
+            <span id="button-text">Sign Up</span>
+            <span id="button-spinner" class="hidden">
+              <Spinner size="sm" />
+            </span>
+          </Button>
+          
+          <div class="text-center">
+            <p class="font-outfit text-sm text-gray-600 dark:text-gray-400">
+              Already have an account? 
+              <a href="/login" class="text-primary hover:text-primary-dark font-medium">
+                Sign in
+              </a>
+            </p>
+          </div>
+        </form>
+      </Card>
+    </div>
+  </div>
+</MainLayout>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('register-form') as HTMLFormElement;
+    const submitButton = document.getElementById('submit-button') as HTMLButtonElement;
+    const buttonText = document.getElementById('button-text');
+    const buttonSpinner = document.getElementById('button-spinner');
+    const errorMessage = document.getElementById('error-message');
+    const errorText = document.getElementById('error-text');
+    const successMessage = document.getElementById('success-message');
+    const successText = document.getElementById('success-text');
+    
+    if (!form) return;
+    
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(form);
+      const username = formData.get('username') as string;
+      const email = formData.get('email') as string;
+      const password = formData.get('password') as string;
+      const confirmPassword = formData.get('confirm_password') as string;
+      
+      // Reset messages
+      if (errorMessage) {
+        errorMessage.classList.add('hidden');
+      }
+      if (successMessage) {
+        successMessage.classList.add('hidden');
+      }
+      
+      // Validate passwords match
+      if (password !== confirmPassword) {
+        if (errorMessage) {
+          errorMessage.classList.remove('hidden');
+        }
+        if (errorText) {
+          errorText.textContent = 'Passwords do not match.';
+        }
+        return;
+      }
+      
+      // Validate password strength
+      if (password.length < 6) {
+        if (errorMessage) {
+          errorMessage.classList.remove('hidden');
+        }
+        if (errorText) {
+          errorText.textContent = 'Password must be at least 6 characters long.';
+        }
+        return;
+      }
+      
+      // Disable button and show spinner
+      if (submitButton) {
+        submitButton.disabled = true;
+      }
+      if (buttonText) {
+        buttonText.textContent = 'Creating account...';
+      }
+      if (buttonSpinner) {
+        buttonSpinner.classList.remove('hidden');
+      }
+      
+      try {
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, email, password }),
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+          // Show success message
+          if (successMessage) {
+            successMessage.classList.remove('hidden');
+          }
+          if (successText) {
+            successText.textContent = 'Account created successfully! Redirecting to login...';
+          }
+          
+          // Redirect to login after 2 seconds
+          setTimeout(() => {
+            window.location.href = '/login';
+          }, 2000);
+        } else {
+          // Show error message
+          if (errorMessage) {
+            errorMessage.classList.remove('hidden');
+          }
+          if (errorText) {
+            errorText.textContent = data.error || 'An error occurred. Please try again.';
+          }
+          
+          // Re-enable button
+          if (submitButton) {
+            submitButton.disabled = false;
+          }
+          if (buttonText) {
+            buttonText.textContent = 'Sign Up';
+          }
+          if (buttonSpinner) {
+            buttonSpinner.classList.add('hidden');
+          }
+        }
+      } catch (error) {
+        console.error('Registration error:', error);
+        if (errorMessage) {
+          errorMessage.classList.remove('hidden');
+        }
+        if (errorText) {
+          errorText.textContent = 'An error occurred. Please try again.';
+        }
+        
+        // Re-enable button
+        if (submitButton) {
+          submitButton.disabled = false;
+        }
+        if (buttonText) {
+          buttonText.textContent = 'Sign Up';
+        }
+        if (buttonSpinner) {
+          buttonSpinner.classList.add('hidden');
+        }
+      }
+    });
+  });
+</script>
+
+

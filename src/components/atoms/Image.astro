@@ -27,5 +27,7 @@ const {
   height={height}
   class={`${className} object-cover`}
   loading={loading}
+  decoding="async"
+  fetchpriority={loading === 'eager' ? 'high' : 'auto'}
 />
 

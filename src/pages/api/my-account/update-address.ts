@@ -1,7 +1,7 @@
 import { type APIRoute } from 'astro';
 import { WC_API_URL, WC_CONSUMER_KEY, WC_CONSUMER_SECRET } from '../../../lib/config';
 
-export const GET: APIRoute = async ({ request }) => {
+export const PUT: APIRoute = async ({ request }) => {
   try {
     const authHeader = request.headers.get('Authorization');
     
@@ -13,10 +13,10 @@ export const GET: APIRoute = async ({ request }) => {
     }
     
     const token = authHeader.replace('Bearer ', '');
+    const body = await request.json();
     
-    // Récupérer l'ID utilisateur via JWT
+    // Get user ID from JWT
     const userUrl = `${WC_API_URL}/wp-json/wp/v2/users/me`;
-    
     const userResponse = await fetch(userUrl, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -25,8 +25,8 @@ export const GET: APIRoute = async ({ request }) => {
     });
     
     if (!userResponse.ok) {
-      return new Response(JSON.stringify({ error: 'Failed to fetch user data' }), {
-        status: userResponse.status,
+      return new Response(JSON.stringify({ error: 'Failed to authenticate' }), {
+        status: 401,
         headers: { 'Content-Type': 'application/json' },
       });
     }
@@ -34,43 +34,40 @@ export const GET: APIRoute = async ({ request }) => {
     const userData = await userResponse.json();
     const userId = userData.id;
     
-    // Récupérer les données complètes du client depuis WooCommerce
+    // Update customer data via WooCommerce API
     const customerUrl = `${WC_API_URL}/wp-json/wc/v3/customers/${userId}`;
     const auth = Buffer.from(`${WC_CONSUMER_KEY}:${WC_CONSUMER_SECRET}`).toString('base64');
     
-    const customerResponse = await fetch(customerUrl, {
+    const updateResponse = await fetch(customerUrl, {
+      method: 'PUT',
       headers: {
-        'Authorization': `Basic ${auth}`,
         'Content-Type': 'application/json',
+        'Authorization': `Basic ${auth}`,
       },
+      body: JSON.stringify(body),
     });
     
-    if (!customerResponse.ok) {
-      // Si le client n'existe pas dans WooCommerce, retourner les données de base
-      return new Response(JSON.stringify({ user: userData }), {
-        status: 200,
+    if (!updateResponse.ok) {
+      const error = await updateResponse.json();
+      return new Response(JSON.stringify({ error: error.message || 'Failed to update address' }), {
+        status: updateResponse.status,
         headers: { 'Content-Type': 'application/json' },
       });
     }
     
-    const customerData = await customerResponse.json();
+    const user = await updateResponse.json();
     
-    // Fusionner les données
-    const user = {
-      ...userData,
-      ...customerData,
-    };
-    
-    return new Response(JSON.stringify({ user }), {
+    return new Response(JSON.stringify({ user, success: true }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error: any) {
-    console.error('Error fetching user:', error);
+    console.error('Error updating address:', error);
     return new Response(JSON.stringify({ error: error.message || 'An error occurred' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
   }
 };
+
 
