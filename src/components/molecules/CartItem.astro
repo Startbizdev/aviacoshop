@@ -19,23 +19,37 @@ interface Props {
 const { item } = Astro.props;
 const imageUrl = item.images?.[0]?.src || '/placeholder-product.jpg';
 
-// Format prices properly - remove any existing € symbols and add our own
+// Helper function to convert price from centimes to euros
+function convertPrice(price: string | number, currencyMinorUnit: number = 2): string {
+  const priceStr = String(price).replace(/[€\s,]/g, '').trim();
+  let num = parseFloat(priceStr) || 0;
+  
+  // Convert from centimes to euros if currency_minor_unit is 2
+  if (currencyMinorUnit === 2) {
+    num = num / 100;
+  }
+  
+  return num.toFixed(2);
+}
+
+// Get currency minor unit from cart totals (passed via data attribute or default to 2)
+// For now, we'll default to 2 since WooCommerce Store API uses cents
+const currencyMinorUnit = 2;
+
+// Format prices properly - convert from centimes to euros
 const unitPriceRaw = item.prices?.price || item.price || '0';
-const unitPrice = unitPriceRaw.toString().replace(/[€\s]/g, '').trim() || '0';
+const unitPrice = convertPrice(unitPriceRaw, currencyMinorUnit);
 
 // Calculate total price if not provided
 let totalPriceRaw = item.prices?.total || item.total || '';
 if (!totalPriceRaw || totalPriceRaw === '0' || totalPriceRaw === '' || totalPriceRaw === '0,00' || totalPriceRaw === '0.00') {
   // Calculate from unit price × quantity
-  // Handle both comma and dot as decimal separator
-  const unitPriceClean = unitPrice.replace(/[^\d,.-]/g, '').replace(',', '.');
-  const unitPriceNum = parseFloat(unitPriceClean) || 0;
+  const unitPriceNum = parseFloat(unitPrice) || 0;
   const totalPriceNum = unitPriceNum * (item.quantity || 1);
-  // Format with 2 decimals, using comma as decimal separator
-  totalPriceRaw = totalPriceNum.toFixed(2).replace('.', ',');
+  totalPriceRaw = totalPriceNum.toFixed(2);
 } else {
-  // Clean existing total price
-  totalPriceRaw = totalPriceRaw.toString().replace(/[€\s]/g, '').trim();
+  // Convert existing total price from centimes to euros
+  totalPriceRaw = convertPrice(totalPriceRaw, currencyMinorUnit);
 }
 const totalPrice = totalPriceRaw || '0';
 ---
@@ -203,15 +217,25 @@ const totalPrice = totalPriceRaw || '0';
                 
                 // Update price
                 if (priceDisplay) {
+                  function convertPrice(price: string | number, currencyMinorUnit: number = 2): string {
+                    const priceStr = String(price).replace(/[€\s,]/g, '').trim();
+                    let num = parseFloat(priceStr) || 0;
+                    if (currencyMinorUnit === 2) {
+                      num = num / 100;
+                    }
+                    return num.toFixed(2);
+                  }
+                  
                   let newTotal = updatedItem.prices?.total || updatedItem.total || '';
                   if (!newTotal || newTotal === '0' || newTotal === '') {
                     // Calculate from unit price × quantity
                     const unitPrice = updatedItem.prices?.price || updatedItem.price || '0';
-                    const unitPriceNum = parseFloat(unitPrice.toString().replace(/[€\s,]/g, '').replace(',', '.')) || 0;
+                    const unitPriceConverted = convertPrice(unitPrice, 2);
+                    const unitPriceNum = parseFloat(unitPriceConverted) || 0;
                     const totalPriceNum = unitPriceNum * (updatedItem.quantity || 1);
-                    newTotal = totalPriceNum.toFixed(2).replace('.', ',');
+                    newTotal = totalPriceNum.toFixed(2);
                   } else {
-                    newTotal = newTotal.toString().replace(/[€\s]/g, '').trim();
+                    newTotal = convertPrice(newTotal, 2);
                   }
                   priceDisplay.textContent = `${newTotal} €`;
                 }

@@ -18,6 +18,22 @@ try {
 
 const items = cart?.items || [];
 const totals = cart?.totals || {};
+
+// Helper function to convert price from centimes to euros
+function convertPrice(price: string | number, currencyMinorUnit: number = 2): string {
+  const priceStr = String(price).replace(/[€\s,]/g, '').trim();
+  let num = parseFloat(priceStr) || 0;
+  
+  // Convert from centimes to euros if currency_minor_unit is 2
+  if (currencyMinorUnit === 2) {
+    num = num / 100;
+  }
+  
+  return num.toFixed(2);
+}
+
+// Get currency minor unit from totals
+const currencyMinorUnit = totals?.currency_minor_unit || 2;
 ---
 
 <script>
@@ -75,27 +91,27 @@ const totals = cart?.totals || {};
             <div class="space-y-4 mb-6">
               <div class="flex justify-between items-center font-outfit text-gray-600 dark:text-gray-400">
                 <span>Subtotal</span>
-                <span class="font-medium">{totals.total_items || '0'} €</span>
+                <span class="font-medium">{convertPrice(totals.total_items || '0', currencyMinorUnit)} €</span>
               </div>
               
-              {totals.total_tax && totals.total_tax !== '0' && parseFloat(totals.total_tax) > 0 && (
+              {totals.total_tax && totals.total_tax !== '0' && parseFloat(String(totals.total_tax).replace(/[€\s,]/g, '')) > 0 && (
                 <div class="flex justify-between items-center font-outfit text-gray-600 dark:text-gray-400">
                   <span>Tax</span>
-                  <span class="font-medium">{totals.total_tax} €</span>
+                  <span class="font-medium">{convertPrice(totals.total_tax, currencyMinorUnit)} €</span>
                 </div>
               )}
               
-              {totals.total_shipping && totals.total_shipping !== '0' && parseFloat(totals.total_shipping) > 0 && (
+              {totals.total_shipping && totals.total_shipping !== '0' && parseFloat(String(totals.total_shipping).replace(/[€\s,]/g, '')) > 0 && (
                 <div class="flex justify-between items-center font-outfit text-gray-600 dark:text-gray-400">
                   <span>Shipping</span>
-                  <span class="font-medium">{totals.total_shipping} €</span>
+                  <span class="font-medium">{convertPrice(totals.total_shipping, currencyMinorUnit)} €</span>
                 </div>
               )}
               
               <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
                 <div class="flex justify-between items-center font-outfit font-bold text-xl text-gray-900 dark:text-white">
                   <span>Total</span>
-                  <span class="text-primary">{totals.total_price || '0'} €</span>
+                  <span class="text-primary">{convertPrice(totals.total_price || '0', currencyMinorUnit)} €</span>
                 </div>
               </div>
             </div>

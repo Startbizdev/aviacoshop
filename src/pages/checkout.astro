@@ -150,11 +150,13 @@ if (items.length === 0 && !error) {
                 <div class="font-outfit text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed pl-9 mb-4">
                   Pay securely with your credit or debit card via Stripe.
                 </div>
-                <!-- Stripe Elements Container -->
-                <div id="stripe-card-element" class="pl-9 mt-4">
-                  <!-- Stripe Elements will be mounted here -->
+                <!-- Stripe Elements Container - Optimized inline card UI -->
+                <div class="pl-9 mt-4">
+                  <div id="stripe-card-element" class="stripe-card-element-container bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg p-3 sm:p-4 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                    <!-- Stripe Elements will be mounted here -->
+                  </div>
+                  <div id="stripe-card-errors" class="mt-2 text-sm text-red-600 dark:text-red-400 min-h-[20px]" role="alert"></div>
                 </div>
-                <div id="stripe-card-errors" class="pl-9 mt-3 text-sm text-red-600 dark:text-red-400" role="alert"></div>
               </div>
             </label>
 
@@ -210,19 +212,32 @@ if (items.length === 0 && !error) {
               const imageUrl = item.images?.[0]?.src || '/placeholder-product.jpg';
               const quantity = item.quantity || 1;
               
-              // Get unit price
+              // Helper function to convert price from centimes to euros
+              const convertPrice = (price: string | number, currencyMinorUnit: number = 2): string => {
+                const priceStr = String(price).replace(/[€\s,]/g, '').trim();
+                let num = parseFloat(priceStr) || 0;
+                if (currencyMinorUnit === 2) {
+                  num = num / 100;
+                }
+                return num.toFixed(2);
+              };
+              
+              // Get currency minor unit from totals
+              const currencyMinorUnit = totals?.currency_minor_unit || 2;
+              
+              // Get unit price and convert from centimes to euros
               const unitPriceRaw = item.prices?.price || item.price || item.prices?.unit_price || '0';
-              const unitPrice = unitPriceRaw.toString().replace(/[€\s,]/g, '').trim() || '0';
+              const unitPrice = convertPrice(unitPriceRaw, currencyMinorUnit);
               
               // Calculate total price: use prices.total if available and valid, otherwise calculate unitPrice * quantity
               let totalPriceRaw = item.prices?.total || item.total || item.prices?.line_total || '0';
               // If total is 0 or invalid, calculate it
               if (!totalPriceRaw || totalPriceRaw === '0' || parseFloat(String(totalPriceRaw).replace(/[€\s,]/g, '').replace(',', '.')) === 0) {
-                const unitPriceNum = parseFloat(unitPrice.replace(',', '.')) || 0;
-                totalPriceRaw = (unitPriceNum * quantity).toString();
+                const unitPriceNum = parseFloat(unitPrice) || 0;
+                totalPriceRaw = (unitPriceNum * quantity).toFixed(2);
               } else {
-                // Clean existing total price
-                totalPriceRaw = totalPriceRaw.toString().replace(/[€\s,]/g, '').trim();
+                // Convert existing total price from centimes to euros
+                totalPriceRaw = convertPrice(totalPriceRaw, currencyMinorUnit);
               }
               const totalPrice = totalPriceRaw || '0';
               
@@ -254,25 +269,59 @@ if (items.length === 0 && !error) {
           <div class="border-t-2 border-gray-200 dark:border-gray-700 pt-4 sm:pt-5 space-y-3 sm:space-y-4">
             <div class="flex justify-between items-center font-outfit text-sm sm:text-base text-gray-600 dark:text-gray-400">
               <span>Subtotal</span>
-              <span id="order-subtotal" class="font-semibold text-gray-900 dark:text-white">{totals.total_items || '0'} €</span>
+              <span id="order-subtotal" class="font-semibold text-gray-900 dark:text-white">
+                {(() => {
+                  const price = totals.total_items || '0';
+                  const currencyMinorUnit = totals?.currency_minor_unit || 2;
+                  const priceStr = String(price).replace(/[€\s,]/g, '').trim();
+                  let num = parseFloat(priceStr) || 0;
+                  if (currencyMinorUnit === 2) num = num / 100;
+                  return num.toFixed(2);
+                })()} €
+              </span>
             </div>
             
             <div class="flex justify-between items-center font-outfit text-sm sm:text-base text-gray-600 dark:text-gray-400">
               <span>Shipping</span>
               <span id="order-shipping" class="font-semibold text-gray-900 dark:text-white text-right">
-                {totals.total_shipping && totals.total_shipping !== '0' ? `${totals.total_shipping} €` : 'Calculated at next step'}
+                {totals.total_shipping && totals.total_shipping !== '0' ? (() => {
+                  const price = totals.total_shipping;
+                  const currencyMinorUnit = totals?.currency_minor_unit || 2;
+                  const priceStr = String(price).replace(/[€\s,]/g, '').trim();
+                  let num = parseFloat(priceStr) || 0;
+                  if (currencyMinorUnit === 2) num = num / 100;
+                  return `${num.toFixed(2)} €`;
+                })() : 'Calculated at next step'}
               </span>
             </div>
             
             <div id="order-tax-row" class={`flex justify-between items-center font-outfit text-sm sm:text-base text-gray-600 dark:text-gray-400 ${totals.total_tax && totals.total_tax !== '0' ? '' : 'hidden'}`}>
               <span>Tax (Vat)</span>
-              <span id="order-tax" class="font-semibold text-gray-900 dark:text-white">{totals.total_tax || '0'} €</span>
+                  <span id="order-tax" class="font-semibold text-gray-900 dark:text-white">
+                    {(() => {
+                      const price = totals.total_tax || '0';
+                      const currencyMinorUnit = totals?.currency_minor_unit || 2;
+                      const priceStr = String(price).replace(/[€\s,]/g, '').trim();
+                      let num = parseFloat(priceStr) || 0;
+                      if (currencyMinorUnit === 2) num = num / 100;
+                      return num.toFixed(2);
+                    })()} €
+                  </span>
             </div>
             
             <div class="border-t-2 border-gray-300 dark:border-gray-600 pt-4 sm:pt-5 mt-4 sm:mt-5">
               <div class="flex justify-between items-center font-outfit font-bold text-lg sm:text-xl">
                 <span class="text-gray-900 dark:text-white">Total</span>
-                <span id="order-total" class="text-primary text-xl sm:text-2xl">{totals.total_price || '0'} €</span>
+                <span id="order-total" class="text-primary text-xl sm:text-2xl">
+                  {(() => {
+                    const price = totals.total_price || '0';
+                    const currencyMinorUnit = totals?.currency_minor_unit || 2;
+                    const priceStr = String(price).replace(/[€\s,]/g, '').trim();
+                    let num = parseFloat(priceStr) || 0;
+                    if (currencyMinorUnit === 2) num = num / 100;
+                    return num.toFixed(2);
+                  })()} €
+                </span>
               </div>
             </div>
           </div>
@@ -308,6 +357,39 @@ if (items.length === 0 && !error) {
   }
   .dark .custom-scrollbar::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Stripe Card Element Styling */
+  .stripe-card-element-container {
+    min-height: 50px;
+  }
+
+  .stripe-card-element-container .StripeElement {
+    padding: 0;
+  }
+
+  .stripe-card-element-container .Input {
+    padding: 12px 16px !important;
+    font-size: 16px !important;
+    border-radius: 8px !important;
+  }
+
+  .stripe-card-element-container .Input:focus {
+    outline: none;
+    border-color: #0413a5 !important;
+    box-shadow: 0 0 0 3px rgba(4, 19, 165, 0.1) !important;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 640px) {
+    .stripe-card-element-container {
+      padding: 10px 12px !important;
+    }
+    
+    .stripe-card-element-container .Input {
+      padding: 10px 12px !important;
+      font-size: 16px !important;
+    }
   }
 </style>
 
@@ -350,7 +432,13 @@ if (items.length === 0 && !error) {
         const stripePublishableKey = (window as any).STRIPE_PUBLISHABLE_KEY;
         
         if (!stripePublishableKey) {
-          console.warn('Stripe publishable key not found. Stripe payment will not be available.');
+          console.error('Stripe publishable key not found. Please check your environment configuration.');
+          // Show error message
+          const stripeCardErrors = document.getElementById('stripe-card-errors');
+          if (stripeCardErrors) {
+            stripeCardErrors.textContent = 'Stripe is not configured. Please contact support.';
+            stripeCardErrors.classList.remove('hidden');
+          }
           // Hide Stripe payment option if key is not available
           const stripePaymentOption = document.getElementById('payment-method-stripe');
           if (stripePaymentOption) {
@@ -359,11 +447,24 @@ if (items.length === 0 && !error) {
           return;
         }
         
+        // Validate key format
+        if (!stripePublishableKey.startsWith('pk_')) {
+          console.error('Invalid Stripe publishable key format.');
+          const stripeCardErrors = document.getElementById('stripe-card-errors');
+          if (stripeCardErrors) {
+            stripeCardErrors.textContent = 'Invalid Stripe configuration. Please contact support.';
+            stripeCardErrors.classList.remove('hidden');
+          }
+          return;
+        }
+        
         if (typeof (window as any).Stripe === 'undefined') {
           throw new Error('Stripe library not loaded');
         }
         
-        stripe = (window as any).Stripe(stripePublishableKey);
+        stripe = (window as any).Stripe(stripePublishableKey, {
+          locale: 'en',
+        });
         
         // Create payment intent
         const response = await fetch('/api/stripe/create-payment-intent', {
@@ -381,8 +482,9 @@ if (items.length === 0 && !error) {
           const data = await response.json();
           paymentIntentClientSecret = data.clientSecret;
           
-          // Create Elements
+          // Create Elements with optimized inline card UI
           elements = stripe.elements({
+            locale: 'en',
             appearance: {
               theme: document.documentElement.classList.contains('dark') ? 'night' : 'stripe',
               variables: {
@@ -393,11 +495,29 @@ if (items.length === 0 && !error) {
                 fontFamily: 'Manrope, system-ui, sans-serif',
                 spacingUnit: '4px',
                 borderRadius: '8px',
+                fontSizeBase: '16px',
+              },
+              rules: {
+                '.Input': {
+                  border: '1px solid',
+                  borderColor: document.documentElement.classList.contains('dark') ? '#374151' : '#d1d5db',
+                  borderRadius: '8px',
+                  padding: '12px 16px',
+                  fontSize: '16px',
+                  transition: 'all 0.2s',
+                },
+                '.Input:focus': {
+                  borderColor: '#0413a5',
+                  boxShadow: '0 0 0 3px rgba(4, 19, 165, 0.1)',
+                },
+                '.Input--invalid': {
+                  borderColor: '#ef4444',
+                },
               },
             },
           });
           
-          // Create card element
+          // Create card element with optimized inline layout
           const cardElementContainer = document.getElementById('stripe-card-element');
           if (cardElementContainer) {
             cardElement = elements.create('card', {
@@ -405,14 +525,18 @@ if (items.length === 0 && !error) {
                 base: {
                   fontSize: '16px',
                   color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#111827',
+                  fontFamily: 'Manrope, system-ui, sans-serif',
                   '::placeholder': {
                     color: document.documentElement.classList.contains('dark') ? '#9ca3af' : '#6b7280',
+                    opacity: 1,
                   },
                 },
                 invalid: {
                   color: '#ef4444',
+                  iconColor: '#ef4444',
                 },
               },
+              hidePostalCode: false,
             });
             cardElement.mount('#stripe-card-element');
             
@@ -793,15 +917,20 @@ if (items.length === 0 && !error) {
       const taxEl = document.getElementById('order-tax');
       const taxRow = document.getElementById('order-tax-row');
       const totalEl = document.getElementById('order-total');
+      
+      // Get currency minor unit from totals
+      const currencyMinorUnit = totals?.currency_minor_unit || 2;
 
-      if (subtotalEl) subtotalEl.textContent = `${totals.total_items || '0'} €`;
-      if (shippingEl) shippingEl.textContent = `${totals.total_shipping || '0'} €`;
-      if (taxEl) taxEl.textContent = `${totals.total_tax || '0'} €`;
-      if (totalEl) totalEl.textContent = `${totals.total_price || '0'} €`;
+      if (subtotalEl) subtotalEl.textContent = `${formatPrice(totals.total_items || '0', currencyMinorUnit)} €`;
+      if (shippingEl) shippingEl.textContent = `${formatPrice(totals.total_shipping || '0', currencyMinorUnit)} €`;
+      if (taxEl) taxEl.textContent = `${formatPrice(totals.total_tax || '0', currencyMinorUnit)} €`;
+      if (totalEl) totalEl.textContent = `${formatPrice(totals.total_price || '0', currencyMinorUnit)} €`;
       
       // Show/hide tax row
       if (taxRow) {
-        if (totals.total_tax && totals.total_tax !== '0' && parseFloat(totals.total_tax) > 0) {
+        const taxAmount = parseFloat(String(totals.total_tax || '0').replace(/[€\s,]/g, '')) || 0;
+        const taxAmountConverted = currencyMinorUnit === 2 ? taxAmount / 100 : taxAmount;
+        if (taxAmountConverted > 0) {
           taxRow.classList.remove('hidden');
         } else {
           taxRow.classList.add('hidden');

@@ -153,16 +153,22 @@ import Spinner from '../atoms/Spinner.astro';
     renderCartItems(items, totals, cart.items_count || items.length);
   }
 
-  function formatPrice(price: string | number): string {
+  function formatPrice(price: string | number, currencyMinorUnit: number = 2): string {
     if (!price && price !== 0) return '0';
     const priceStr = String(price);
     // Remove currency symbols and spaces, keep numbers and decimal point
     const cleaned = priceStr.replace(/[€\s,]/g, '').trim();
-    // Convert to number and back to string to handle decimals properly
-    const num = parseFloat(cleaned);
+    // Convert to number
+    let num = parseFloat(cleaned);
     if (isNaN(num)) return '0';
-    // Format without decimals if it's a whole number
-    return num % 1 === 0 ? num.toString() : num.toFixed(2);
+    
+    // Convert from centimes to euros if currency_minor_unit is 2 (cents)
+    if (currencyMinorUnit === 2) {
+      num = num / 100;
+    }
+    
+    // Format with 2 decimals
+    return num.toFixed(2);
   }
 
   function renderCartItems(items: any[], totals: any, itemsCount: number) {
@@ -180,6 +186,9 @@ import Spinner from '../atoms/Spinner.astro';
       console.error('cartPopupItems not found in renderCartItems');
       return;
     }
+
+    // Get currency minor unit from totals (default to 2 for cents)
+    const currencyMinorUnit = totals?.currency_minor_unit || 2;
 
     // Update count
     const countElement = document.getElementById('cart-popup-count');
@@ -216,7 +225,7 @@ import Spinner from '../atoms/Spinner.astro';
             const quantity = item.quantity || 1;
             // Get unit price
             const unitPriceRaw = item.prices?.price || item.price || item.prices?.unit_price || '0';
-            const unitPrice = formatPrice(unitPriceRaw);
+            const unitPrice = formatPrice(unitPriceRaw, currencyMinorUnit);
             
             // Calculate total price: use prices.total if available, otherwise calculate unitPrice * quantity
             let totalPriceRaw = item.prices?.total || item.total || item.prices?.line_total || '0';
@@ -225,7 +234,7 @@ import Spinner from '../atoms/Spinner.astro';
               const unitPriceNum = parseFloat(unitPrice) || 0;
               totalPriceRaw = (unitPriceNum * quantity).toString();
             }
-            const totalPrice = formatPrice(totalPriceRaw);
+            const totalPrice = formatPrice(totalPriceRaw, currencyMinorUnit);
             const itemKey = item.key || item.id;
             const productId = item.id || item.product_id || '';
             const imageUrl = item.images?.[0]?.src || item.image?.src || '/placeholder-product.jpg';
@@ -377,7 +386,8 @@ import Spinner from '../atoms/Spinner.astro';
                     // Update price
                     const priceElement = itemElement.querySelector('.font-bold');
                     if (priceElement) {
-                      const newTotal = formatPrice(updatedItem.prices?.total || updatedItem.total || '0');
+                      const resultCurrencyMinorUnit = result.totals?.currency_minor_unit || 2;
+                      const newTotal = formatPrice(updatedItem.prices?.total || updatedItem.total || '0', resultCurrencyMinorUnit);
                       priceElement.textContent = `${newTotal} €`;
                     }
                     
@@ -415,8 +425,9 @@ import Spinner from '../atoms/Spinner.astro';
     // Update totals
     const subtotalElement = document.getElementById('cart-popup-subtotal');
     const totalElement = document.getElementById('cart-popup-total');
-    const totalPrice = formatPrice(totals.total_price || '0');
-    
+    const totalsCurrencyMinorUnit = totals?.currency_minor_unit || 2;
+    const totalPrice = formatPrice(totals.total_price || '0', totalsCurrencyMinorUnit);
+
     if (subtotalElement) {
       subtotalElement.textContent = `${totalPrice} €`;
     }

@@ -1,0 +1,722 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminHeader from '../../components/molecules/AdminHeader.astro';
+import Card from '../../components/atoms/Card.astro';
+import Icon from '../../components/atoms/Icon.astro';
+import Button from '../../components/atoms/Button.astro';
+import StatsCardSkeleton from '../../components/molecules/StatsCardSkeleton.astro';
+---
+
+<AdminLayout title="Products" description="Manage WooCommerce products">
+  <AdminHeader
+    title="Products"
+    description="View and manage all products"
+    actionLabel="Refresh"
+    actionId="refresh-btn"
+    actionIcon="refresh-cw"
+  />
+  
+  <div class="p-3 sm:p-4 md:p-5 lg:p-6 space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6">
+
+    <!-- Search Bar -->
+    <Card variant="elevated" class="p-3 sm:p-4 md:p-5">
+      <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+        <div class="flex-1 relative">
+          <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
+            <Icon name="search" size="sm" />
+          </div>
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Search product (name, SKU)..."
+            class="w-full pl-10 pr-4 py-2 sm:py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent font-outfit text-sm sm:text-base"
+          />
+        </div>
+        <button
+          id="search-btn"
+          class="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg bg-primary text-white hover:bg-primary-dark transition-all duration-200 font-outfit font-medium text-sm sm:text-base flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+        >
+          <Icon name="search" size="sm" />
+          <span>Search</span>
+        </button>
+      </div>
+    </Card>
+
+    <!-- Stats Cards -->
+    <div id="stats-container" class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-5">
+      <!-- Skeleton cards during loading -->
+      <div id="stats-skeleton" class="contents">
+        <StatsCardSkeleton />
+        <StatsCardSkeleton />
+        <StatsCardSkeleton />
+      </div>
+      
+      <!-- Real stats cards (hidden initially) -->
+      <div id="stats-real" class="contents hidden">
+        <Card variant="elevated" class="p-5 border-l-4 border-l-blue-500">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Total Products</p>
+              <p id="total-products" class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                <span id="total-products-text">0</span>
+              </p>
+              <div class="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+                <span>All products</span>
+              </div>
+            </div>
+            <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+              <Icon name="package" size="lg" class="text-blue-600 dark:text-blue-400" />
+            </div>
+          </div>
+        </Card>
+        
+        <Card variant="elevated" class="p-5 border-l-4 border-l-green-500">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Published</p>
+              <p id="published-products" class="text-3xl font-bold text-gray-900 dark:text-white mb-2">0</p>
+              <div class="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Active</span>
+              </div>
+            </div>
+            <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+              <Icon name="check-circle" size="lg" class="text-green-600 dark:text-green-400" />
+            </div>
+          </div>
+        </Card>
+        
+        <Card variant="elevated" class="p-5 border-l-4 border-l-orange-500">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Draft</p>
+              <p id="draft-products" class="text-3xl font-bold text-gray-900 dark:text-white mb-2">0</p>
+              <div class="flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <span>In progress</span>
+              </div>
+            </div>
+            <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
+              <Icon name="edit" size="lg" class="text-orange-600 dark:text-orange-400" />
+            </div>
+          </div>
+        </Card>
+      </div>
+    </div>
+
+    <!-- Loading State - Table Skeleton -->
+    <div id="loading-state">
+      <Card variant="elevated" class="overflow-hidden">
+        <div class="p-4 sm:p-5">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-32 skeleton-shimmer"></div>
+            <div class="flex items-center gap-2">
+              <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-24 skeleton-shimmer"></div>
+              <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-24 skeleton-shimmer"></div>
+            </div>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-800/50">
+              <tr>
+                <th class="px-4 sm:px-6 py-3">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20 skeleton-shimmer"></div>
+                </th>
+                <th class="px-4 sm:px-6 py-3">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32 skeleton-shimmer"></div>
+                </th>
+                <th class="px-4 sm:px-6 py-3">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 skeleton-shimmer"></div>
+                </th>
+                <th class="px-4 sm:px-6 py-3">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20 skeleton-shimmer"></div>
+                </th>
+                <th class="px-4 sm:px-6 py-3">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16 skeleton-shimmer"></div>
+                </th>
+                <th class="px-4 sm:px-6 py-3">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20 skeleton-shimmer"></div>
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              {Array.from({ length: 5 }).map(() => (
+                <tr>
+                  <td class="px-4 sm:px-6 py-4">
+                    <div class="h-10 w-10 bg-gray-200 dark:bg-gray-700 rounded skeleton-shimmer"></div>
+                  </td>
+                  <td class="px-4 sm:px-6 py-4">
+                    <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 skeleton-shimmer"></div>
+                  </td>
+                  <td class="px-4 sm:px-6 py-4">
+                    <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 skeleton-shimmer"></div>
+                  </td>
+                  <td class="px-4 sm:px-6 py-4">
+                    <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 skeleton-shimmer"></div>
+                  </td>
+                  <td class="px-4 sm:px-6 py-4">
+                    <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-16 skeleton-shimmer mx-auto"></div>
+                  </td>
+                  <td class="px-4 sm:px-6 py-4">
+                    <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-8 skeleton-shimmer mx-auto"></div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    </div>
+
+    <!-- Empty State -->
+    <div id="empty-state" class="hidden">
+      <Card variant="elevated" class="p-6 sm:p-8 md:p-10 lg:p-12">
+        <div class="flex flex-col items-center justify-center text-center">
+          <div class="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-700 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 md:mb-5 shadow-inner ring-2 ring-gray-200/50 dark:ring-gray-700/30">
+            <Icon name="package" size="xl" class="text-gray-400 dark:text-gray-500" />
+          </div>
+          <h3 id="empty-title" class="font-outfit font-semibold text-lg sm:text-xl md:text-2xl text-gray-900 dark:text-white mb-1.5 sm:mb-2 md:mb-2.5 px-4">
+            No products found
+          </h3>
+          <p id="empty-message" class="font-outfit text-sm sm:text-base text-gray-600 dark:text-gray-400 max-w-md px-4">
+            No products match your search.
+          </p>
+        </div>
+      </Card>
+    </div>
+
+    <!-- Products Table -->
+    <Card variant="elevated" id="products-table-container" class="hidden overflow-hidden">
+      <div class="overflow-x-auto -mx-5 sm:mx-0">
+        <div class="inline-block min-w-full align-middle">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-800/50">
+              <tr>
+                <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                  Image
+                </th>
+                <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                  Name
+                </th>
+                <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                  SKU
+                </th>
+                <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                  Price
+                </th>
+                <th scope="col" class="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                  Status
+                </th>
+                <th scope="col" class="px-4 sm:px-6 py-3 text-right text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody id="products-table-body" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              <!-- Table rows will be inserted here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </Card>
+
+    <!-- Pagination -->
+    <div id="pagination-container" class="hidden mt-4 sm:mt-5 md:mt-6 lg:mt-8">
+      <Card variant="elevated" class="p-3 sm:p-4 md:p-5 lg:p-6">
+        <div class="flex flex-col gap-3 sm:gap-4">
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
+            <div class="font-outfit text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400 text-center sm:text-left w-full sm:w-auto order-2 sm:order-1">
+              Showing <span id="pagination-start" class="font-semibold text-gray-900 dark:text-white">0</span>
+              to <span id="pagination-end" class="font-semibold text-gray-900 dark:text-white">0</span>
+              of <span id="pagination-total" class="font-semibold text-gray-900 dark:text-white">0</span> products
+            </div>
+            
+            <div class="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto justify-center sm:justify-end order-1 sm:order-2">
+              <button
+                id="pagination-prev"
+                class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-outfit text-xs sm:text-sm flex items-center gap-1 sm:gap-1.5 flex-1 sm:flex-none justify-center"
+                disabled
+              >
+                <Icon name="chevron-left" size="sm" />
+                <span class="hidden sm:inline">Previous</span>
+                <span class="sm:hidden">Prev</span>
+              </button>
+              
+              <button
+                id="pagination-next"
+                class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-outfit text-xs sm:text-sm flex items-center gap-1 sm:gap-1.5 flex-1 sm:flex-none justify-center"
+                disabled
+              >
+                <span class="hidden sm:inline">Next</span>
+                <span class="sm:hidden">Next</span>
+                <Icon name="chevron-right" size="sm" />
+              </button>
+            </div>
+          </div>
+          
+          <!-- Page numbers container -->
+          <div id="pagination-numbers" class="flex items-center justify-center gap-1 sm:gap-1.5 flex-wrap pt-2 sm:pt-3 border-t border-gray-200 dark:border-gray-700">
+            <!-- Page numbers will be inserted here -->
+          </div>
+        </div>
+      </Card>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-state" class="hidden">
+      <Card variant="elevated" class="p-4 sm:p-5 md:p-6 border-l-4 border-red-500 bg-red-50/50 dark:bg-red-900/10">
+        <div class="flex items-start gap-3 sm:gap-4">
+          <div class="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+            <Icon name="alert-circle" size="lg" class="text-red-600 dark:text-red-400" />
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-outfit font-semibold text-base sm:text-lg md:text-xl text-gray-900 dark:text-white mb-1.5 sm:mb-2">
+              Error loading products
+            </h3>
+            <p id="error-message" class="font-outfit text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400 mb-3 sm:mb-4 break-words"></p>
+            <Button
+              id="retry-btn"
+              variant="primary"
+              size="sm"
+              class="flex items-center justify-center gap-1.5 sm:gap-2 w-full sm:w-auto text-xs sm:text-sm"
+            >
+              <Icon name="refresh-cw" size="sm" />
+              <span>Try again</span>
+            </Button>
+          </div>
+        </div>
+      </Card>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+
+    // Check if user is admin
+    try {
+      const checkAdminResponse = await fetch('/api/admin/check-admin', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!checkAdminResponse.ok) {
+        window.location.href = '/login';
+        return;
+      }
+
+      const adminData = await checkAdminResponse.json();
+      if (!adminData.isAdmin) {
+        window.location.href = '/my-account';
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      window.location.href = '/login';
+      return;
+    }
+
+    const loadingState = document.getElementById('loading-state');
+    const emptyState = document.getElementById('empty-state');
+    const productsTableContainer = document.getElementById('products-table-container');
+    const productsTableBody = document.getElementById('products-table-body');
+    const errorState = document.getElementById('error-state');
+    const errorMessage = document.getElementById('error-message');
+    const refreshBtn = document.getElementById('refresh-btn');
+    const retryBtn = document.getElementById('retry-btn');
+    const paginationContainer = document.getElementById('pagination-container');
+    const paginationStart = document.getElementById('pagination-start');
+    const paginationEnd = document.getElementById('pagination-end');
+    const paginationTotal = document.getElementById('pagination-total');
+    const paginationPrev = document.getElementById('pagination-prev');
+    const paginationNext = document.getElementById('pagination-next');
+    const paginationNumbers = document.getElementById('pagination-numbers');
+    const searchInput = document.getElementById('search-input') as HTMLInputElement;
+    const searchBtn = document.getElementById('search-btn');
+
+    let products: any[] = [];
+    let currentPage = 1;
+    let perPage = 20;
+    let pagination: any = null;
+    let currentSearch = '';
+
+    // Format price
+    function formatPrice(price: string | number): string {
+      const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+      if (isNaN(numPrice)) return '0,00 €';
+      return new Intl.NumberFormat('fr-FR', {
+        style: 'currency',
+        currency: 'EUR',
+      }).format(numPrice);
+    }
+
+    // Load products
+    async function loadProducts(page: number = currentPage, search: string = currentSearch) {
+      currentPage = page;
+      currentSearch = search;
+      loadingState?.classList.remove('hidden');
+      emptyState?.classList.add('hidden');
+      productsTableContainer?.classList.add('hidden');
+      errorState?.classList.add('hidden');
+      paginationContainer?.classList.add('hidden');
+      
+      // Show stats skeleton
+      const statsSkeleton = document.getElementById('stats-skeleton');
+      const statsReal = document.getElementById('stats-real');
+      if (statsSkeleton && statsReal) {
+        statsSkeleton.classList.remove('hidden');
+        statsReal.classList.add('hidden');
+      }
+
+      try {
+        let url = `/api/admin/products?page=${page}&per_page=${perPage}`;
+        if (search) {
+          url += `&search=${encodeURIComponent(search)}`;
+        }
+
+        const response = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.status === 403) {
+          window.location.href = '/login';
+          return;
+        }
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to load products');
+        }
+
+        const data = await response.json();
+        products = data.products || [];
+        pagination = data.pagination || null;
+        const stats = data.stats || {};
+        
+        // Update stats cards - hide skeleton and show real cards
+        if (statsSkeleton && statsReal) {
+          statsSkeleton.classList.add('hidden');
+          statsReal.classList.remove('hidden');
+        }
+        
+        // Update stats
+        const totalProductsEl = document.getElementById('total-products-text');
+        const publishedProductsEl = document.getElementById('published-products');
+        const draftProductsEl = document.getElementById('draft-products');
+        
+        if (totalProductsEl && pagination) {
+          totalProductsEl.textContent = pagination.totalItems.toString();
+        }
+        if (publishedProductsEl && stats.published !== undefined) {
+          publishedProductsEl.textContent = stats.published.toString();
+        }
+        if (draftProductsEl && stats.draft !== undefined) {
+          draftProductsEl.textContent = stats.draft.toString();
+        }
+
+        loadingState?.classList.add('hidden');
+
+        if (products.length === 0) {
+          const emptyTitle = document.getElementById('empty-title');
+          const emptyMessage = document.getElementById('empty-message');
+          if (emptyTitle && emptyMessage) {
+            if (search) {
+              emptyTitle.textContent = 'No results';
+              emptyMessage.textContent = `No products match "${search}"`;
+            } else {
+              emptyTitle.textContent = 'No products';
+              emptyMessage.textContent = 'No products found in the database.';
+            }
+          }
+          emptyState?.classList.remove('hidden');
+        } else {
+          renderProducts();
+          renderPagination();
+          productsTableContainer?.classList.remove('hidden');
+          paginationContainer?.classList.remove('hidden');
+        }
+      } catch (error: any) {
+        console.error('Error loading products:', error);
+        loadingState?.classList.add('hidden');
+        errorState?.classList.remove('hidden');
+        if (errorMessage) {
+          errorMessage.textContent = error.message || 'An error occurred while loading products';
+        }
+      }
+    }
+
+    // Render products table
+    function renderProducts() {
+      if (!productsTableBody) return;
+
+      productsTableBody.innerHTML = products.map(product => {
+        const imageUrl = product.images && product.images.length > 0 
+          ? product.images[0].src 
+          : '/logo2aviaco.png';
+        const price = product.prices?.price || product.price || '0';
+        const regularPrice = product.prices?.regular_price || product.regular_price;
+        const salePrice = product.prices?.sale_price || product.sale_price;
+        const status = product.status || 'draft';
+        const sku = product.sku || '-';
+        const productUrl = product.permalink || `/produit/${product.id}`;
+        
+        return `
+          <tr class="group hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+            <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
+              <div class="flex items-center">
+                <img 
+                  src="${imageUrl}" 
+                  alt="${product.name || 'Product'}"
+                  class="h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-cover bg-gray-100 dark:bg-gray-700"
+                  onerror="this.src='/logo2aviaco.png'"
+                />
+              </div>
+            </td>
+            <td class="px-4 sm:px-6 py-4">
+              <div class="text-sm font-medium text-gray-900 dark:text-white">
+                <a href="${productUrl}" target="_blank" class="hover:text-primary transition-colors">
+                  ${product.name || 'Unnamed Product'}
+                </a>
+              </div>
+              ${product.short_description ? `
+                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">
+                  ${product.short_description.replace(/<[^>]*>/g, '').substring(0, 60)}...
+                </div>
+              ` : ''}
+            </td>
+            <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900 dark:text-white font-mono">${sku}</div>
+            </td>
+            <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-medium text-gray-900 dark:text-white">
+                ${salePrice && parseFloat(salePrice) < parseFloat(regularPrice || price) ? `
+                  <span class="text-red-600 dark:text-red-400">${formatPrice(salePrice)}</span>
+                  <span class="text-xs text-gray-500 dark:text-gray-400 line-through ml-2">${formatPrice(regularPrice || price)}</span>
+                ` : formatPrice(price)}
+              </div>
+            </td>
+            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-center">
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                status === 'publish' 
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
+                  : 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
+              }">
+                ${status === 'publish' ? 'Published' : 'Draft'}
+              </span>
+            </td>
+            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-right">
+              <a 
+                href="${productUrl}" 
+                target="_blank"
+                class="inline-flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-500 dark:text-gray-400 hover:text-primary"
+                title="View product"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              </a>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Render pagination
+    function renderPagination() {
+      if (!pagination || !paginationContainer) return;
+
+      const start = (pagination.page - 1) * pagination.perPage + 1;
+      const end = Math.min(start + products.length - 1, pagination.totalItems);
+      
+      if (paginationStart) paginationStart.textContent = start.toString();
+      if (paginationEnd) paginationEnd.textContent = end.toString();
+      if (paginationTotal) paginationTotal.textContent = pagination.totalItems.toString();
+
+      if (paginationPrev) {
+        paginationPrev.disabled = !pagination.hasPrevPage;
+      }
+      if (paginationNext) {
+        paginationNext.disabled = !pagination.hasNextPage;
+      }
+
+      // Render page numbers
+      if (paginationNumbers) {
+        paginationNumbers.innerHTML = '';
+        
+        const totalPages = pagination.totalPages;
+        const current = pagination.page;
+        
+        let startPage = Math.max(1, current - 2);
+        let endPage = Math.min(totalPages, current + 2);
+        
+        if (endPage - startPage < 4) {
+          if (startPage === 1) {
+            endPage = Math.min(5, totalPages);
+          } else if (endPage === totalPages) {
+            startPage = Math.max(1, totalPages - 4);
+          }
+        }
+        
+        if (startPage > 1) {
+          const btn = createPageButton(1, current === 1);
+          paginationNumbers.appendChild(btn);
+          
+          if (startPage > 2) {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'px-1.5 sm:px-2 py-1 text-gray-500 dark:text-gray-400 font-outfit text-xs sm:text-sm';
+            ellipsis.textContent = '...';
+            paginationNumbers.appendChild(ellipsis);
+          }
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+          const btn = createPageButton(i, current === i);
+          paginationNumbers.appendChild(btn);
+        }
+        
+        if (endPage < totalPages) {
+          if (endPage < totalPages - 1) {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'px-1.5 sm:px-2 py-1 text-gray-500 dark:text-gray-400 font-outfit text-xs sm:text-sm';
+            ellipsis.textContent = '...';
+            paginationNumbers.appendChild(ellipsis);
+          }
+          
+          const btn = createPageButton(totalPages, current === totalPages);
+          paginationNumbers.appendChild(btn);
+        }
+      }
+    }
+
+    function createPageButton(pageNum: number, isActive: boolean): HTMLButtonElement {
+      const btn = document.createElement('button');
+      btn.className = `px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg font-outfit text-xs sm:text-sm transition-all duration-200 min-w-[2rem] sm:min-w-[2.5rem] ${
+        isActive
+          ? 'bg-primary text-white hover:bg-primary-dark shadow-sm'
+          : 'border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-primary/30'
+      }`;
+      btn.textContent = pageNum.toString();
+      btn.addEventListener('click', () => {
+        loadProducts(pageNum, currentSearch);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      return btn;
+    }
+
+    // Event listeners
+    refreshBtn?.addEventListener('click', () => loadProducts(currentPage, currentSearch));
+    retryBtn?.addEventListener('click', () => loadProducts(currentPage, currentSearch));
+    
+    searchBtn?.addEventListener('click', () => {
+      const search = searchInput?.value.trim() || '';
+      loadProducts(1, search);
+    });
+
+    searchInput?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const search = searchInput.value.trim() || '';
+        loadProducts(1, search);
+      }
+    });
+    
+    if (paginationPrev) {
+      paginationPrev.addEventListener('click', () => {
+        if (pagination && pagination.hasPrevPage) {
+          loadProducts(currentPage - 1, currentSearch);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    }
+    
+    if (paginationNext) {
+      paginationNext.addEventListener('click', () => {
+        if (pagination && pagination.hasNextPage) {
+          loadProducts(currentPage + 1, currentSearch);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    }
+
+    // Initial load
+    loadProducts(1);
+  });
+</script>
+
+<style>
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+  
+  .skeleton-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .skeleton-shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent
+    );
+    animation: shimmer 1.5s infinite;
+  }
+  
+  :global(.dark) .skeleton-shimmer::after {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+  }
+
+  /* Table scrollbar */
+  #products-table-container::-webkit-scrollbar {
+    height: 8px;
+  }
+  
+  #products-table-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  #products-table-container::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+  }
+  
+  .dark #products-table-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+  }
+</style>
+
