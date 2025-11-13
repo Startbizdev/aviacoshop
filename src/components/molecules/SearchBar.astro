@@ -4,43 +4,49 @@ import Icon from '../atoms/Icon.astro';
 import Card from '../atoms/Card.astro';
 import Spinner from '../atoms/Spinner.astro';
 
+interface Props {
+  uniqueId?: string;
+}
+
+const { uniqueId = 'desktop' } = Astro.props;
 ---
 
-<div class="relative w-full max-w-2xl mx-auto">
+<div class="relative w-full max-w-2xl mx-auto" data-search-bar={uniqueId}>
   <div class="relative group">
     <Input
       type="search"
-      id="search-input"
+      id={`search-input-${uniqueId}`}
       name="search"
       placeholder="Search for a product..."
       class="pl-12 pr-4 transition-all duration-200 focus:shadow-lg focus:shadow-primary/10"
+      data-search-input={uniqueId}
     />
     
     <!-- Search Icon / Spinner (same position) -->
-    <div id="search-icon" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 transition-all duration-200 group-focus-within:text-primary pointer-events-none">
+    <div data-search-icon={uniqueId} class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 transition-all duration-200 group-focus-within:text-primary pointer-events-none">
       <Icon name="search" size="md" />
     </div>
     
     <!-- Loading Spinner (replaces search icon) -->
-    <div id="search-loading" class="hidden absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+    <div data-search-loading={uniqueId} class="hidden absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
       <Spinner size="sm" />
     </div>
   </div>
   
   <!-- Suggestions dropdown -->
   <div
-    id="search-suggestions"
+    data-search-suggestions={uniqueId}
     class="hidden absolute top-full left-0 right-0 mt-2 z-50 max-h-96 overflow-y-auto"
   >
     <Card variant="elevated" class="p-2 shadow-xl border border-gray-200 dark:border-gray-700">
-      <div id="suggestions-list" class="space-y-1">
+      <div data-suggestions-list={uniqueId} class="space-y-1">
         <!-- Suggestions will be injected here by JavaScript -->
       </div>
       
       <!-- View All Results Link -->
-      <div id="view-all-results" class="hidden mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+      <div data-view-all-results={uniqueId} class="hidden mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
         <a
-          id="view-all-link"
+          data-view-all-link={uniqueId}
           href="#"
           class="flex items-center justify-center gap-2 p-3 text-sm font-medium text-primary hover:bg-primary/5 dark:hover:bg-primary/10 rounded-lg transition-colors group"
         >
@@ -55,19 +61,26 @@ import Spinner from '../atoms/Spinner.astro';
 </div>
 
 <script>
-  let searchTimeout: NodeJS.Timeout;
-  let logTimeout: NodeJS.Timeout;
-  let currentIndex = -1;
-  let suggestions: any[] = [];
-  let lastQuery = '';
-  
-  const searchInput = document.getElementById('search-input') as HTMLInputElement;
-  const suggestionsContainer = document.getElementById('search-suggestions') as HTMLElement;
-  const suggestionsList = document.getElementById('suggestions-list') as HTMLElement;
-  const searchIcon = document.getElementById('search-icon') as HTMLElement;
-  const searchLoading = document.getElementById('search-loading') as HTMLElement;
-  const viewAllResults = document.getElementById('view-all-results') as HTMLElement;
-  const viewAllLink = document.getElementById('view-all-link') as HTMLAnchorElement;
+  // Initialize each search bar instance separately
+  function initSearchBar(container: HTMLElement, uniqueId: string) {
+    let searchTimeout: NodeJS.Timeout;
+    let logTimeout: NodeJS.Timeout;
+    let currentIndex = -1;
+    let suggestions: any[] = [];
+    let lastQuery = '';
+    
+    const searchInput = container.querySelector(`[data-search-input="${uniqueId}"]`) as HTMLInputElement;
+    const suggestionsContainer = container.querySelector(`[data-search-suggestions="${uniqueId}"]`) as HTMLElement;
+    const suggestionsList = container.querySelector(`[data-suggestions-list="${uniqueId}"]`) as HTMLElement;
+    const searchIcon = container.querySelector(`[data-search-icon="${uniqueId}"]`) as HTMLElement;
+    const searchLoading = container.querySelector(`[data-search-loading="${uniqueId}"]`) as HTMLElement;
+    const viewAllResults = container.querySelector(`[data-view-all-results="${uniqueId}"]`) as HTMLElement;
+    const viewAllLink = container.querySelector(`[data-view-all-link="${uniqueId}"]`) as HTMLAnchorElement;
+    
+    if (!searchInput || !suggestionsContainer || !suggestionsList) {
+      console.warn(`SearchBar ${uniqueId}: Required elements not found`);
+      return;
+    }
 
   // Function to highlight search text
   function highlightText(text: string, query: string): string {
@@ -251,7 +264,6 @@ import Spinner from '../atoms/Spinner.astro';
     }
   }
 
-  if (searchInput && suggestionsContainer && suggestionsList) {
     // Search with debounce
     searchInput.addEventListener('input', (e) => {
       const query = (e.target as HTMLInputElement).value.trim();
@@ -260,8 +272,8 @@ import Spinner from '../atoms/Spinner.astro';
       
       if (query.length === 0) {
         suggestionsContainer.classList.add('hidden');
-        searchLoading.classList.add('hidden');
-        searchIcon.classList.remove('hidden');
+        if (searchLoading) searchLoading.classList.add('hidden');
+        if (searchIcon) searchIcon.classList.remove('hidden');
         return;
       }
       
@@ -319,6 +331,17 @@ import Spinner from '../atoms/Spinner.astro';
       }
     });
   }
+
+  // Initialize all search bars on the page
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchBars = document.querySelectorAll('[data-search-bar]');
+    searchBars.forEach((container) => {
+      const uniqueId = (container as HTMLElement).getAttribute('data-search-bar');
+      if (uniqueId) {
+        initSearchBar(container as HTMLElement, uniqueId);
+      }
+    });
+  });
 </script>
 
 <style>

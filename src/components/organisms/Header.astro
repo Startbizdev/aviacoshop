@@ -41,7 +41,7 @@ import Image from '../atoms/Image.astro';
       
       <!-- Search Bar (desktop) -->
       <div class="hidden md:flex flex-1 max-w-2xl mx-8">
-        <SearchBar />
+        <SearchBar uniqueId="desktop" />
       </div>
       
       <!-- Actions -->
@@ -64,7 +64,7 @@ import Image from '../atoms/Image.astro';
     
     <!-- Mobile Search Bar (toujours cachée, s'affiche uniquement au clic sur le bouton search) -->
     <div id="mobile-search" class="hidden md:hidden mt-4">
-      <SearchBar />
+      <SearchBar uniqueId="mobile" />
     </div>
   </div>
 
